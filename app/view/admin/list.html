@@ -1,0 +1,209 @@
+{extend name="admin/layout" /}
+{block name="title"}黑白名单{/block}
+{block name="main"}
+<style>
+.alert{margin-bottom: 5px;}
+</style>
+<div class="container" style="padding-top:70px;">
+	<div class="col-xs-12 col-md-10 center-block" style="float: none;">
+
+<ul class="nav nav-tabs">
+	<li class="{if $type=='black'}active{/if}"><a href="/admin/list">黑名单列表</a></li><li class="{if $type=='white'}active{/if}"><a href="/admin/list/type/white">白名单列表</a></li>
+</ul>
+
+{if $type=='black' && config_get('whitelist')=='1'}
+<div class="alert alert-warning">提示：当前为白名单模式，黑名单列表里面的记录不会生效。</div>
+{/if}
+{if $type=='white' && config_get('whitelist')=='0'}
+<div class="alert alert-warning">提示：当前未开启白名单模式，白名单列表里面的记录不会生效。</div>
+{/if}
+{if $type=='black'}
+<div class="alert alert-info">添加到黑名单列表中的服务器IP将无法使用此云端</div>
+{/if}
+{if $type=='white'}
+<div class="alert alert-info">只有添加到白名单列表中的服务器IP才可以使用此云端</div>
+{/if}
+
+<div id="searchToolbar">
+<form onsubmit="return searchSubmit()" method="GET" class="form-inline">
+  <div class="form-group">
+    <label>搜索</label>
+	<input type="text" class="form-control" name="ip" placeholder="服务器IP">
+  </div>
+  <div class="form-group">
+	<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i>搜索</button>&nbsp;
+	<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-repeat"></i>重置</a>&nbsp;
+	<a href="javascript:add_item()" class="btn btn-success"><i class="fa fa-plus"></i>添加</a>&nbsp;
+  </div>
+</form>
+</div>
+
+      <table id="listTable">
+	  </table>
+	</div>
+  </div>
+<script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
+<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
+<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+<script src="/static/js/custom.js"></script>
+<script>
+function setEnable(id,enable) {
+	$.ajax({
+		type : 'POST',
+		url : '/admin/list_op/type/{$type}',
+		data: { act:'enable', id:id, enable:enable},
+		dataType : 'json',
+		success : function(data) {
+			if(data.code == 0){
+				searchSubmit();
+			}else{
+				layer.msg(data.msg, {icon:2, time:1500});
+			}
+		},
+		error:function(data){
+			layer.msg('服务器错误');
+		}
+	});
+}
+
+function add_item(){
+	layer.open({
+		area: ['360px'],
+		title: '添加IP{$typename}',
+		content: '<div class="form-group"><input type="text" class="form-control" name="item_input" placeholder="请输入服务器IP" value=""></div>',
+		yes: function(){
+			var ip = $("input[name='item_input']").val();
+			$.ajax({
+				type : 'POST',
+				url : '/admin/list_op/type/{$type}',
+				data: { act:'add', ip:ip},
+				dataType : 'json',
+				success : function(data) {
+					if(data.code == 0){
+						layer.msg('添加成功', {icon:1, time:800});
+						searchSubmit();
+					}else{
+						layer.alert(data.msg, {icon: 2});
+					}
+				},
+				error:function(data){
+					layer.msg('服务器错误');
+				}
+			});
+		},
+		shadeClose: true
+	});
+}
+
+function edit_item(id){
+	$.ajax({
+		type : 'POST',
+		url : '/admin/list_op/type/{$type}',
+		data: { act:'get', id:id},
+		dataType : 'json',
+		success : function(data) {
+			if(data.code == 0){
+				layer.open({
+					area: ['360px'],
+					title: '编辑IP{$typename}',
+					content: '<div class="form-group"><input type="text" class="form-control" name="item_input" placeholder="请输入服务器IP" value="'+data.data.ip+'"></div>',
+					yes: function(){
+						var ip = $("input[name='item_input']").val();
+						$.ajax({
+							type : 'POST',
+							url : '/admin/list_op/type/{$type}',
+							data: { act:'edit', id:id, ip:ip},
+							dataType : 'json',
+							success : function(data) {
+								if(data.code == 0){
+									layer.msg('修改成功', {icon:1, time:800});
+									searchSubmit();
+								}else{
+									layer.alert(data.msg, {icon: 2});
+								}
+							},
+							error:function(data){
+								layer.msg('服务器错误');
+							}
+						});
+					},
+					shadeClose: true
+				});
+			}else{
+				layer.alert(data.msg, {icon: 2});
+			}
+		},
+		error:function(data){
+			layer.msg('服务器错误');
+		}
+	});
+}
+
+function del_item(id) {
+	if(confirm('是否确定删除此记录？')){
+		$.ajax({
+			type : 'POST',
+			url : '/admin/list_op/type/{$type}',
+			data: { act:'del', id:id},
+			dataType : 'json',
+			success : function(data) {
+				if(data.code == 0){
+					layer.msg('删除成功！', {icon:1, time:800});
+					searchSubmit();
+				}else{
+					layer.alert(data.msg, {icon:2});
+				}
+			},
+			error:function(data){
+				layer.msg('服务器错误');
+			}
+		});
+	}
+}
+
+$(document).ready(function(){
+	updateToolbar();
+	const defaultPageSize = 15;
+	const pageNumber = typeof window.$_GET['pageNumber'] != 'undefined' ? parseInt(window.$_GET['pageNumber']) : 1;
+	const pageSize = typeof window.$_GET['pageSize'] != 'undefined' ? parseInt(window.$_GET['pageSize']) : defaultPageSize;
+
+	$("#listTable").bootstrapTable({
+		url: '/admin/list_data/type/{$type}',
+		pageNumber: pageNumber,
+		pageSize: pageSize,
+		classes: 'table table-striped table-hover table-bottom-border',
+		columns: [
+			{
+				field: 'id',
+				title: 'ID',
+				formatter: function(value, row, index) {
+					return '<b>'+value+'</b>';
+				}
+			},
+			{
+				field: 'ip',
+				title: '服务器IP'
+			},
+			{
+				field: 'enable',
+				title: '是否生效',
+				formatter: function(value, row, index) {
+					return value?'<a href="javascript:setEnable('+row.id+',0)"><font color=green><i class="fa fa-check-circle"></i>已生效</font></a>':'<a href="javascript:setEnable('+row.id+',1)"><font color=red><i class="fa fa-times-circle"></i>未生效</font></a>';
+				}
+			},
+			{
+				field: 'addtime',
+				title: '添加时间'
+			},
+			{
+				field: '',
+				title: '操作',
+				formatter: function(value, row, index) {
+					return '<a href="javascript:edit_item('+row.id+')" class="btn btn-xs btn-info">编辑</a>&nbsp;<a href="javascript:del_item('+row.id+')" class="btn btn-xs btn-danger">删除</a>';
+				},
+			},
+		],
+	})
+})
+</script>
+{/block}

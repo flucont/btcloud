@@ -1,0 +1,41 @@
+{
+    "name": "btpanel/cloud",
+    "description": "BTPanel third cloud site",
+    "type": "project",
+    "keywords": [
+        "btpanel",
+        "baota",
+        "aapanel"
+    ],
+    "homepage": "https://www.bt.cn/",
+    "license": "Apache-2.0",
+    "authors": [],
+    "require": {
+        "php": ">=7.2.5",
+        "topthink/framework": "^6.0.0",
+        "topthink/think-orm": "^2.0",
+        "topthink/think-view": "^1.0",
+        "topthink/think-captcha": "^3.0"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^4.2",
+        "topthink/think-trace":"^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app"
+        },
+        "psr-0": {
+            "": "extend/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php think service:discover",
+            "@php think vendor:publish"
+        ]
+    }
+}

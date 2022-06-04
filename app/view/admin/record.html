@@ -1,0 +1,67 @@
+{extend name="admin/layout" /}
+{block name="title"}使用记录{/block}
+{block name="main"}
+<style>
+</style>
+<div class="container" style="padding-top:70px;">
+	<div class="col-xs-12 col-md-10 center-block" style="float: none;">
+
+<div id="searchToolbar">
+<form onsubmit="return searchSubmit()" method="GET" class="form-inline">
+  <div class="form-group">
+    <label>搜索</label>
+	<input type="text" class="form-control" name="ip" placeholder="服务器IP">
+  </div>
+  <div class="form-group">
+	<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i>搜索</button>&nbsp;
+	<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-repeat"></i>重置</a>&nbsp;
+  </div>
+</form>
+</div>
+
+      <table id="listTable">
+	  </table>
+	</div>
+  </div>
+<script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
+<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
+<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+<script src="/static/js/custom.js"></script>
+<script>
+
+$(document).ready(function(){
+	updateToolbar();
+	const defaultPageSize = 15;
+	const pageNumber = typeof window.$_GET['pageNumber'] != 'undefined' ? parseInt(window.$_GET['pageNumber']) : 1;
+	const pageSize = typeof window.$_GET['pageSize'] != 'undefined' ? parseInt(window.$_GET['pageSize']) : defaultPageSize;
+
+	$("#listTable").bootstrapTable({
+		url: '/admin/record_data',
+		pageNumber: pageNumber,
+		pageSize: pageSize,
+		classes: 'table table-striped table-hover table-bottom-border',
+		columns: [
+			{
+				field: 'id',
+				title: 'ID',
+				formatter: function(value, row, index) {
+					return '<b>'+value+'</b>';
+				}
+			},
+			{
+				field: 'ip',
+				title: '服务器IP'
+			},
+			{
+				field: 'addtime',
+				title: '首次安装时间',
+			},
+			{
+				field: 'usetime',
+				title: '最后使用时间'
+			},
+		],
+	})
+})
+</script>
+{/block}
