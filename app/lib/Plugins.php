@@ -183,7 +183,7 @@ class Plugins
                 self::download_file($btapi, $filename, $filepath);
                 if(file_exists($filepath)){
                     if($filemd5 && md5_file($filepath) != $filemd5){
-                        unlink($filepath);
+                        @unlink($filepath);
                         throw new Exception('插件文件MD5校验失败');
                     }
                     return true;
@@ -203,7 +203,7 @@ class Plugins
         try{
             $btapi->download($filename, $filepath);
         }catch(Exception $e){
-            unlink($filepath);
+            @unlink($filepath);
             //宝塔bug小文件下载失败，改用base64下载
             $result = $btapi->get_file($filename);
             if($result && isset($result['status']) && $result['status']==true){
