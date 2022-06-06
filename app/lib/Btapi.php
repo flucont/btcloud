@@ -129,6 +129,21 @@ class Btapi
 		$data = json_decode($result,true);
       	return $data;
 	}
+
+	//购买第三方插件
+	public function create_plugin_other_order($pid){
+		$url = $this->BT_PANEL.'/auth?action=create_plugin_other_order';
+		
+		$p_data = $this->GetKeyData();
+		$p_data['pid'] = $pid;
+		$p_data['cycle'] = '999';
+		$p_data['type'] = '0';
+		
+		$result = $this->curl($url,$p_data);
+		
+		$data = json_decode($result,true);
+      	return $data;
+	}
 	
 
   	private function GetKeyData(){

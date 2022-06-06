@@ -81,6 +81,10 @@ class Plugins
         $plugin_info = Plugins::get_plugin_info($plugin_name);
         if(!$plugin_info) throw new Exception('未找到该插件信息');
         if($plugin_info['type'] == 10 && isset($plugin_info['versions'][0]['download'])){
+            if($plugin_info['price'] == 0){
+                $btapi = self::get_btapi();
+                $btapi->create_plugin_other_order($plugin_info['id']);
+            }
             $fname = $plugin_info['versions'][0]['download'];
             $filemd5 = $plugin_info['versions'][0]['md5'];
             Plugins::download_plugin_other($fname, $filemd5);
