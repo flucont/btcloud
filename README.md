@@ -24,8 +24,8 @@
 
 ## 部署方法
 
-- 下载最新的源码包
-- 如果是下自动源码包，需要执行 `composer install --no-dev` 安装依赖，如果是下载的Release包，则不需要
+- [下载最新版的Release包](https://github.com/flucont/btcloud/releases)
+- 如果是下载的源码包，需要执行 `composer install --no-dev` 安装依赖，如果是下载的Release包，则不需要
 - 设置网站运行目录为`public`
 - 设置伪静态为`ThinkPHP`
 - 导入`install.sql`到数据库
