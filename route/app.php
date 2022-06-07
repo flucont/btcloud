@@ -14,6 +14,8 @@ Route::post('/panel/get_unbinding', 'api/return_success');
 Route::post('/bt_cert', 'api/return_error');
 
 Route::group('api', function () {
+    Route::any('/panel/get_soft_list', 'api/get_plugin_list');
+    Route::any('/panel/get_soft_list_test', 'api/get_plugin_list');
     Route::get('/getUpdateLogs', 'api/get_update_logs');
     Route::get('/panel/get_version', 'api/get_version');
     Route::get('/SetupCount', 'api/setup_count');
@@ -41,6 +43,7 @@ Route::group('api', function () {
     Route::post('/Plugin/get_re_order_status', 'api/return_error');
     Route::post('/Plugin/create_order_voucher', 'api/return_error');
     Route::post('/Plugin/get_voucher', 'api/return_empty_array');
+    Route::post('/Plugin/check_plugin_status', 'api/return_success');
 
     Route::post('/invite/get_voucher', 'api/return_empty_array');
     Route::post('/invite/get_order_status', 'api/return_error');
@@ -62,7 +65,7 @@ Route::group('api', function () {
     Route::post('/panel/model_total', 'api/return_empty');
     Route::post('/wpanel/model_click', 'api/return_empty');
     Route::post('/v2/statistics/report_plugin_daily', 'api/return_error');
-    Route::post('/panel/notpro', 'api/return_empty');
+    Route::get('/panel/notpro', 'api/return_empty');
 
     Route::post('/LinuxBeta', 'api/return_error');
     Route::post('/panel/apple_beta', 'api/return_error');

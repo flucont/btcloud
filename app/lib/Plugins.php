@@ -26,7 +26,7 @@ class Plugins
             }
             self::save_plugin_list($result);
         }else{
-            throw new Exception('获取插件列表失败：'.($result['msg']?$result['msg']:'面板连接失败'));
+            throw new Exception('获取插件列表失败：'.(isset($result['msg'])?$result['msg']:'面板连接失败'));
         }
     }
 
@@ -116,6 +116,7 @@ class Plugins
                         if(file_exists($main_filepath) && filesize($main_filepath)>10){
                             if(!strpos(file_get_contents($main_filepath), 'import ')){ //加密py文件，需要解密
                                 self::decode_plugin_main($plugin_name, $version, $main_filepath);
+                                self::noauth_plugin_main($main_filepath);
                                 $zip->open($filepath, ZipArchive::CREATE);
                                 $zip->addFile($main_filepath, $plugin_name.'/'.$plugin_name.'_main.py');
                                 $zip->close();
@@ -173,6 +174,19 @@ class Plugins
         }else{
             throw new Exception('解密插件主程序文件失败，接口返回错误');
         }
+    }
+
+    //去除插件主程序文件授权校验
+    public static function noauth_plugin_main($main_filepath){
+        $data = file_get_contents($main_filepath);
+        if(!$data) return false;
+        $data = str_replace('\'http://www.bt.cn/api/panel/get_soft_list_test', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list_test', $data);
+        $data = str_replace('\'https://www.bt.cn/api/panel/get_soft_list_test', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list_test', $data);
+        $data = str_replace('\'http://www.bt.cn/api/panel/get_soft_list', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list', $data);
+        $data = str_replace('\'https://www.bt.cn/api/panel/get_soft_list', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list', $data);
+        $data = str_replace('\'http://www.bt.cn/api/panel/notpro', 'public.GetConfigValue(\'home\')+\'/api/panel/notpro', $data);
+        $data = str_replace('\'https://www.bt.cn/api/panel/notpro', 'public.GetConfigValue(\'home\')+\'/api/panel/notpro', $data);
+        file_put_contents($main_filepath, $data);
     }
 
     //下载插件其他文件

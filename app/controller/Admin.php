@@ -190,6 +190,7 @@ class Admin extends BaseController
                     $versions[] = ['status'=>$status, 'type'=>0, 'version'=>$ver];
                 }
             }
+            if($plugin['name'] == 'obs') $plugin['ps'] = substr($plugin['ps'],0,strpos($plugin['ps'],'<a '));
             $list[] = [
                 'id' => $plugin['id'],
                 'name' => $plugin['name'],

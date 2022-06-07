@@ -43,13 +43,19 @@ class UpdateAll extends Command
                 $ver = $version['m_version'].'.'.$version['version'];
                 if(isset($version['download'])){
                     if(!file_exists(get_data_dir().'plugins/other/'.$version['download'])){
-                        $this->download_plugin($input, $output, $plugin['name'], $ver);
+                        if(!$this->download_plugin($input, $output, $plugin['name'], $ver)){
+                            sleep(1);
+                            $this->download_plugin($input, $output, $plugin['name'], $ver);
+                        }
                         sleep(1);
                         $count++;
                     }
                 }else{
                     if(!file_exists(get_data_dir().'plugins/package/'.$plugin['name'].'-'.$ver.'.zip')){
-                        $this->download_plugin($input, $output, $plugin['name'], $ver);
+                        if(!$this->download_plugin($input, $output, $plugin['name'], $ver)){
+                            sleep(1);
+                            $this->download_plugin($input, $output, $plugin['name'], $ver);
+                        }
                         sleep(1);
                         $count++;
                     }
@@ -59,7 +65,7 @@ class UpdateAll extends Command
 
         $imgcount = 0;
         //循环下载缺少的插件图片
-        foreach($json_arr['list'] as $plugin){
+        /*foreach($json_arr['list'] as $plugin){
             if(isset($plugin['min_image']) && strpos($plugin['min_image'], 'fname=')){
                 $fname = substr($plugin['min_image'], strpos($plugin['min_image'], '?fname=')+7);
                 if(!file_exists(get_data_dir().'plugins/other/'.$fname)){
@@ -68,7 +74,7 @@ class UpdateAll extends Command
                     $imgcount++;
                 }
             }
-        }
+        }*/
         
         $output->writeln('本次成功下载'.$count.'个插件'.($imgcount>0?'，'.$imgcount.'个图片':''));
         config_set('runtime', date('Y-m-d H:i:s'));
