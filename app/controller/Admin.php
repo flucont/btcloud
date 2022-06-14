@@ -133,7 +133,7 @@ class Admin extends BaseController
         if(!$bt_url || !$bt_key)return json(['code'=>-1, 'msg'=>'参数不能为空']);
         $btapi = new Btapi($bt_url, $bt_key);
         $result = $btapi->get_config();
-        if($result && isset($result['status']) && $result['status']==1){
+        if($result && isset($result['status']) && ($result['status']==1 || isset($result['sites_path']))){
             $result = $btapi->get_user_info();
             if($result && isset($result['username'])){
                 return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
@@ -157,11 +157,25 @@ class Admin extends BaseController
         return view();
     }
 
+    public function pluginswin(){
+        $typelist = [];
+        $json_arr = Plugins::get_plugin_list('Windows');
+        if($json_arr){
+            foreach($json_arr['type'] as $type){
+                $typelist[$type['id']] = $type['title'];
+            }
+        }
+        View::assign('typelist', $typelist);
+        return view();
+    }
+
     public function plugins_data(){
         $type = input('post.type/d');
         $keyword = input('post.keyword', null, 'trim');
+        $os = input('get.os');
+        if(!$os) $os = 'Linux';
 
-        $json_arr = Plugins::get_plugin_list();
+        $json_arr = Plugins::get_plugin_list($os);
         if(!$json_arr) return json([]);
 
         $typelist = [];
@@ -184,7 +198,7 @@ class Admin extends BaseController
                     $versions[] = ['status'=>$status, 'type'=>1, 'version'=>$ver, 'download'=>$version['download'], 'md5'=>$version['md5']];
                 }else{
                     $status = false;
-                    if(file_exists(get_data_dir().'plugins/package/'.$plugin['name'].'-'.$ver.'.zip')){
+                    if(file_exists(get_data_dir($os).'plugins/package/'.$plugin['name'].'-'.$ver.'.zip')){
                         $status = true;
                     }
                     $versions[] = ['status'=>$status, 'type'=>0, 'version'=>$ver];
@@ -209,10 +223,12 @@ class Admin extends BaseController
     public function download_plugin(){
         $name = input('post.name', null, 'trim');
         $version = input('post.version', null, 'trim');
+        $os = input('post.os');
+        if(!$os) $os = 'Linux';
         if(!$name || !$version) return json(['code'=>-1, 'msg'=>'参数不能为空']);
         try{
-            Plugins::download_plugin($name, $version);
-            Db::name('log')->insert(['uid' => 0, 'action' => '下载插件', 'data' => $name.'-'.$version, 'addtime' => date("Y-m-d H:i:s")]);
+            Plugins::download_plugin($name, $version, $os);
+            Db::name('log')->insert(['uid' => 0, 'action' => '下载插件', 'data' => $name.'-'.$version.' os:'.$os, 'addtime' => date("Y-m-d H:i:s")]);
             return json(['code'=>0,'msg'=>'下载成功']);
         }catch(\Exception $e){
             return json(['code'=>-1, 'msg'=>$e->getMessage()]);
@@ -220,9 +236,11 @@ class Admin extends BaseController
     }
 
     public function refresh_plugins(){
+        $os = input('get.os');
+        if(!$os) $os = 'Linux';
         try{
-            Plugins::refresh_plugin_list();
-            Db::name('log')->insert(['uid' => 0, 'action' => '刷新插件列表', 'data' => '刷新插件列表成功', 'addtime' => date("Y-m-d H:i:s")]);
+            Plugins::refresh_plugin_list($os);
+            Db::name('log')->insert(['uid' => 0, 'action' => '刷新插件列表', 'data' => '刷新'.$os.'插件列表成功', 'addtime' => date("Y-m-d H:i:s")]);
             return json(['code'=>0,'msg'=>'获取最新插件列表成功！']);
         }catch(\Exception $e){
             return json(['code'=>-1, 'msg'=>$e->getMessage()]);

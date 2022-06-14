@@ -8,30 +8,35 @@ use ZipArchive;
 class Plugins
 {
 
-    private static function get_btapi(){
-        $bt_url = config_get('bt_url');
-        $bt_key = config_get('bt_key');
+    private static function get_btapi($os){
+        if($os == 'Windows'){
+            $bt_url = config_get('wbt_url');
+            $bt_key = config_get('wbt_key');
+        }else{
+            $bt_url = config_get('bt_url');
+            $bt_key = config_get('bt_key');
+        }
         if(!$bt_url || !$bt_key) throw new Exception('请先配置好宝塔面板接口信息');
         $btapi = new Btapi($bt_url, $bt_key);
         return $btapi;
     }
 
     //刷新插件列表
-    public static function refresh_plugin_list(){
-        $btapi = self::get_btapi();
+    public static function refresh_plugin_list($os = 'Linux'){
+        $btapi = self::get_btapi($os);
         $result = $btapi->get_plugin_list();
         if($result && isset($result['list']) && isset($result['type'])){
             if(empty($result['list']) || empty($result['type'])){
                 throw new Exception('获取插件列表失败：插件列表为空');
             }
-            self::save_plugin_list($result);
+            self::save_plugin_list($result, $os);
         }else{
             throw new Exception('获取插件列表失败：'.(isset($result['msg'])?$result['msg']:'面板连接失败'));
         }
     }
 
     //保存插件列表
-    private static function save_plugin_list($data){
+    private static function save_plugin_list($data, $os){
         $data['ip'] = '127.0.0.1';
         $data['serverid'] = '';
         $data['beta'] = 0;
@@ -45,15 +50,15 @@ class Plugins
         $data['list'] = $list;
         if($data['pro']>-1) $data['pro'] = 0;
         if($data['ltd']>-1) $data['ltd'] = strtotime('+1 year');
-        $json_file = get_data_dir().'config/plugin_list.json';
+        $json_file = get_data_dir($os).'config/plugin_list.json';
         if(!file_put_contents($json_file, json_encode($data))){
             throw new Exception('保存插件列表失败，文件无写入权限');
         }
     }
 
     //获取插件列表
-    public static function get_plugin_list(){
-        $json_file = get_data_dir().'config/plugin_list.json';
+    public static function get_plugin_list($os = 'Linux'){
+        $json_file = get_data_dir($os).'config/plugin_list.json';
         if(file_exists($json_file)){
             $data = file_get_contents($json_file);
             $json_arr = json_decode($data, true);
@@ -65,8 +70,8 @@ class Plugins
     }
 
     //获取一个插件信息
-    public static function get_plugin_info($name){
-        $json_arr = self::get_plugin_list();
+    public static function get_plugin_info($name, $os = 'Linux'){
+        $json_arr = self::get_plugin_list($os);
         if(!$json_arr) return null;
         foreach($json_arr['list'] as $plugin){
             if($plugin['name'] == $name){
@@ -77,30 +82,30 @@ class Plugins
     }
 
     //下载插件（自动判断是否第三方）
-    public static function download_plugin($plugin_name, $version){
-        $plugin_info = Plugins::get_plugin_info($plugin_name);
+    public static function download_plugin($plugin_name, $version, $os = 'Linux'){
+        $plugin_info = Plugins::get_plugin_info($plugin_name, $os);
         if(!$plugin_info) throw new Exception('未找到该插件信息');
         if($plugin_info['type'] == 10 && isset($plugin_info['versions'][0]['download'])){
             if($plugin_info['price'] == 0){
-                $btapi = self::get_btapi();
+                $btapi = self::get_btapi($os);
                 $btapi->create_plugin_other_order($plugin_info['id']);
             }
             $fname = $plugin_info['versions'][0]['download'];
             $filemd5 = $plugin_info['versions'][0]['md5'];
-            Plugins::download_plugin_other($fname, $filemd5);
+            Plugins::download_plugin_other($fname, $filemd5, $os);
             if(isset($plugin_info['min_image']) && strpos($plugin_info['min_image'], 'fname=')){
                 $fname = substr($plugin_info['min_image'], strpos($plugin_info['min_image'], '?fname=')+7);
-                Plugins::download_plugin_other($fname);
+                Plugins::download_plugin_other($fname, null, $os);
             }
         }else{
-            Plugins::download_plugin_package($plugin_name, $version);
+            Plugins::download_plugin_package($plugin_name, $version, $os);
         }
     }
 
     //下载插件包
-    public static function download_plugin_package($plugin_name, $version){
-        $filepath = get_data_dir().'plugins/package/'.$plugin_name.'-'.$version.'.zip';
-        $btapi = self::get_btapi();
+    public static function download_plugin_package($plugin_name, $version, $os = 'Linux'){
+        $filepath = get_data_dir($os).'plugins/package/'.$plugin_name.'-'.$version.'.zip';
+        $btapi = self::get_btapi($os);
         $result = $btapi->get_plugin_filename($plugin_name, $version);
         if($result && isset($result['status'])){
             if($result['status'] == true){
@@ -110,12 +115,12 @@ class Plugins
                     $zip = new ZipArchive;
                     if ($zip->open($filepath) === true)
                     {
-                        $zip->extractTo(get_data_dir().'plugins/folder/'.$plugin_name.'-'.$version);
+                        $zip->extractTo(get_data_dir($os).'plugins/folder/'.$plugin_name.'-'.$version);
                         $zip->close();
-                        $main_filepath = get_data_dir().'plugins/folder/'.$plugin_name.'-'.$version.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
+                        $main_filepath = get_data_dir($os).'plugins/folder/'.$plugin_name.'-'.$version.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
                         if(file_exists($main_filepath) && filesize($main_filepath)>10){
                             if(!strpos(file_get_contents($main_filepath), 'import ')){ //加密py文件，需要解密
-                                self::decode_plugin_main($plugin_name, $version, $main_filepath);
+                                self::decode_plugin_main($plugin_name, $version, $main_filepath, $os);
                                 self::noauth_plugin_main($main_filepath);
                                 $zip->open($filepath, ZipArchive::CREATE);
                                 $zip->addFile($main_filepath, $plugin_name.'/'.$plugin_name.'_main.py');
@@ -138,9 +143,9 @@ class Plugins
     }
 
     //下载插件主程序文件
-    public static function download_plugin_main($plugin_name, $version){
-        $filepath = get_data_dir().'plugins/main/'.$plugin_name.'-'.$version.'.dat';
-        $btapi = self::get_btapi();
+    public static function download_plugin_main($plugin_name, $version, $os = 'Linux'){
+        $filepath = get_data_dir($os).'plugins/main/'.$plugin_name.'-'.$version.'.dat';
+        $btapi = self::get_btapi($os);
         $result = $btapi->get_plugin_main_filename($plugin_name, $version);
         if($result && isset($result['status'])){
             if($result['status'] == true){
@@ -160,8 +165,8 @@ class Plugins
     }
 
     //解密并下载插件主程序文件
-    public static function decode_plugin_main($plugin_name, $version, $main_filepath){
-        $btapi = self::get_btapi();
+    public static function decode_plugin_main($plugin_name, $version, $main_filepath, $os = 'Linux'){
+        $btapi = self::get_btapi($os);
         $result = $btapi->get_decode_plugin_main($plugin_name, $version);
         if($result && isset($result['status'])){
             if($result['status'] == true){
@@ -180,20 +185,29 @@ class Plugins
     public static function noauth_plugin_main($main_filepath){
         $data = file_get_contents($main_filepath);
         if(!$data) return false;
+
         $data = str_replace('\'http://www.bt.cn/api/panel/get_soft_list_test', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list_test', $data);
         $data = str_replace('\'https://www.bt.cn/api/panel/get_soft_list_test', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list_test', $data);
         $data = str_replace('\'http://www.bt.cn/api/panel/get_soft_list', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list', $data);
         $data = str_replace('\'https://www.bt.cn/api/panel/get_soft_list', 'public.GetConfigValue(\'home\')+\'/api/panel/get_soft_list', $data);
         $data = str_replace('\'http://www.bt.cn/api/panel/notpro', 'public.GetConfigValue(\'home\')+\'/api/panel/notpro', $data);
         $data = str_replace('\'https://www.bt.cn/api/panel/notpro', 'public.GetConfigValue(\'home\')+\'/api/panel/notpro', $data);
+
+        $data = str_replace('\'http://www.bt.cn/api/wpanel/get_soft_list_test', 'public.GetConfigValue(\'home\')+\'/api/wpanel/get_soft_list_test', $data);
+        $data = str_replace('\'https://www.bt.cn/api/wpanel/get_soft_list_test', 'public.GetConfigValue(\'home\')+\'/api/wpanel/get_soft_list_test', $data);
+        $data = str_replace('\'http://www.bt.cn/api/wpanel/get_soft_list', 'public.GetConfigValue(\'home\')+\'/api/wpanel/get_soft_list', $data);
+        $data = str_replace('\'https://www.bt.cn/api/wpanel/get_soft_list', 'public.GetConfigValue(\'home\')+\'/api/wpanel/get_soft_list', $data);
+        $data = str_replace('\'http://www.bt.cn/api/wpanel/notpro', 'public.GetConfigValue(\'home\')+\'/api/wpanel/notpro', $data);
+        $data = str_replace('\'https://www.bt.cn/api/wpanel/notpro', 'public.GetConfigValue(\'home\')+\'/api/wpanel/notpro', $data);
+
         file_put_contents($main_filepath, $data);
     }
 
     //下载插件其他文件
-    public static function download_plugin_other($fname, $filemd5 = null){
+    public static function download_plugin_other($fname, $filemd5 = null, $os = 'Linux'){
         $filepath = get_data_dir().'plugins/other/'.$fname;
         @mkdir(dirname($filepath), 0777, true);
-        $btapi = self::get_btapi();
+        $btapi = self::get_btapi($os);
         $result = $btapi->get_plugin_other_filename($fname);
         if($result && isset($result['status'])){
             if($result['status'] == true){
@@ -242,6 +256,19 @@ class Plugins
                 throw new Exception('获取文件失败：未知错误');
             }
         }
+    }
+
+    //获取一键部署列表
+    public static function get_deplist($os = 'Linux'){
+        $json_file = get_data_dir($os).'config/deployment_list.json';
+        if(file_exists($json_file)){
+            $data = file_get_contents($json_file);
+            $json_arr = json_decode($data, true);
+            if($json_arr){
+                return $json_arr;
+            }
+        }
+        return false;
     }
 
 }
