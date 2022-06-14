@@ -2,8 +2,8 @@
 // 应用公共文件
 use think\facade\Db;
 
-function get_data_dir(){
-	return app()->getRootPath().'data/';
+function get_data_dir($os = 'Linux'){
+	return app()->getRootPath().'data/'.($os == 'Windows' ? 'win/' : '');
 }
 
 

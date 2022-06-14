@@ -61,6 +61,187 @@ canvas {
 	padding: 70px 0;
 }
 
+.install-box {
+	position: relative;
+	top: 0;
+	display: flex;
+	align-items: center;
+	width: 24%;
+	padding: 30px 10px 16px 20px;
+	border-radius: 8px;
+	background-color: #fff;
+	box-shadow: 0 4px 8px 0 rgb(0 0 0 / 30%);
+	transition: all 0.3s;
+}
+.install-box:hover {
+	box-shadow: 0 6px 16px 0 rgb(0 0 0 / 50%);
+	top: -10px;
+}
+.install-box.linux,
+.install-box.windows {
+	align-items: center;
+	width: 41.5%;
+}
+
+.install-box + .install-box {
+	margin-left: 2%;
+}
+
+.install-box::before {
+	content: '';
+	position: absolute;
+	top: 20px;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	background-repeat: no-repeat;
+	background-position: right bottom;
+	background-size: auto 100%;
+	z-index: 10;
+	transition: all 0.25s;
+	opacity: 0.3;
+}
+
+.install-box.linux::before {
+	background-image: url(../images/downico1_01.png);
+}
+
+.install-box.windows::before {
+	background-image: url(../images/downico2_01.png);
+}
+
+.install-box.cloud::before {
+	background-image: url(../images/downico3_01.png);
+}
+
+.install-box.ssh::before {
+	background-image: url(../images/downico4_01.png);
+}
+
+.install-box.app::before {
+	background-image: url(../images/downico5_01.png);
+}
+
+.install-box .img {
+	position: relative;
+	flex: 0 0 44%;
+	z-index: 12;
+}
+.install-box .img img {
+	display: block;
+	width: 100%;
+}
+
+.install-box .cont {
+	flex: 1;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	margin-left: 5%;
+	padding-bottom: 12px;
+	z-index: 12;
+}
+
+.install-box.linux .cont,
+.install-box.windows .cont {
+	padding-bottom: 10px;
+}
+
+.install-box .bottom {
+	display: flex;
+	margin: 0 auto;
+}
+
+.install-box .title {
+	margin-bottom: 14px;
+	line-height: 1;
+	font-size: 20px;
+	font-weight: bold;
+	transition: color 0.25s;
+}
+
+.install-box.linux .title,
+.install-box.windows .title {
+	font-size: 28px;
+}
+
+.install-box .desc {
+	margin-bottom: 14px;
+	font-size: 12px;
+	color: #777;
+	transition: color 0.25s;
+}
+
+.install-box.linux .desc,
+.install-box.windows .desc {
+	font-size: 14px;
+}
+
+.install-box .mark {
+	margin-bottom: 20px;
+	height: 22px;
+	overflow: hidden;
+}
+.install-box .mark span {
+	margin-right: 10px;
+	line-height: 22px;
+	height: 22px;
+	padding: 0 6px;
+	font-size: 12px;
+	border-radius: 2px;
+	display: inline-block;
+}
+.install-box .mark span:nth-child(1) {
+	border: #6bdc6b 1px solid;
+	color: #fff;
+	background-color: #6bdc6b;
+}
+.install-box .mark span:nth-child(2) {
+	border: #ffa565 1px solid;
+	color: #fff;
+	background-color: #ffa565;
+}
+.install-box .mark span:nth-child(3) {
+	border: #65a7ff 1px solid;
+	color: #fff;
+	background-color: #65a7ff;
+}
+.install-box .mark span:last-child {
+	margin-right: 0;
+}
+
+.install-box .btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 34px;
+	padding: 0 16px;
+	background-image: linear-gradient(#54b891, #22a53d);
+	border-radius: 6px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1;
+	border: none;
+}
+
+.install-box .btn.default {
+	margin-left: 10px;
+	background: none;
+	border: 1px solid #777;
+	color: #777;
+}
+.install-box .btn:hover {
+	filter: brightness(120%);
+	-webkit-filter: brightness(120%);
+}
+
+.install-box:hover {
+	background-image: linear-gradient(#e5f5e5, #fff);
+}
+
+
 .wrap-title {
 	display: flex;
 	flex-wrap: wrap;
@@ -156,6 +337,7 @@ canvas {
 
 .d4 .desc {
 	margin-bottom: 16px;
+	line-height: 30px;
 }
 
 .bird {

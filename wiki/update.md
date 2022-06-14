@@ -1,4 +1,6 @@
-# 官方更新包修改记录
+# Linux面板官方更新包修改记录
+
+查询最新版本号：https://www.bt.cn/api/panel/get_version?is_version=1
 
 官方更新包下载链接：http://download.bt.cn/install/update/LinuxPanel-版本号.zip
 
@@ -17,7 +19,7 @@
 
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
-- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py和plugin_deployment.py）
+- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py）
 
 - 全局搜索替换 http://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
@@ -53,6 +55,8 @@
 
   ```python
   temp_file = temp_file.replace('wget -O Tpublic.sh', '#wget -O Tpublic.sh')
+  temp_file = temp_file.replace('\cp -rpa Tpublic.sh', '#\cp -rpa Tpublic.sh')
+  temp_file = temp_file.replace('http://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
   
 - install/install_soft.sh 在bash执行之前加入以下代码
@@ -69,6 +73,8 @@
   删除 p = threading.Thread(target=check_files_panel) 以及下面2行
 
   删除 p = threading.Thread(target=check_panel_msg) 以及下面2行
+
+  删除 p = threading.Thread(target=update_software_list) 以及下面2行
 
 - 去除面板日志上报：script/site_task.py 文件
 

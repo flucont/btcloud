@@ -20,12 +20,47 @@
 					<p>2分钟装好面板，一键管理服务器</p>
 					<p>集成LAMP/LNMP环境安装，网站、FTP、数据库、文件管理、软件安装等功能</p>
 				</div>
-				<div class="mt_30 i1ta wap_mt15">
-					<a href="https://demo.bt.cn" target="_block" rel="noreferrer">查看演示</a>
-					<a href="javascript:;" id="goInstallLinux">
-						<img class="middle mr10" src="/static/images/i1aico_03.png">
-						立即免费安装
-					</a>
+				<div class="disflex flex_lrcenter mt_50 install-list">
+					<div class="install-box linux">
+						<div class="img">
+							<img src="/static/images/prd_1_03.png">
+						</div>
+						<div class="cont">
+							<div class="top">
+								<div class="title">Linux面板 {:config_get('new_version')}</div>
+								<div class="desc">
+									支持Centos、Ubuntu、Deepin、Debian、Fedora等Linux系统。
+									<a class="link" href="https://demo.bt.cn/login" target="_blank" style="margin-left: 5px; font-weight: 700" rel="noreferrer">查看演示</a>
+								</div>
+								<div class="mark">
+									<span>2分钟装好</span>
+									<span>阿里云推荐</span>
+									<span>腾讯云推荐</span>
+								</div>
+							</div>
+							<div class="bottom">
+								<a class="btn" href="javascript:;" id="goInstallLinux">查看安装脚本</a>
+							</div>
+						</div>
+					</div>
+					<div class="install-box windows">
+						<div class="img">
+							<img src="/static/images/prd_2_03.png">
+						</div>
+						<div class="cont">
+							<div class="top">
+								<div class="title">Windows面板 {:config_get('new_version_win')}</div>
+								<div class="desc">支持Windows Server 2008 R2/2012/2016/2019，64位系统</div>
+								<div class="mark">
+									<span>操作简单</span>
+									<span>使用方便</span>
+								</div>
+							</div>
+							<div class="bottom">
+								<a class="btn" href="javascript:;" id="goInstallWindows">查看安装方法</a>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -33,7 +68,7 @@
 	<div class="d2" id="instal-linux">
 		<div class="wrap">
 			<div class="wrap-title linux-title">
-				<div class="text">使用此云端的宝塔面板（版本：{:config_get('new_version')}）</div>
+				<div class="text">Linux面板{:config_get('new_version')}安装脚本</div>
 			</div>
 			<div class="desc">
 				使用 SSH 连接工具，如
@@ -70,13 +105,23 @@
 			</div>
 		</div>
 	</div>
-	<div class="d4" id="instal-cloud">
+	<div class="d4" id="instal-windows">
 		<div class="wrap">
 			<div class="wrap-title">
-				<div class="text">更新日志</div>
+				<div class="text">Windows面板{:config_get('new_version_win')}安装方法</div>
 			</div>
 			<div class="desc">
-				<p>宝塔Linux面板更新到{:config_get('new_version')}</p>
+				<p>1、使用<a class="link" href="https://download.bt.cn/win/panel/BtSoft.zip" target="_blank" rel="noreferrer">官方安装程序</a>进行安装，安装完先不要进入面板。</p>
+				<p>2、在命令提示符（cmd）输入以下一键更新命令，然后重启面板。</p>
+			</div>
+			<div class="install-code">
+				<div class="code-cont">
+					<div class="command" title="点击复制一键更新命令">wget {$siteurl}/win/panel/data/setup.py -O C:/update.py && &quot;C:\Program Files\python\python.exe&quot; C:/update.py update_panel {:config_get('new_version_win')}</div>
+					<span class="ico-copy" title="点击复制一键更新命令" data-clipboard-text="wget {$siteurl}/win/panel/data/setup.py -O C:/update.py && &quot;C:\Program Files\python\python.exe&quot; C:/update.py update_panel {:config_get('new_version_win')}">复制</span>
+				</div>
+			</div>
+			<div class="tips" style="color: orangered; font-weight: 700">
+				<p>注意：仅支持Windows Server 2008 R2/2012/2016/2019，64位系统（中文简体），且未安装其它环境</p>
 			</div>
 		</div>
 	</div>
@@ -133,8 +178,8 @@
 			scrollTop('#instal-linux');
 		});
 
-		$('#goOnlineInstall').click(function () {
-			scrollTop('#online-instal');
+		$('#goInstallWindows').click(function () {
+			scrollTop('#instal-windows');
 		});
 
 		$('#goInstallCloud').click(function () {
