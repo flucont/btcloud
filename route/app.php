@@ -78,6 +78,7 @@ Route::group('api', function () {
     Route::post('/v2/statistics/report_plugin_daily', 'api/return_error');
     Route::get('/panel/notpro', 'api/return_empty');
     Route::post('/Btdeployment/get_deplist', 'api/get_deplist');
+    Route::post('/panel/get_deplist', 'api/get_deplist');
 
     Route::post('/LinuxBeta', 'api/return_error');
     Route::post('/panel/apple_beta', 'api/return_error');

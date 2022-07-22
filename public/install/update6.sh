@@ -42,7 +42,7 @@ download_Url=$NODE_URL
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ "$version" = '' ];then
-	version='7.9.2'
+	version='7.9.3'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
@@ -60,7 +60,7 @@ cd $setup_path/server/panel/
 check_bt=`cat /etc/init.d/bt`
 if [ "${check_bt}" = "" ];then
 	rm -f /etc/init.d/bt
-	wget -O /etc/init.d/bt $download_Url/install/src/bt6.init -T 20
+	wget -O /etc/init.d/bt $download_Url/install/src/bt7.init -T 20
 	chmod +x /etc/init.d/bt
 fi
 rm -f /www/server/panel/*.pyc
