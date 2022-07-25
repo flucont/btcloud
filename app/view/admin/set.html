@@ -2,8 +2,8 @@
 {block name="title"}系统设置{/block}
 {block name="main"}
 <div class="container" style="padding-top:70px;">
-    <div class="col-xs-12 col-sm-10 col-lg-8 center-block" style="float: none;">
 {if $mod=='sys'}
+<div class="col-sm-12 col-md-6 center-block">
 <div class="panel panel-primary">
 <div class="panel-heading"><h3 class="panel-title">系统基本设置</h3></div>
 <div class="panel-body">
@@ -54,12 +54,14 @@
   </form>
 </div>
 </div>
+</div>
+<div class="col-sm-12 col-md-6 center-block">
 <div class="panel panel-primary">
 <div class="panel-heading"><h3 class="panel-title">宝塔Linux面板接口设置</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
     <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取最新插件列表及插件包</p>
-    <p><a href="/static/file/kaixin.zip">下载专用插件</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件，<b>然后重启一次面板</b></p>
+    <p><a href="/static/file/kaixin.zip">下载专用插件(Linux)</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件。</p>
 	<div class="form-group">
 	  <label>宝塔面板URL：</label><br/>
 	  <input type="text" name="bt_url" value="{:config_get('bt_url')}" class="form-control"/>
@@ -81,8 +83,7 @@
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
     <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取最新插件列表及插件包</p>
-    <p><a href="/static/file/win/kaixin.zip">下载专用插件</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件。</p>
-	<p><a href="/static/file/win/__init__.zip">下载py替换文件</a>，解压覆盖到C:\Program Files\python\Lib\json\目录下，然后重启面板。</p>
+    <p><a href="/static/file/win/kaixin.zip">下载专用插件(Win)</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件。</p>
 	<div class="form-group">
 	  <label>宝塔面板URL：</label><br/>
 	  <input type="text" name="wbt_url" value="{:config_get('wbt_url')}" class="form-control"/>
@@ -99,7 +100,9 @@
   </form>
 </div>
 </div>
+</div>
 {elseif $mod=='task'}
+<div class="col-sm-12 col-md-6 center-block">
 <div class="panel panel-success">
 <div class="panel-heading"><h3 class="panel-title">定时任务说明</h3></div>
 <div class="panel-body">
@@ -111,6 +114,8 @@
   </form>
 </div>
 </div>
+</div>
+<div class="col-sm-12 col-md-6 center-block">
 <div class="panel panel-info">
 <div class="panel-heading"><h3 class="panel-title">定时任务设置</h3></div>
 <div class="panel-body">
@@ -129,7 +134,9 @@
   </form>
 </div>
 </div>
+</div>
 {elseif $mod=='account'}
+<div class="col-xs-12 col-sm-8 col-lg-6 center-block" style="float: none;">
 <div class="panel panel-primary">
 <div class="panel-heading"><h3 class="panel-title">管理账号设置</h3></div>
 <div class="panel-body">
@@ -154,6 +161,7 @@
 	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
 	</div>
   </form>
+</div>
 </div>
 {/if}
 <script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>

@@ -536,3 +536,185 @@ canvas {
 		font-size: 12px;
 	}
 }
+
+@media screen and (max-width: 1440px) {
+	.wrap {
+		width: 97%;
+	}
+}
+
+@media only screen and (max-width: 1299px) {
+	.d2 .wrap,
+	.d3 .wrap,
+	.d4 .wrap {
+		padding: 60px 0;
+	}
+
+	.install-box {
+		padding: 24px 20px 10px;
+		padding-right: 0;
+	}
+
+	.install-box.linux .title,
+	.install-box.windows .title,
+	.install-box .title {
+		margin-bottom: 10px;
+		font-size: 20px;
+	}
+
+	.install-box .img {
+		flex: 0 0 40%;
+	}
+
+	.install-box.linux .title,
+	.install-box.windows .title {
+		margin-bottom: 16px;
+	}
+
+	.install-box .desc {
+		font-size: 13px;
+	}
+	.install-box .btn {
+		padding: 0 12px;
+		height: 30px;
+		border-radius: 8px;
+		font-size: 12px;
+	}
+}
+@media only screen and (max-width: 1200px) {
+	.install-box .title {
+		font-size: 16px;
+	}
+	.install-box .desc {
+		font-size: 12px;
+	}
+}
+@media only screen and (max-width: 980px) {
+	.install-list {
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+	.install-box,
+	.install-box.linux,
+	.install-box.windows {
+		width: 48%;
+		padding: 15px;
+		align-items: center;
+	}
+	.install-box:nth-child(2n) {
+		margin-left: 4%;
+	}
+	.install-box.app {
+		margin-top: 30px;
+		margin-left: 0;
+	}
+	.install-box.monitor {
+		margin-top: 30px;
+	}
+	.install-box.linux .title,
+	.install-box.windows .title,
+	.install-box .title {
+		font-size: 16px;
+	}
+	.install-box .btn {
+		height: 24px;
+		padding: 0 10px;
+		border-radius: 6px;
+		font-weight: normal;
+	}
+	.install-box .btn + .btn {
+		margin-left: 5px;
+	}
+
+	.install-code {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.install-code .code-cont {
+		width: 100%;
+	}
+	.install-code .command {
+		flex: 1;
+		width: 0;
+		margin-left: 0;
+		line-height: 18px;
+		font-size: 12px;
+		word-break: break-all;
+	}
+	.online-install-cont {
+		flex-direction: column;
+	}
+	.online-install-cont .form {
+		margin-bottom: 20px;
+	}
+	.online-install-cont .pr-70 {
+		padding-right: 0;
+	}
+	.online-install-cont .pl-10 {
+		padding-left: 0;
+	}
+	.online-install-cont .first-line {
+		flex-wrap: wrap;
+	}
+	.online-install-cont .server-line {
+		width: 100%;
+		flex: none;
+	}
+	.online-install-cont .port-line {
+		flex: none;
+		margin-top: 20px;
+		width: 100%;
+	}
+
+	.d2 .desc,
+	.d2 .tips {
+		line-height: 24px;
+	}
+}
+
+@media only screen and (max-width: 768px) {
+	.d2 .wrap,
+	.d3 .wrap,
+	.d4 .wrap {
+		padding: 40px 0;
+	}
+	.d1 .wrap {
+		padding-top: 40px;
+	}
+	.install-box {
+		flex-wrap: wrap;
+	}
+	.install-box .img,
+	.install-box .cont {
+		flex: 0 0 100%;
+	}
+	.install-box .cont {
+		margin-top: 10px;
+		margin-left: 0;
+		padding: 0;
+	}
+	.install-box .title,
+	.install-box.linux .title,
+	.install-box.windows .title {
+		margin-bottom: 10px;
+	}
+	.install-box .desc {
+		margin-bottom: 10px;
+	}
+
+	.wrap-title {
+		margin-bottom: 20px;
+	}
+	.wrap-title::before {
+		width: 3px;
+		height: 20px;
+		margin-right: 10px;
+	}
+	.wrap-title .text {
+		font-size: 20px;
+		margin-right: 10px;
+	}
+	.wrap-title a {
+		font-size: 12px;
+	}
+}

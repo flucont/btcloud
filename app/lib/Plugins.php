@@ -166,6 +166,7 @@ class Plugins
 
     //解密并下载插件主程序文件
     public static function decode_plugin_main($plugin_name, $version, $main_filepath, $os = 'Linux'){
+        if(self::decode_plugin_main_local($main_filepath, $os)) return true;
         $btapi = self::get_btapi($os);
         $result = $btapi->get_decode_plugin_main($plugin_name, $version);
         if($result && isset($result['status'])){
@@ -178,6 +179,30 @@ class Plugins
             }
         }else{
             throw new Exception('解密插件主程序文件失败，接口返回错误');
+        }
+    }
+
+    //本地解密插件主程序文件
+    public static function decode_plugin_main_local($main_filepath, $os = 'Linux'){
+        $btapi = self::get_btapi($os);
+        $userinfo = $btapi->get_user_info();
+        if(isset($userinfo['uid'])){
+            $src = file_get_contents($main_filepath);
+            $data = explode("\n", $src)[0];
+            $uid = $userinfo['uid'];
+            $serverid = $userinfo['serverid'];
+            $key = md5(substr($serverid, 10, 16).$uid.$serverid);
+            $iv = md5($key.$serverid);
+            $key = substr($key, 8, 16);
+            $iv = substr($iv, 8, 16);
+            $de_text = openssl_decrypt($data, 'aes-128-cbc', $key, 0, $iv);
+            if(!empty($de_text)){
+                file_put_contents($main_filepath, $de_text);
+                return true;
+            }
+            return false;
+        }else{
+            throw new Exception('解密插件主程序文件失败，获取用户信息失败');
         }
     }
 
