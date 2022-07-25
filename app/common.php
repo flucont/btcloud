@@ -48,6 +48,17 @@ function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0) {
 	}
 }
 
+function random($length, $numeric = 0) {
+	$seed = base_convert(md5(microtime().$_SERVER['DOCUMENT_ROOT']), 16, $numeric ? 10 : 35);
+	$seed = $numeric ? (str_replace('0', '', $seed).'012340567890') : ($seed.'zZ'.strtoupper($seed));
+	$hash = '';
+	$max = strlen($seed) - 1;
+	for($i = 0; $i < $length; $i++) {
+		$hash .= $seed[mt_rand(0, $max)];
+	}
+	return $hash;
+}
+
 function get_curl($url, $post=0, $referer=0, $cookie=0, $header=0, $ua=0, $nobody=0, $addheader=0)
 {
 	$ch = curl_init();

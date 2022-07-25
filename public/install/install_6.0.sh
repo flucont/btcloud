@@ -26,7 +26,7 @@ if [ "${Centos6Check}" ];then
 fi 
 
 UbuntuCheck=$(cat /etc/issue|grep Ubuntu|awk '{print $2}'|cut -f 1 -d '.')
-if [ "${UbuntuCheck}" -lt "16" ];then
+if [ "${UbuntuCheck}" ] && [ "${UbuntuCheck}" -lt "16" ];then
 	echo "Ubuntu ${UbuntuCheck}不支持安装宝塔面板，建议更换Ubuntu18/20安装宝塔面板"
 	exit 1
 fi
@@ -554,6 +554,11 @@ Install_Bt(){
 	panelPort="8888"
 	if [ -f ${setup_path}/server/panel/data/port.pl ];then
 		panelPort=$(cat ${setup_path}/server/panel/data/port.pl)
+	else
+		RE_NUM=$(expr $RANDOM % 5)
+		if [ "${RE_NUM}" == "1" ];then
+			panelPort=$(expr $RANDOM % 55535 + 10000)
+		fi
 	fi
 	mkdir -p ${setup_path}/server/panel/logs
 	mkdir -p ${setup_path}/server/panel/vhost/apache

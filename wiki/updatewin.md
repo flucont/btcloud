@@ -38,8 +38,6 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
 
   在 get_update_file() 方法里面 get_url() => GetConfigValue('home')
 
-- class/webshell_check.py 搜索替换 public.GetConfigValue('home') => 'https://www.bt.cn'
-
 - class/plugin_deployment.py 文件 get_icon 和 SetupPackage 方法内，替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - 去除无用的定时任务：task.py 文件

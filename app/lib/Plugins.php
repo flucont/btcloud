@@ -258,6 +258,23 @@ class Plugins
         }
     }
 
+    //刷新一键部署列表
+    public static function refresh_deplist($os = 'Linux'){
+        $btapi = self::get_btapi($os);
+        $result = $btapi->get_deplist();
+        if($result && isset($result['list']) && isset($result['type'])){
+            if(empty($result['list']) || empty($result['type'])){
+                throw new Exception('获取一键部署列表失败：一键部署列表为空');
+            }
+            $json_file = get_data_dir($os).'config/deployment_list.json';
+            if(!file_put_contents($json_file, json_encode($result))){
+                throw new Exception('保存一键部署列表失败，文件无写入权限');
+            }
+        }else{
+            throw new Exception('获取一键部署列表失败：'.(isset($result['msg'])?$result['msg']:'面板连接失败'));
+        }
+    }
+
     //获取一键部署列表
     public static function get_deplist($os = 'Linux'){
         $json_file = get_data_dir($os).'config/deployment_list.json';

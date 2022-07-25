@@ -259,10 +259,12 @@ class Api extends BaseController
 
     //绑定账号
     public function get_auth_token(){
-        return json(['status'=>false, 'msg'=>'不支持绑定宝塔官网账号', 'data'=>'5b5d']);
+        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'address'=>'127.0.0.1', 'serverid'=>'1', 'access_key'=>random(32), 'secret_key'=>random(48), 'ukey'=>md5(time()), 'state'=>1];
+        $data = bin2hex(urlencode(json_encode($userinfo)));
+        return json(['status'=>true, 'msg'=>'登录成功！', 'data'=>$data]);
     }
 
-    //绑定一键部署列表
+    //一键部署列表
     public function get_deplist(){
         $os = input('post.os');
         $json_arr = Plugins::get_deplist($os);

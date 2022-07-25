@@ -90,7 +90,7 @@ if (typeof $.fn.bootstrapTable !== "undefined") {
     $.extend($.fn.bootstrapTable.defaults, $.fn.bootstrapTable.custom);
 }
 
-const httpGet = (url, callback) => {
+function httpGet(url, callback){
 	$.ajax({
 		url: url,
 		type: 'get',
@@ -107,7 +107,7 @@ const httpGet = (url, callback) => {
 	});
 }
 
-const httpPost = (url, data, callback) => {
+function httpPost(url, data, callback){
 	$.ajax({
 		url: url,
 		type: 'post',
@@ -125,7 +125,7 @@ const httpPost = (url, data, callback) => {
 	});
 }
 
-const isMobile = function(){
+var isMobile = function(){
 	if( /Android|SymbianOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Midp/i.test(navigator.userAgent)) {
 		return true;
 	}

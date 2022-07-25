@@ -8,14 +8,7 @@
 
 - 将class文件夹里面所有的.so文件删除
 
-- 将pluginAuth.py复制到class文件夹
-
-- 在class/jobs.py，将以下代码删除
-
-  ```python
-  if not public.is_debug():
-      public.ExecShell("rm -f /www/server/panel/class/pluginAuth.py")
-  ```
+- 将PluginLoader.py复制到class文件夹
 
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
@@ -45,10 +38,6 @@
 
   在 def check_domain_cloud(domain): 这一行下面加上 return
 
-- class/webshell_check.py 搜索替换 public.GetConfigValue('home') => 'https://www.bt.cn'
-
-- class/plugin_deployment.py 约270行，替换 public.GetConfigValue('home') => 'https://www.bt.cn'
-
 - class/panelPlugin.py 文件，download_icon方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - class/panelPlugin.py 文件，set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
@@ -68,13 +57,13 @@
   
 - install/public.sh 用官网最新版的[public.sh](http://download.bt.cn/install/public.sh)替换，并去除最下面bt_check一行
 
-- 去除无用的定时任务：task.py 文件
+- 去除无用的定时任务：task.py 文件  删除以下几行
 
-  删除 p = threading.Thread(target=check_files_panel) 以及下面2行
+  "update_software_list": update_software_list,
 
-  删除 p = threading.Thread(target=check_panel_msg) 以及下面2行
+  "check_files_panel": check_files_panel,
 
-  删除 p = threading.Thread(target=update_software_list) 以及下面2行
+  "check_panel_msg": check_panel_msg,
 
 - 去除面板日志上报：script/site_task.py 文件
 
@@ -101,6 +90,10 @@
   这3行及分别接下来的4行代码
 
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
+
+- [可选]关闭自动生成访问日志：在 BT-Panel，WSGIServer((HOST, PORT)里面增加参数 log=None
+
+  在 BTPanel/\_\_init\_\_.py  删除public.write_request_log()这一行
 
 解压安装包panel6.zip，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（
 
