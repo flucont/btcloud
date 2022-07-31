@@ -188,14 +188,21 @@ class Plugins
         $userinfo = $btapi->get_user_info();
         if(isset($userinfo['uid'])){
             $src = file_get_contents($main_filepath);
-            $data = explode("\n", $src)[0];
             $uid = $userinfo['uid'];
             $serverid = $userinfo['serverid'];
             $key = md5(substr($serverid, 10, 16).$uid.$serverid);
             $iv = md5($key.$serverid);
             $key = substr($key, 8, 16);
             $iv = substr($iv, 8, 16);
-            $de_text = openssl_decrypt($data, 'aes-128-cbc', $key, 0, $iv);
+            $data_arr = explode("\n", $src);
+            $de_text = '';
+            foreach($data_arr as $data){
+                $data = trim($data);
+                if(!empty($data) && strlen($data)!=24){
+                    $tmp = openssl_decrypt($data, 'aes-128-cbc', $key, 0, $iv);
+                    if($tmp) $de_text .= $tmp;
+                }
+            }
             if(!empty($de_text)){
                 file_put_contents($main_filepath, $de_text);
                 return true;
