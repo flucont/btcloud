@@ -193,7 +193,7 @@ class Btapi
         return $output;
     }
 
-	private function curl_download($url, $localpath, $timeout = 60)
+	private function curl_download($url, $localpath, $timeout = 300)
     {
     	//定义cookie保存位置
         $cookie_file=app()->getRuntimePath().md5($this->BT_PANEL).'.cookie';

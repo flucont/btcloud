@@ -17,6 +17,16 @@ class LoadConfig
      */
     public function handle($request, \Closure $next)
     {
+        if (!file_exists(app()->getRootPath().'.env')){
+            if(strpos(request()->url(),'/installapp')===false){
+                return redirect((string)url('/installapp'))->header([
+                    'Cache-Control' => 'no-store, no-cache, must-revalidate',
+                    'Pragma' => 'no-cache',
+                ]);
+            }else{
+                return $next($request);
+            }
+        }
 
         $res = Db::name('config')->cache('configs',0)->column('value','key');
         Config::set($res, 'sys');

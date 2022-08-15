@@ -117,6 +117,8 @@ Route::group('admin', function () {
 
 })->middleware(\app\middleware\CheckAdmin::class);
 
+Route::any('/installapp', 'install/index');
+
 Route::miss(function() {
     return response('404 Not Found')->code(404);
 });

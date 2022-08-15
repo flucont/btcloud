@@ -12,10 +12,12 @@ class AuthAdmin
         $cookie = cookie('admin_token');
         if($cookie){
             $token=authcode($cookie, 'DECODE', config_get('syskey'));
-            list($user, $sid, $expiretime) = explode("\t", $token);
-            $session=md5(config_get('admin_username').config_get('admin_password'));
-            if($session==$sid && $expiretime>time()) {
-                $islogin = true;
+            if($token){
+                list($user, $sid, $expiretime) = explode("\t", $token);
+                $session=md5(config_get('admin_username').config_get('admin_password'));
+                if($session==$sid && $expiretime>time()) {
+                    $islogin = true;
+                }
             }
         }
         request()->islogin = $islogin;

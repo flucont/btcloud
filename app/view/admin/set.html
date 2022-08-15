@@ -163,6 +163,17 @@
   </form>
 </div>
 </div>
+{elseif $mod=='tools'}
+<div class="col-sm-12 col-md-10 col-lg-8 center-block" style="float: none;">
+<div class="panel panel-primary">
+<div class="panel-heading"><h3 class="panel-title">批量替换工具</h3></div>
+<div class="panel-body">
+  <form onsubmit="return saveAccount(this)" method="post" class="form" role="form">
+	<div class="alert alert-info" style="word-break:break-all;">使用以下命令可以将bt安装包、更新包和脚本文件里面的<code>http://www.example.com</code>批量替换成当前网址<code>{:request()->root(true)}</code>，每次更新版本后只需要执行一次即可。</div>
+    <div class="list-group-item" style="word-break:break-all;">cd {:app()->getRootPath()}app/script && chmod +x convert.sh && ./convert.sh {:app()->getRootPath()} {:request()->root(true)}</div><br/>
+  </form>
+</div>
+</div>
 {/if}
 <script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
 <script>

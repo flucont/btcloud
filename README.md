@@ -28,19 +28,14 @@
 - 如果是下载的源码包，需要执行 `composer install --no-dev` 安装依赖，如果是下载的Release包，则不需要
 - 设置网站运行目录为`public`
 - 设置伪静态为`ThinkPHP`
-- 导入`install.sql`到数据库
-- 在`.env`里面修改数据库信息，包括数据库地址（HOSTNAME）、数据库名（DATABASE）、用户名（USERNAME）、密码（PASSWORD）
-- 访问`/admin`进入网站后台，默认管理员用户名密码：admin/123456
+- 访问网站，会自动跳转到安装页面，根据提示安装完成
 
 ## 使用方法
 
-- 在`系统基本设置`修改宝塔面板接口设置。你需要一个官方最新脚本安装并绑定账号的宝塔面板，用于获取最新插件列表及插件包。并根据界面提示安装好专用插件。
+- 在`批量替换工具`，执行页面显示的命令，可将bt安装包、更新包和脚本文件里面的`http://www.example.com`批量替换成当前网站的网址。
+- 在`系统基本设置`修改宝塔面板接口设置。你需要准备一个使用官方最新脚本安装并绑定账号的宝塔面板，用于获取最新插件列表及插件包。并根据界面提示安装好专用插件。
 - 在`定时任务设置`执行所显示的命令从宝塔官方获取最新的插件列表并批量下载插件包（增量更新）。当然你也可以去插件列表，一个一个点击下载。
-- 在public/install/src和update文件夹里面分别是Linux面板安装包和更新包，解压后源码里面全部的 www.example.com 替换成你自己搭建的云端域名（如果云端用了强制https也需要单独改），然后重新打包。可使用VSCode等支持批量替换的软件。
-- 在public/win/panel/panel_x.x.x.zip是Windows面板的更新包，同样方法替换域名。
-- Linux面板安装脚本public/install/install_6.0.sh和更新脚本update6.sh里面的 www.example.com 替换成你自己搭建的云端域名。
-- Windows面板更新脚本 public/win/install/panel_update.py、public/win/panel/data/setup.py、api.py 里面的 www.example.com 替换成你自己搭建的云端域名。
-- 访问网站`/download`查看使用此第三方云端的一键安装脚本
+- 访问网站`/download`查看使用此第三方云端的一键安装脚本。
 
 ## 其他
 

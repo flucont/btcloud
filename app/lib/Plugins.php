@@ -49,7 +49,7 @@ class Plugins
         }
         $data['list'] = $list;
         if($data['pro']>-1) $data['pro'] = 0;
-        if($data['ltd']>-1) $data['ltd'] = strtotime('+1 year');
+        if($data['ltd']>-1) $data['ltd'] = strtotime('+10 year');
         $json_file = get_data_dir($os).'config/plugin_list.json';
         if(!file_put_contents($json_file, json_encode($data))){
             throw new Exception('保存插件列表失败，文件无写入权限');
