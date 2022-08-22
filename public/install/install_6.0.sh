@@ -184,6 +184,11 @@ get_node_url(){
 	echo '---------------------------------------------';
 	echo "Selected download node...";
 	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://38.34.185.130 http://116.213.43.206:5880 http://128.1.164.196);
+
+	if [ "$1" ];then
+		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
+	fi
+
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
 	[ -f "${tmp_file1}" ] && rm -f ${tmp_file1}
@@ -304,6 +309,10 @@ Install_RPM_Pack(){
 }
 Install_Deb_Pack(){
 	ln -sf bash /bin/sh
+	UBUNTU_22=$(cat /etc/issue|grep "Ubuntu 22")
+	if [ "${UBUNTU_22}" ];then
+		apt-get remove needrestart -y
+	fi
 	apt-get update -y
 	apt-get install ruby -y
 	apt-get install lsb-release -y
@@ -329,7 +338,7 @@ Install_Deb_Pack(){
 
 	for debPack in ${debPacks}
 	do
-		packCheck=$(dpkg -l ${debPack})
+		packCheck=$(dpkg -l|grep ${debPack})
 		if [ "$?" -ne "0" ] ;then
 			apt-get install -y $debPack
 		fi
@@ -484,6 +493,10 @@ Install_Python_Lib(){
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
 		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
+		if [ "$?" != "0" ];then
+			get_node_url $download_Url
+			wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
+		fi
 		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
 		if [ $tmp_size -lt 703460 ];then
 			rm -f $pyenv_file
@@ -836,7 +849,14 @@ if [ "$go" == 'n' ];then
 	exit;
 fi
 
+ARCH_LINUX=$(cat /etc/os-release |grep "Arch Linux")
+if [ "${ARCH_LINUX}" ] && [ -f "/usr/bin/pacman" ];then
+	pacman -Sy 
+    pacman -S curl wget unzip firewalld openssl pkg-config make gcc cmake libxml2 libxslt libvpx gd libsodium oniguruma sqlite libzip autoconf inetutils sudo --noconfirm
+fi
+
 Install_Main
+
 echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="
 echo -e "\033[32mCongratulations! Installed successfully!\033[0m"
@@ -853,6 +873,5 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
-
 
 

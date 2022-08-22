@@ -160,6 +160,7 @@
 	<div class="form-group text-center">
 	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
 	</div>
+	<a href="javascript:cleancache()" class="btn btn-default btn-sm btn-block">清理缓存</a>
   </form>
 </div>
 </div>
@@ -300,6 +301,22 @@ function saveAccount(obj){
 		}
 	});
 	return false;
+}
+function cleancache(){
+	var ii = layer.load(2, {shade:[0.1,'#fff']});
+	$.ajax({
+		type : 'GET',
+		url : '/admin/cleancache',
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			layer.msg('清理缓存成功', {icon: 1});
+		},
+		error:function(data){
+            layer.close(ii);
+			layer.msg('服务器错误');
+		}
+	});
 }
 </script>
 {/block}

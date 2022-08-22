@@ -6,6 +6,7 @@ use app\BaseController;
 use think\facade\Db;
 use think\facade\View;
 use think\facade\Request;
+use think\facade\Cache;
 use app\lib\Btapi;
 use app\lib\Plugins;
 
@@ -356,5 +357,32 @@ class Admin extends BaseController
             return json(['code'=>0, 'msg'=>'succ']);
         }
         return json(['code'=>-1, 'msg'=>'no act']);
+    }
+
+    public function deplist(){
+        $deplist_linux = get_data_dir().'config/deployment_list.json';
+        $deplist_win = get_data_dir('Windows').'config/deployment_list.json';
+        $deplist_linux_time = file_exists($deplist_linux) ? date("Y-m-d H:i:s", filemtime($deplist_linux)) : '不存在';
+        $deplist_win_time = file_exists($deplist_win) ? date("Y-m-d H:i:s", filemtime($deplist_win)) : '不存在';
+        View::assign('deplist_linux_time', $deplist_linux_time);
+        View::assign('deplist_win_time', $deplist_win_time);
+        return view();
+    }
+
+    public function refresh_deplist(){
+        $os = input('get.os');
+        if(!$os) $os = 'Linux';
+        try{
+            Plugins::refresh_deplist($os);
+            Db::name('log')->insert(['uid' => 0, 'action' => '刷新一键部署列表', 'data' => '刷新'.$os.'一键部署列表成功', 'addtime' => date("Y-m-d H:i:s")]);
+            return json(['code'=>0,'msg'=>'获取最新一键部署列表成功！']);
+        }catch(\Exception $e){
+            return json(['code'=>-1, 'msg'=>$e->getMessage()]);
+        }
+    }
+
+    public function cleancache(){
+        Cache::clear();
+        return json(['code'=>0,'msg'=>'succ']);
     }
 }

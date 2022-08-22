@@ -11,6 +11,11 @@ export LANGUAGE=en_US:en
 
 get_node_url(){
 	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://36.133.1.8:5880 http://123.129.198.197 http://38.34.185.130 http://116.213.43.206:5880 http://128.1.164.196);
+
+	if [ "$1" ];then
+		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
+	fi
+
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
 	[ -f "${tmp_file1}" ] && rm -f ${tmp_file1}

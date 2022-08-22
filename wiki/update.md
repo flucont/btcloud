@@ -91,9 +91,8 @@
 
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
 
-- [可选]关闭自动生成访问日志：在 BT-Panel，WSGIServer((HOST, PORT)里面增加参数 log=None
+- [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log()这一行
 
-  在 BTPanel/\_\_init\_\_.py  删除public.write_request_log()这一行
 
 解压安装包panel6.zip，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（
 

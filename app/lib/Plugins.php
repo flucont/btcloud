@@ -48,8 +48,7 @@ class Plugins
             $list[] = $plugin;
         }
         $data['list'] = $list;
-        if($data['pro']>-1) $data['pro'] = 0;
-        if($data['ltd']>-1) $data['ltd'] = strtotime('+10 year');
+        $data['ltd'] = strtotime('+10 year');
         $json_file = get_data_dir($os).'config/plugin_list.json';
         if(!file_put_contents($json_file, json_encode($data))){
             throw new Exception('保存插件列表失败，文件无写入权限');
@@ -247,8 +246,9 @@ class Plugins
                 self::download_file($btapi, $filename, $filepath);
                 if(file_exists($filepath)){
                     if($filemd5 && md5_file($filepath) != $filemd5){
+                        $msg = filesize($filepath) < 300 ? file_get_contents($filepath) : '插件文件MD5校验失败';
                         @unlink($filepath);
-                        throw new Exception('插件文件MD5校验失败');
+                        throw new Exception($msg);
                     }
                     return true;
                 }else{

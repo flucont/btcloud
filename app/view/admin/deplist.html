@@ -1,0 +1,49 @@
+{extend name="admin/layout" /}
+{block name="title"}一键部署列表{/block}
+{block name="main"}
+<div class="container" style="padding-top:70px;">
+<div class="col-sm-12 col-md-10 col-lg-8 center-block" style="float: none;">
+<div class="panel panel-primary">
+<div class="panel-heading"><h3 class="panel-title">一键部署列表</h3></div>
+<div class="panel-body">
+	<div class="list-group">
+		<div class="list-group-item list-group-item-warning">Linux面板</div>
+		<div class="list-group-item" style="line-height:35px">列表文件更新时间：<font color="blue">{$deplist_linux_time}</font><a href="javascript:refresh_deplist('Linux')" class="btn btn-success pull-right"><i class="fa fa-refresh"></i>重新获取</a></div>
+	</div>
+	<div class="list-group">
+		<div class="list-group-item list-group-item-warning">Windows面板</div>
+		<div class="list-group-item" style="line-height:35px">列表文件更新时间：<font color="blue">{$deplist_win_time}</font><a href="javascript:refresh_deplist('Windows')" class="btn btn-success pull-right"><i class="fa fa-refresh"></i>重新获取</a></div>
+	</div>
+</div>
+</div>
+<script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
+<script>
+function refresh_deplist(os){
+    var confirm = layer.confirm('是否确定从宝塔官方获取最新一键部署列表？', {
+        btn: ['确定','取消']
+    }, function(){
+        layer.close(confirm)
+        var ii = layer.msg('正在获取一键部署列表，请稍候...', {icon: 16, shade:0.1, time: 0});
+        $.ajax({
+            type : 'GET',
+            url : '/admin/refresh_deplist?os='+os,
+            dataType : 'json',
+            success : function(data) {
+                layer.close(ii)
+                if(data.code == 0){
+                    layer.alert(data.msg, {icon:1}, function(){window.location.reload()});
+                }else{
+                    layer.alert(data.msg, {icon:2});
+                }
+            },
+            error:function(data){
+                layer.close(ii)
+                layer.msg('服务器错误', {icon:2});
+            }
+        });
+    }, function(){
+        layer.close(confirm)
+    });
+}
+</script>
+{/block}

@@ -114,6 +114,9 @@ Route::group('admin', function () {
     Route::get('/list', 'admin/list');
     Route::post('/list_data', 'admin/list_data');
     Route::post('/list_op', 'admin/list_op');
+    Route::get('/deplist', 'admin/deplist');
+    Route::get('/refresh_deplist', 'admin/refresh_deplist');
+    Route::get('/cleancache', 'admin/cleancache');
 
 })->middleware(\app\middleware\CheckAdmin::class);
 
