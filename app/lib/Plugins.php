@@ -187,6 +187,8 @@ class Plugins
         $userinfo = $btapi->get_user_info();
         if(isset($userinfo['uid'])){
             $src = file_get_contents($main_filepath);
+            if($src===false)throw new Exception('文件打开失败');
+            if(!$src || strpos($src, 'import ')!==false)return true;
             $uid = $userinfo['uid'];
             $serverid = $userinfo['serverid'];
             $key = md5(substr($serverid, 10, 16).$uid.$serverid);
@@ -202,7 +204,7 @@ class Plugins
                     if($tmp) $de_text .= $tmp;
                 }
             }
-            if(!empty($de_text)){
+            if(!empty($de_text) && strpos($de_text, 'import ')!==false){
                 file_put_contents($main_filepath, $de_text);
                 return true;
             }
@@ -210,6 +212,28 @@ class Plugins
         }else{
             throw new Exception('解密插件主程序文件失败，获取用户信息失败');
         }
+    }
+
+    public static function decode_module_file($filepath){
+        $src = file_get_contents($filepath);
+        if($src===false)throw new Exception('文件打开失败');
+        if(!$src || strpos($src, 'import ')!==false)return 0;
+        $key = 'Z2B87NEAS2BkxTrh';
+        $iv = 'WwadH66EGWpeeTT6';
+        $data_arr = explode("\n", $src);
+        $de_text = '';
+        foreach($data_arr as $data){
+            $data = trim($data);
+            if(!empty($data)){
+                $tmp = openssl_decrypt($data, 'aes-128-cbc', $key, 0, $iv);
+                if($tmp) $de_text .= $tmp;
+            }
+        }
+        if(!empty($de_text) && strpos($de_text, 'import ')!==false){
+            file_put_contents($filepath, $de_text);
+            return 1;
+        }
+        return 2;
     }
 
     //去除插件主程序文件授权校验

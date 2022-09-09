@@ -40,8 +40,9 @@ if("undefined" != typeof bt && bt.hasOwnProperty("prompt_confirm")){
 }
 if("undefined" != typeof database && database.hasOwnProperty("del_database")){
     database.del_database = function (wid, dbname,obj, callback) {
+        var type = $('.database-pos .tabs-item.active').data('type')
         title = '',
-        tips = '是否确认【删除数据库】，删除后可能会影响业务使用！';
+        tips = '是否确认【删除数据库】，'+ (type !== 'mysql'?'当前数据库暂不支持数据库回收站，删除后将无法恢复，请谨慎操作':'，删除后可能会影响业务使用！');
         if(obj && obj.db_type > 0) tips = '远程数据库不支持数据库回收站，删除后将无法恢复，请谨慎操作';
         var title = typeof dbname === "function" ?'批量删除数据库':'删除数据库 [ '+ dbname +' ]';
         layer.open({
@@ -157,7 +158,10 @@ if("undefined" != typeof bt && bt.hasOwnProperty("firewall") && bt.firewall.hasO
             if (port.indexOf('-') != -1) ports = port.split('-');
             for (var i = 0; i < ports.length; i++) {
                 if (!bt.check_port(ports[i])) {
-                    layer.msg(lan.firewall.port_err, { icon: 5 });
+                    layer.msg('可用端口范围：1-65535', { icon: 2 });
+                    // layer.msg(lan.firewall.port_err, {
+                    //   icon: 5
+                    // });
                     return;
                 }
             }

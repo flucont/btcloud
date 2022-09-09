@@ -272,6 +272,12 @@ class Api extends BaseController
         return json($json_arr);
     }
 
+    //获取宝塔SSL列表
+    public function get_ssl_list(){
+        $data = bin2hex('[]');
+        return json(['status'=>true, 'msg'=>'', 'data'=>$data]);
+    }
+
     public function return_success(){
         return json(['status'=>true, 'msg'=>1, 'data'=>(object)[]]);
     }

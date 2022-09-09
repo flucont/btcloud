@@ -36,6 +36,7 @@ def get_auth_state():
 #执行插件方法(插件名,方法名,参数)
 def plugin_run(plugin_name, def_name, args):
     if not plugin_name or not def_name: return public.returnMsg(False,'插件名称和插件方法名称不能为空!')
+    if not path_check(plugin_name) or not path_check(def_name): return public.returnMsg(False,'插件名或方法名不能包含特殊符号!')
     p_path = public.get_plugin_path(plugin_name)
     if not os.path.exists(p_path + '/index.php') and not os.path.exists(p_path + '/%s_main.py' % plugin_name): return public.returnMsg(False,'插件不存在!')
     
@@ -73,12 +74,21 @@ def plugin_run(plugin_name, def_name, args):
 #执行模块方法(模块名,方法名,参数)
 def module_run(mod_name, def_name, args):
     if not mod_name or not def_name: return public.returnMsg(False,'模块名称和模块方法名称不能为空!')
+    if not path_check(mod_name) or not path_check(def_name): return public.returnMsg(False,'模块名或方法名不能包含特殊符号!')
 
-    mod_file = "{}/projectModel/{}Model.py".format(public.get_class_path(),mod_name)
+    if 'model_index' in args:
+        if args.model_index:
+            mod_file = "{}/{}Model/{}Model.py".format(public.get_class_path(),args.model_index,mod_name)
+        else:
+            mod_file = "{}/projectModel/{}Model.py".format(public.get_class_path(),mod_name)
+    else:
+        module_list = get_module_list()
+        for module_dir in module_list:
+            mod_file = "{}/{}/{}Model.py".format(public.get_class_path(),module_dir,mod_name)
+            if os.path.exists(mod_file): break
+
     if not os.path.exists(mod_file):
-        mod_file = "{}/databaseModel/{}Model.py".format(public.get_class_path(),mod_name)
-        if not os.path.exists(mod_file):
-            return public.returnMsg(False,'模块[%s]不存在' % mod_name)
+        return public.returnMsg(False,'模块[%s]不存在' % mod_name)
 
     def_object = public.get_script_object(mod_file)
     if not def_object: return public.returnMsg(False,'模块[%s]不存在!' % mod_name)
@@ -92,3 +102,21 @@ def module_run(mod_name, def_name, args):
     result = run_object(args)
     return result
 
+#获取模块文件夹列表
+def get_module_list():
+    list = []
+    class_path = public.get_class_path()
+    f_list = os.listdir(class_path)
+    for fname in f_list:
+        f_path = class_path+'/'+fname
+        if os.path.isdir(f_path) and len(fname) > 6 and fname.find('.') == -1 and fname.find('Model') != -1:
+            list.append(fname)
+    return list
+
+#检查路径是否合法
+def path_check(path):
+    list = ["./","..",",",";",":","?","'","\"","<",">","|","\\","\n","\r","\t","\b","\a","\f","\v","*","%","&","$","#","@","!","~","`","^","(",")","+","=","{","}","[","]"]
+    for i in path:
+        if i in list:
+            return False
+    return True

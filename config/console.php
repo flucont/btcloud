@@ -6,5 +6,6 @@ return [
     // 指令定义
     'commands' => [
         'updateall' => 'app\command\UpdateAll',
+        'decrypt' => 'app\command\DecryptFile',
     ],
 ];

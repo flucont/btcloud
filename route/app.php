@@ -36,6 +36,9 @@ Route::group('api', function () {
     Route::get('/getIpAddress', 'api/get_ip_address');
     Route::post('/Auth/GetAuthToken', 'api/get_auth_token');
     Route::post('/Auth/GetBindCode', 'api/return_error');
+    Route::post('/Auth/GetSSLList', 'api/get_ssl_list');
+    Route::post('/Cert/get_order_list', 'api/return_empty_array');
+    Route::post('/Cert/get_product_list', 'api/return_success');
     Route::get('/Pluginother/get_file', 'api/download_plugin_other');
 
     Route::post('/Pluginother/create_order', 'api/return_error');
