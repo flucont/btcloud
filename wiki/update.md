@@ -14,7 +14,7 @@
 
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
-- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、ipsModel.py）
+- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py）
 
 - 全局搜索替换 http://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
@@ -66,6 +66,10 @@
   "update_software_list": update_software_list,
 
   "check_panel_msg": check_panel_msg,
+
+  PluginLoader.daemon_task()
+
+  PluginLoader.daemon_panel()
 
 - 去除首页广告：BTPanel/static/js/index.js 文件删除最下面index.recommend_paid_version()这一行
 
