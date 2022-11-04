@@ -70,12 +70,14 @@ function submitlogin(){
 	  var pass = $("input[name='pass']").val();
     var code = $("input[name='code']").val();
     if(user=='' || pass==''){layer.alert('用户名或密码不能为空！');return false;}
-      $.ajax({
+    var ii = layer.load(2);
+    $.ajax({
       type : 'POST',
       url : '{:request()->url()}',
       data: {username:user, password:pass, code:code},
       dataType : 'json',
       success : function(data) {
+        layer.close(ii);
         if(data.code == 0){
           layer.msg('登录成功，正在跳转', {icon: 1,shade: 0.01,time: 15000});
           window.location.href='/admin';
@@ -87,6 +89,7 @@ function submitlogin(){
         }
       },
       error:function(data){
+        layer.close(ii);
         layer.msg('服务器错误');
       }
     });

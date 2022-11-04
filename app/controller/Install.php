@@ -52,6 +52,8 @@ class Install extends BaseController
             $sqls=file_get_contents(app()->getRootPath().'install.sql');
             $sqls=explode(';', $sqls);
             $sqls[]="REPLACE INTO `".$mysql_prefix."config` VALUES ('syskey', '".random(16)."')";
+            $sqls[]="REPLACE INTO `".$mysql_prefix."config` VALUES ('admin_username', '".addslashes($admin_username)."')";
+            $sqls[]="REPLACE INTO `".$mysql_prefix."config` VALUES ('admin_password', '".addslashes($admin_password)."')";
             $success=0;$error=0;$errorMsg=null;
             foreach ($sqls as $value) {
                 $value=trim($value);

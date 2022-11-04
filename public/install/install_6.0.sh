@@ -287,7 +287,7 @@ Install_RPM_Pack(){
 
 	sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
 	#yum remove -y python-requests python3-requests python-greenlet python3-greenlet
-	yumPacks="libcurl-devel wget tar gcc make zip unzip openssl openssl-devel gcc libxml2 libxml2-devel libxslt* zlib zlib-devel libjpeg-devel libpng-devel libwebp libwebp-devel freetype freetype-devel lsof pcre pcre-devel vixie-cron crontabs icu libicu-devel c-ares libffi-devel bzip2-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel"
+	yumPacks="libcurl-devel wget tar gcc make zip unzip openssl openssl-devel gcc libxml2 libxml2-devel libxslt* zlib zlib-devel libjpeg-devel libpng-devel libwebp libwebp-devel freetype freetype-devel lsof pcre pcre-devel vixie-cron crontabs icu libicu-devel c-ares libffi-devel bzip2-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel qrencode"
 	yum install -y ${yumPacks}
 
 	for yumPack in ${yumPacks}
@@ -313,7 +313,15 @@ Install_Deb_Pack(){
 	if [ "${UBUNTU_22}" ];then
 		apt-get remove needrestart -y
 	fi
+	ALIYUN_CHECK=$(cat /etc/motd|grep "Alibaba Cloud ")
+	if [ "${ALIYUN_CHECK}" ] && [ "${UBUNTU_22}" ];then
+		apt-get remove libicu70 -y
+	fi
 	apt-get update -y
+	apt-get install bash -y
+	if [ -f "/usr/bin/bash" ];then
+		ln -sf /usr/bin/bash /bin/sh
+	fi
 	apt-get install ruby -y
 	apt-get install lsb-release -y
 	#apt-get install ntp ntpdate -y
@@ -333,7 +341,7 @@ Install_Deb_Pack(){
 		apt-get install curl -y
 	fi
 
-	debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git";
+	debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git qrencode";
 	apt-get install -y $debPacks --force-yes
 
 	for debPack in ${debPacks}
@@ -568,7 +576,7 @@ Install_Bt(){
 	if [ -f ${setup_path}/server/panel/data/port.pl ];then
 		panelPort=$(cat ${setup_path}/server/panel/data/port.pl)
 	else
-		RE_NUM=$(expr $RANDOM % 5)
+		RE_NUM=$(expr $RANDOM % 3)
 		if [ "${RE_NUM}" == "1" ];then
 			panelPort=$(expr $RANDOM % 55535 + 10000)
 		fi
@@ -673,6 +681,8 @@ Set_Bt_Panel(){
 		echo "/${auth_path}" > ${admin_auth}
 	fi
 	chmod -R 700 $pyenv_path/pyenv/bin
+	/www/server/panel/pyenv/bin/pip3 install pymongo
+	/www/server/panel/pyenv/bin/pip3 install psycopg2-binary
 	/www/server/panel/pyenv/bin/pip3 install flask -U
 	/www/server/panel/pyenv/bin/pip3 install flask-sock
 	auth_path=$(cat ${admin_auth})
@@ -839,6 +849,8 @@ echo "
 +----------------------------------------------------------------------
 | The WebPanel URL will be http://SERVER_IP:8888 when installed.
 +----------------------------------------------------------------------
+| 为了您的正常使用，请确保使用全新或纯净的系统安装宝塔面板，不支持已部署项目/环境的系统安装
++----------------------------------------------------------------------
 "
 while [ "$go" != 'y' ] && [ "$go" != 'n' ]
 do
@@ -873,5 +885,4 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
-
 

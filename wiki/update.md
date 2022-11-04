@@ -40,6 +40,8 @@
 
   在 def check_domain_cloud(domain): 这一行下面加上 return
 
+  在 def get_improvement(): 这一行下面加上 return False
+
 - class/panelPlugin.py 文件，download_icon方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - class/panelPlugin.py 文件，删除public.total_keyword(get.query)这一行
@@ -67,15 +69,15 @@
 
   "check_panel_msg": check_panel_msg,
 
-  PluginLoader.daemon_task()
-
   PluginLoader.daemon_panel()
+
+- 去除WebRTC连接：BTPanel/static/js/public.js  删除stun.start();这一行
 
 - 去除首页广告：BTPanel/static/js/index.js 文件删除最下面index.recommend_paid_version()这一行
 
-- 去除内页广告：BTPanel/templates/default/layout.html 删除getPaymentStatus();这一行
-
 - 去除首页自动检测更新，避免频繁请求云端：BTPanel/static/js/index.js 文件注释掉bt.system.check_update这一段代码外的setTimeout
+
+- 去除内页广告：BTPanel/templates/default/layout.html 删除getPaymentStatus();这一行
 
 - [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/layout.html 的\</body\>前面加入
 
