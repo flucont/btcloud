@@ -12,12 +12,12 @@ INSERT INTO `cloud_config` (`key`, `value`) VALUES
 ('bt_key', ''),
 ('whitelist', '0'),
 ('download_page', '1'),
-('new_version', '7.9.4'),
+('new_version', '7.9.5'),
 ('update_msg', '暂无更新日志'),
-('update_date', '2022-07-13'),
+('update_date', '2022-11-02'),
 ('new_version_win', '7.7.0'),
 ('update_msg_win', '暂无更新日志'),
-('update_date_win', '2022-06-01'),
+('update_date_win', '2022-09-09'),
 ('updateall_type', '0'),
 ('syskey', 'UqP94LtI8eWAIgCP');
 
