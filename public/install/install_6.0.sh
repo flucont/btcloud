@@ -54,6 +54,27 @@ GetSysInfo(){
 	echo -e ${SYS_VERSION}
 	echo -e Bit:${SYS_BIT} Mem:${MEM_TOTAL}M Core:${CPU_INFO}
 	echo -e ${SYS_INFO}
+
+	if [ -z "${os_version}" ];then
+		echo -e "============================================"
+		echo -e "检测到为非常用系统安装,建议更换至Centos-7或Debian-10+或Ubuntu-20+系统安装宝塔面板"
+		echo -e "详情请查看系统兼容表：https://docs.qq.com/sheet/DUm54VUtyTVNlc21H?tab=BB08J2"
+		echo -e "特殊情况可通过以下联系方式寻求安装协助情况"
+	fi
+
+	is64bit=$(getconf LONG_BIT)
+	if [ "${is64bit}" == '32' ];then
+		echo -e "宝塔面板不支持32位系统进行安装，请使用64位系统/服务器架构进行安装宝塔"
+		exit 1
+	fi
+
+	S390X_CHECK=$(uname -a|grep s390x)
+	if [ "${S390X_CHECK}" ];then
+		echo -e "宝塔面板不支持s390x架构进行安装，请使用64位系统/服务器架构进行安装宝塔"
+		exit 1
+	fi
+
+	echo -e "============================================"
 	echo -e "请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
 }
 Red_Error(){
@@ -183,7 +204,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://38.34.185.130 http://116.213.43.206:5880 http://128.1.164.196);
+	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://download.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://103.179.243.14:5880 http://128.1.164.196);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -426,7 +447,7 @@ Install_Python_Lib(){
 			if [ "$is_package" = "" ];then
 				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
 				$pyenv_path/pyenv/bin/pip install -U pip
-				$pyenv_path/pyenv/bin/pip install -U setuptools
+				$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
 				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
 			fi
 			source $pyenv_path/pyenv/bin/activate
@@ -560,7 +581,7 @@ Install_Python_Lib(){
 	ln -sf $pyenv_path/pyenv/bin/python3.7 /usr/bin/btpython
 	chmod -R 700 $pyenv_path/pyenv/bin
 	$pyenv_path/pyenv/bin/pip install -U pip
-	$pyenv_path/pyenv/bin/pip install -U setuptools
+	$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
 	$pyenv_path/pyenv/bin/pip install -U wheel==0.34.2 
 	$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
 	source $pyenv_path/pyenv/bin/activate

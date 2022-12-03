@@ -16,6 +16,8 @@
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py）
 
+- class/panelAuth.py 替换 http://www.bt.cn/api/ => http://www.example.com/api/
+
 - 全局搜索替换 http://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
 - class/ajax.py 文件 \#是否执行升级程序 下面的 public.get_url() 改成 public.GetConfigValue('home')
@@ -42,18 +44,20 @@
 
   在 def get_improvement(): 这一行下面加上 return False
 
+  在free_login_area方法内get_free_ips_area替换成get_ips_area
+
 - class/panelPlugin.py 文件，download_icon方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
-- class/panelPlugin.py 文件，删除public.total_keyword(get.query)这一行
+  删除public.total_keyword(get.query)这一行
 
-- class/panelPlugin.py 文件，set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
+  set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
 
   ```python
   temp_file = temp_file.replace('wget -O Tpublic.sh', '#wget -O Tpublic.sh')
   temp_file = temp_file.replace('\cp -rpa Tpublic.sh', '#\cp -rpa Tpublic.sh')
   temp_file = temp_file.replace('http://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
-  
+
 - install/install_soft.sh 在bash执行之前加入以下代码
 
   ```shell
