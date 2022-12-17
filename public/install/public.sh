@@ -10,7 +10,7 @@ export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 
 get_node_url(){
-	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://36.133.1.8:5880 http://123.129.198.197 http://38.34.185.130 http://116.213.43.206:5880 http://128.1.164.196);
+	nodes=(https://dg2.bt.cn https://dg1.bt.cn https://download.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -52,7 +52,7 @@ get_node_url(){
 	if [ -z "$NODE_URL" ];then
 		NODE_URL=$(cat $tmp_file2|sort -g -t " " -k 1|head -n 1|awk '{print $2}')
 		if [ -z "$NODE_URL" ];then
-			NODE_URL='http://download.bt.cn';
+			NODE_URL='https://download.bt.cn';
 		fi
 	fi
 	rm -f $tmp_file1
@@ -108,7 +108,7 @@ send_check(){
 	chmod +x /etc/init.d/bt
 	p_path2=/www/server/panel/class/common.py
 	p_version=$(cat $p_path2|grep "version = "|awk '{print $3}'|tr -cd [0-9.])
-	curl -sS --connect-timeout 3 -m 60 http://www.bt.cn/api/panel/notpro?version=$p_version
+	curl -sS --connect-timeout 3 -m 60 https://www.bt.cn/api/panel/notpro?version=$p_version
 	NODE_URL=""
 	exit 0;
 }
@@ -146,4 +146,5 @@ if [ ! $NODE_URL ];then
 	fi
 	get_node_url
 fi
+
 

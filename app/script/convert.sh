@@ -1,7 +1,7 @@
 #!/bin/bash
 
 Linux_Version="7.9.6"
-Windows_Version="7.7.0"
+Windows_Version="7.8.0"
 
 FILES=(
 public/install/src/panel6.zip

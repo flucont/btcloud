@@ -118,6 +118,33 @@ System_Check(){
 		Install_Check
 	fi
 }
+Set_Ssl(){
+    echo -e ""
+    echo -e "----------------------------------------------------------------------"
+    echo -e "为了您的面板使用安全，建议您开启面板SSL，开启后请使用https访问宝塔面板"
+    echo -e "输入y回车即开启面板SSL并进行下一步安装"
+    echo -e "输入n回车跳过面板SSL配置，直接进行安装"
+    echo -e "10秒后将跳过SSL配置，直接进行面板安装"
+    echo -e "----------------------------------------------------------------------"
+    echo -e ""
+    read -t 10 -p "是否确定开启面板SSL ? (y/n): " yes
+
+    if [ $? != 0 ];then
+        SET_SSL=false
+    else
+        case "$yes" in
+            y)
+                SET_SSL=true
+                ;;
+            n)
+                SET_SSL=false
+				rm -f /www/server/panel/data/ssl.pl
+                ;;
+            *)
+                Set_Ssl
+        esac
+    fi
+}
 Get_Pack_Manager(){
 	if [ -f "/usr/bin/yum" ] && [ -d "/etc/yum.repos.d" ]; then
 		PM="yum"
@@ -204,7 +231,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://download.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://103.179.243.14:5880 http://128.1.164.196);
+	nodes=(https://dg2.bt.cn https://dg1.bt.cn https://download.bt.cn);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -246,7 +273,7 @@ get_node_url(){
 	if [ -z "$NODE_URL" ];then
 		NODE_URL=$(cat $tmp_file2|sort -g -t " " -k 1|head -n 1|awk '{print $2}')
 		if [ -z "$NODE_URL" ];then
-			NODE_URL='http://download.bt.cn';
+			NODE_URL='https://download.bt.cn';
 		fi
 	fi
 	rm -f $tmp_file1
@@ -597,10 +624,7 @@ Install_Bt(){
 	if [ -f ${setup_path}/server/panel/data/port.pl ];then
 		panelPort=$(cat ${setup_path}/server/panel/data/port.pl)
 	else
-		RE_NUM=$(expr $RANDOM % 3)
-		if [ "${RE_NUM}" == "1" ];then
-			panelPort=$(expr $RANDOM % 55535 + 10000)
-		fi
+		panelPort=$(expr $RANDOM % 55535 + 10000)
 	fi
 	mkdir -p ${setup_path}/server/panel/logs
 	mkdir -p ${setup_path}/server/panel/vhost/apache
@@ -701,6 +725,8 @@ Set_Bt_Panel(){
 		auth_path=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
 		echo "/${auth_path}" > ${admin_auth}
 	fi
+	auth_path=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
+	echo "/${auth_path}" > ${admin_auth}
 	chmod -R 700 $pyenv_path/pyenv/bin
 	/www/server/panel/pyenv/bin/pip3 install pymongo
 	/www/server/panel/pyenv/bin/pip3 install psycopg2-binary
@@ -708,6 +734,10 @@ Set_Bt_Panel(){
 	/www/server/panel/pyenv/bin/pip3 install flask-sock
 	auth_path=$(cat ${admin_auth})
 	cd ${setup_path}/server/panel/
+	if [ "$SET_SSL" == true ]; then
+        btpip install -I pyOpenSSl
+        btpython /www/server/panel/tools.py ssl
+    fi
 	/etc/init.d/bt start
 	$python_bin -m py_compile tools.py
 	$python_bin tools.py username
@@ -719,7 +749,7 @@ Set_Bt_Panel(){
 	/etc/init.d/bt restart 	
 	sleep 3
 	isStart=$(ps aux |grep 'BT-Panel'|grep -v grep|awk '{print $2}')
-	LOCAL_CURL=$(curl 127.0.0.1:8888/login 2>&1 |grep -i html)
+	LOCAL_CURL=$(curl 127.0.0.1:${panelPort}/login 2>&1 |grep -i html)
 	if [ -z "${isStart}" ] && [ -z "${LOCAL_CURL}" ];then
 		/etc/init.d/bt 22
 		cd /www/server/panel/pyenv/bin
@@ -797,7 +827,6 @@ Get_Ip_Address(){
 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
 		if [ -z "${isHosts}" ];then
 			echo "" >> /etc/hosts
-			echo "116.213.43.206 www.bt.cn" >> /etc/hosts
 			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
 			if [ -z "${getIpAddress}" ];then
 				sed -i "/bt.cn/d" /etc/hosts
@@ -833,6 +862,7 @@ Setup_Count(){
 	echo /www > /var/bt_setupPath.conf
 }
 Install_Main(){
+	#Set_Ssl
 	startTime=`date +%s`
 	Lock_Clear
 	System_Check
@@ -890,17 +920,28 @@ fi
 
 Install_Main
 
+PANEL_SSL=$(cat /www/server/panel/data/ssl.pl 2> /dev/null)
+if [ "${PANEL_SSL}" == "True" ];then
+	HTTP_S="https"
+else
+	HTTP_S="http"
+fi 
+
 echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="
 echo -e "\033[32mCongratulations! Installed successfully!\033[0m"
 echo -e "=================================================================="
-echo  "外网面板地址: http://${getIpAddress}:${panelPort}${auth_path}"
-echo  "内网面板地址: http://${LOCAL_IP}:${panelPort}${auth_path}"
+echo  "外网面板地址: ${HTTP_S}://${getIpAddress}:${panelPort}${auth_path}"
+echo  "内网面板地址: ${HTTP_S}://${LOCAL_IP}:${panelPort}${auth_path}"
 echo -e "username: $username"
 echo -e "password: $password"
 echo -e "\033[33mIf you cannot access the panel,\033[0m"
 echo -e "\033[33mrelease the following panel port [${panelPort}] in the security group\033[0m"
 echo -e "\033[33m若无法访问面板，请检查防火墙/安全组是否有放行面板[${panelPort}]端口\033[0m"
+if [ "${HTTP_S}" == "https" ];then
+    echo -e "\033[33m因已开启面板自签证书，访问面板会提示不匹配证书，请参考以下链接配置证书\033[0m"
+	echo -e "\033[33mhttps://www.bt.cn/bbs/thread-105443-1-1.html\033[0m"
+fi
 echo -e "=================================================================="
 
 endTime=`date +%s`

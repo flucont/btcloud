@@ -22,7 +22,7 @@ def readReg(path,key):
         return False
 
 panelPath = readReg(r'SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\宝塔面板','PanelPath')
-if not panelPath: 
+if not panelPath:
     panelPath = os.getenv('BT_PANEL')
     if not panelPath: exit();
 
@@ -44,11 +44,11 @@ class Sql():
     __OPT_FIELD  = "*"             # field条件
     __OPT_PARAM  = ()              # where值
     __LOCK = panelPath + '/data/sqlite_lock.pl'
-    
+
     def __init__(self):
         self.__DB_FILE = panelPath + '/data/default.db'
-    
-    def __GetConn(self): 
+
+    def __GetConn(self):
         #取数据库对象
         try:
             if self.__DB_CONN == None:
@@ -62,8 +62,8 @@ class Sql():
         #设置表名
         self.__DB_TABLE = table
         return self
-    
-    
+
+
     def where(self,where,param):
         #WHERE条件
         if where:
@@ -73,7 +73,7 @@ class Sql():
 
     def __to_tuple(self,param):
         #将参数转换为tuple
-        if type(param) != tuple: 
+        if type(param) != tuple:
             if type(param) == list:
                 param = tuple(param)
             else:
@@ -85,7 +85,7 @@ class Sql():
         if not pdata: return False
         keys,param = self.__format_pdata(pdata)
         return self.save(keys,param)
-    
+
     #构造数据
     def __format_pdata(self,pdata):
         keys = pdata.keys()
@@ -98,17 +98,17 @@ class Sql():
         #FIELD条件
         if len(field):
             self.__OPT_FIELD = field
-        return self  
+        return self
 
     def getField(self,keyName):
         #取回指定字段
-      
+
         result = self.field(keyName).select()
         print(result)
         if len(result) != 0:
             return result[0][keyName]
         return result
-      
+
     def __format_field(self,field):
         import re
         fields = []
@@ -159,16 +159,16 @@ class Sql():
             return data
         except Exception as ex:
             return "error: " + str(ex)
-    
+
     def setField(self,keyName,keyValue):
         #更新指定字段
-        return self.save(keyName,(keyValue,))            
+        return self.save(keyName,(keyValue,))
 
     def commit(self):
         self.__close()
         self.__DB_CONN.commit()
-    
-    
+
+
     def save(self,keys,param):
         #更新数据
         self.write_lock()
@@ -180,7 +180,7 @@ class Sql():
                 opt += key + "=?,"
             opt = opt[0:len(opt)-1]
             sql = "UPDATE " + self.__DB_TABLE + " SET " + opt+self.__OPT_WHERE
-                                    
+
             #处理拼接WHERE与UPDATE参数
             tmp = list(self.__to_tuple(param))
             for arg in self.__OPT_PARAM:
@@ -193,8 +193,8 @@ class Sql():
             return result.rowcount
         except Exception as ex:
             return "error: " + str(ex)
-    
-            
+
+
     def execute(self,sql,param = ()):
         #执行SQL语句返回受影响行
         self.write_lock()
@@ -225,7 +225,7 @@ class Sql():
     def rm_lock(self):
         if os.path.exists(self.__LOCK):
             os.remove(self.__LOCK)
-    
+
     def query(self,sql,param = ()):
         #执行SQL语句返回数据集
         self.__GetConn()
@@ -236,7 +236,7 @@ class Sql():
             return data
         except Exception as ex:
             return "error: " + str(ex)
-        
+
     def __close(self):
         #清理条件属性
         self.__OPT_WHERE = ""
@@ -244,8 +244,8 @@ class Sql():
         self.__OPT_ORDER = ""
         self.__OPT_LIMIT = ""
         self.__OPT_PARAM = ()
-        
-    
+
+
     def close(self):
         #释放资源
         try:
@@ -254,7 +254,7 @@ class Sql():
         except:
             pass
 
-        
+
 def GetLocalIp():
     """
     取本地外网IP
@@ -264,17 +264,16 @@ def GetLocalIp():
         filename = panelPath + '/data/iplist.txt'
         ipaddress = readFile(filename)
         if not ipaddress:
-           
-            url = 'http://pv.sohu.com/cityjson?ie=utf-8'
+
+            url =  'http://www.example.com/api/getIpAddress';
             str = httpGet(url)
-            ipaddress = re.search('\d+.\d+.\d+.\d+',str).group(0)
             writeFile(filename,ipaddress)
-        
+
         ipaddress = re.search('\d+.\d+.\d+.\d+',ipaddress).group(0);
         return ipaddress
     except:
         try:
-            url =  'http://www.example.com/api/getIpAddress';
+            url =  'https://www.bt.cn/Api/getIpAddress';
             str = httpGet(url)
             writeFile(filename,ipaddress)
             return str
@@ -302,12 +301,12 @@ def start_service(name):
         while get_server_status(name) == 0:
             try:
                 win32serviceutil.StartService(name)
-                time.sleep(1);                        
-            except : time.sleep(1);   
+                time.sleep(1);
+            except : time.sleep(1);
             timeout += 1
             if timeout > 10:break
 
-        if get_server_status(name) != 0:                
+        if get_server_status(name) != 0:
             return True,None
         return False,'操作失败，10秒内未完成启动服务【{}】'.format(name)
     except :
@@ -319,12 +318,12 @@ def stop_service(name):
         while get_server_status(name) == 1:
             try:
                 win32serviceutil.StopService(name)
-                time.sleep(1);                        
-            except : time.sleep(1);   
+                time.sleep(1);
+            except : time.sleep(1);
             timeout += 1
             if timeout > 10:break
 
-        if get_server_status(name) != 1:                
+        if get_server_status(name) != 1:
             return True,None
         return False,'操作失败，10秒内未完成启动服务【{}】'.format(name)
     except :
@@ -364,15 +363,15 @@ def downloadFileByWget(url,filename):
         if os.path.exists(logPath): os.remove(logPath)
     except : pass
     loacl_path =  '{}/script/wget.exe'.format(panelPath)
-    if not os.path.exists(loacl_path):  downloadFile(get_url()+'/win/panel/data/wget.exe',loacl_path)   
+    if not os.path.exists(loacl_path):  downloadFile(get_url()+'/win/panel/data/wget.exe',loacl_path)
 
     if os.path.getsize(loacl_path) < 10:
         os.remove(loacl_path)
         downloadFile(url,filename)
     else:
-        shell = "{} {} -O {} -t 5 -T 60 --no-check-certificate --auth-no-challenge --force-directorie > {} 2>&1".format(loacl_path,url,filename,logPath)    
+        shell = "{} {} -O {} -t 5 -T 60 --no-check-certificate --auth-no-challenge --force-directorie > {} 2>&1".format(loacl_path,url,filename,logPath)
         os.system(shell)
-            
+
         num = 0
         re_size = 0
         while num <= 5:
@@ -382,17 +381,17 @@ def downloadFileByWget(url,filename):
                     break;
                 else:
                     re_size = cr_size
-            time.sleep(0.5)  
+            time.sleep(0.5)
             num += 1
 
-        if os.path.exists(filename):            
+        if os.path.exists(filename):
             if os.path.getsize(filename) < 1:
                 os.remove(filename)
                 downloadFile(url,filename)
         else:
             downloadFile(url,filename)
 
-def writeFile(filename,s_body,mode='w+',encoding = 'utf-8'): 
+def writeFile(filename,s_body,mode='w+',encoding = 'utf-8'):
     try:
         fp = open(filename, mode,encoding = encoding);
         fp.write(s_body)
@@ -402,7 +401,7 @@ def writeFile(filename,s_body,mode='w+',encoding = 'utf-8'):
         return False
 
 def readFile(filename,mode = 'r'):
- 
+
     import os,chardet
     if not os.path.exists(filename): return False
     if not os.path.isfile(filename): return False
@@ -425,15 +424,15 @@ def readFile(filename,mode = 'r'):
             encoding = 'ansi'
             fp = open(filename, mode,encoding = encoding)
             f_body = fp.read()
-    
+
     try:
-        if f_body[0] == '\ufeff':            
+        if f_body[0] == '\ufeff':
             #处理带bom格式
             new_code = chardet.detect(f_body.encode(encoding))["encoding"]
             f_body = f_body.encode(encoding).decode(new_code);
-    except : pass    
-    
-    fp.close()   
+    except : pass
+
+    fp.close()
     return f_body
 
 def httpGet(url,timeout = 60,headers = {}):
@@ -445,11 +444,11 @@ def httpGet(url,timeout = 60,headers = {}):
         req = urllib.request.Request(url,headers = headers)
         response = urllib.request.urlopen(req,timeout = timeout)
         result = response.read()
-        if type(result) == bytes: 
+        if type(result) == bytes:
             try:
                 result = result.decode('utf-8')
             except :
-                result = result.decode('gb2312')            
+                result = result.decode('gb2312')
         return result
     except Exception as ex:
         if headers: return False
@@ -470,9 +469,9 @@ def httpPost(url, data, timeout=60, headers={}):
 
         return result
     except Exception as ex:
-  
+
         return str(ex);
-  
+
 
 def get_timeout(url,timeout=3):
 
@@ -484,10 +483,10 @@ def get_timeout(url,timeout=3):
 
 def get_url(timeout = 0.5):
     import json
-    try:   
+    try:
         #
-        node_list = [{"protocol":"http://","address":"dg1.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"dg2.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"node.aapanel.com","port":"80","ping":500},{"protocol":"http://","address":"download.bt.cn","port":"80","ping":500}]
-  
+        node_list = [{"protocol":"http://","address":"dg2.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"dg1.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"download.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"hk1-node.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"na1-node.bt.cn","port":"80","ping":500},{"protocol":"http://","address":"jp1-node.bt.cn","port":"80","ping":500}]
+
         mnode1 = []
         mnode2 = []
         mnode3 = []
@@ -510,12 +509,12 @@ def get_url(timeout = 0.5):
             mnode = sorted(mnode3,key= lambda  x:x['net'],reverse=True)
         else: #终选中等延迟，中等带宽
             mnode = sorted(mnode2,key= lambda  x:x['ping'],reverse=False)
-          
-        if not mnode: return 'http://download.bt.cn'
+
+        if not mnode: return 'https://download.bt.cn'
         #return mnode[0]['protocol'] + mnode[0]['address'] + ':' + mnode[0]['port']
         return "https://" + mnode[0]['address']
     except:
-        return 'http://download.bt.cn'
+        return 'https://download.bt.cn'
 
 
 
@@ -529,12 +528,12 @@ def del_file_access(filename,user):
         sd = win32security.GetFileSecurity(filename, win32security.DACL_SECURITY_INFORMATION)
         dacl = sd.GetSecurityDescriptorDacl()
         ace_count = dacl.GetAceCount()
-        
-        for i in range(ace_count ,0 ,-1):            
+
+        for i in range(ace_count ,0 ,-1):
             try:
                 data = {}
                 data['rev'], data['access'], usersid = dacl.GetAce(i-1)
-                data['user'],data['group'], data['type'] = win32security.LookupAccountSid('', usersid)     
+                data['user'],data['group'], data['type'] = win32security.LookupAccountSid('', usersid)
                 if data['user'].lower() == user.lower(): dacl.DeleteAce(i-1) #删除旧的dacl
                 if data['user'].lower() == 'users': dacl.DeleteAce(i-1) #删除旧的dacl
 
@@ -542,35 +541,35 @@ def del_file_access(filename,user):
                 try:
                     #处理拒绝访问
                     dacl.DeleteAce(i-1)
-                except : pass                
+                except : pass
         sd.SetSecurityDescriptorDacl(1, dacl, 0)
         win32security.SetFileSecurity(filename, win32security.DACL_SECURITY_INFORMATION, sd)
     except :
         pass
     return True
 
-def set_file_access(filename,user,access):    
+def set_file_access(filename,user,access):
     try:
         sd = win32security.GetFileSecurity(filename, win32security.DACL_SECURITY_INFORMATION)
         dacl = sd.GetSecurityDescriptorDacl()
         ace_count = dacl.GetAceCount()
 
-        for i in range(ace_count, 0,-1):  
+        for i in range(ace_count, 0,-1):
             try:
                 data = {}
                 data['rev'], data['access'], usersid = dacl.GetAce(i-1)
-                data['user'],data['group'], data['type'] = win32security.LookupAccountSid('', usersid)                
+                data['user'],data['group'], data['type'] = win32security.LookupAccountSid('', usersid)
                 if data['user'].lower() == user.lower(): dacl.DeleteAce(i-1) #删除旧的dacl
                 if data['user'].lower() == 'users': dacl.DeleteAce(i-1) #删除旧的dacl
-                    
+
             except :
                 pass
         try:
             userx, domain, type = win32security.LookupAccountName("", user)
         except :
-            userx, domain, type = win32security.LookupAccountName("", 'IIS APPPOOL\\' + user)       
+            userx, domain, type = win32security.LookupAccountName("", 'IIS APPPOOL\\' + user)
         if access > 0:  dacl.AddAccessAllowedAceEx(win32security.ACL_REVISION, 3, access, userx)
-            
+
         sd.SetSecurityDescriptorDacl(1, dacl, 0)
         win32security.SetFileSecurity(filename, win32security.DACL_SECURITY_INFORMATION, sd)
         return True,None
@@ -582,24 +581,24 @@ def ExecShell(cmdstring, cwd=None, timeout=None, shell=True):
         cmdstring_list = cmdstring
     else:
         cmdstring_list = shlex.split(cmdstring)
-    
+
     if timeout:
         end_time = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
-    
-    sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,shell=shell,stdout=subprocess.PIPE,stderr=subprocess.PIPE)    
+
+    sub = subprocess.Popen(cmdstring_list, cwd=cwd, stdin=subprocess.PIPE,shell=shell,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
     while sub.poll() is None:
         time.sleep(0.1)
         if timeout:
             if end_time <= datetime.datetime.now():
                 raise Exception("Timeout：%s"%cmdstring)
     a,e = sub.communicate()
-    if type(a) == bytes: 
+    if type(a) == bytes:
         try:
             a = a.decode('utf-8')
-        except : 
+        except :
             a = a.decode('gb2312','ignore')
 
-    if type(e) == bytes: 
+    if type(e) == bytes:
         try:
             e = e.decode('utf-8')
         except :
@@ -626,7 +625,7 @@ def GetRandomString1(length):
         strings += chars[random.randint(0, chrlen)]
     return strings
 
-def GetRandomString2(length): 
+def GetRandomString2(length):
     from random import Random
     strings = ''
     chars = '!@#$%^&*()_+.,?[]-='
@@ -637,7 +636,7 @@ def GetRandomString2(length):
     return strings
 
 def chdck_salt():
-    
+
     sql = Sql()
     sql.table('users').execute("ALTER TABLE 'users' ADD 'salt' TEXT",())
 
@@ -657,7 +656,7 @@ def md5(strings):
     """
     import hashlib
     m = hashlib.md5()
- 
+
     m.update(strings.encode('utf-8'))
     return m.hexdigest()
 
@@ -673,18 +672,18 @@ def password_salt(password,username=None,uid=None):
     salt = sql.table('users').where('id=?',(uid,)).getField('salt')
     return md5(md5(password+'_bt.cn')+salt)
 
-def check_user(username):   
+def check_user(username):
     resume = 0
     while True:
         data, total, resume = win32net.NetUserEnum(None, 3, win32netcon.FILTER_NORMAL_ACCOUNT, resume)
         for user in data:
             if user['name'] == username: return True
         if not resume: break
-    return False 
+    return False
 
 def add_user(username,password,ps):
     try:
-        if not check_user(username):                
+        if not check_user(username):
             d = {}
             d['name'] = username
             d['password'] = password
@@ -692,7 +691,7 @@ def add_user(username,password,ps):
             d['flags'] = win32netcon.UF_NORMAL_ACCOUNT | win32netcon.UF_SCRIPT
             d['priv'] = win32netcon.USER_PRIV_USER
             win32net.NetUserAdd(None, 1, d)
-       
+
             #设置用户允许登录服务
             handle = win32security.LsaOpenPolicy(None, win32security.POLICY_ALL_ACCESS)
             sid_obj, domain, tmp = win32security.LookupAccountName(None, username)
@@ -713,25 +712,25 @@ def add_user_bywww():
 
     pwd = GetRandomString(64) + GetRandomString1(32) + GetRandomString2(32)
     status,error = add_user('www',pwd,'用于启动宝塔安装的程序,删除后会导致部分软件无法启动,请勿删除')
-    if not status: 
+    if not status:
         writeFile(error_path,error)
         return False
     return True
 
 def add_user_bymysql():
-   
+
     pwd = GetRandomString(64) + GetRandomString1(32) + GetRandomString2(32)
     status,error = add_user('mysql',pwd,'用于启动宝塔安装的程序,删除后会导致部分软件无法启动,请勿删除')
-    if not status:        
+    if not status:
         writeFile(error_path,error)
         return False
     return True
-      
+
 def getIP(url):
     import socket,re
 
     tmp = re.search('http://(.+)\:\d*',url)
-    if tmp:        
+    if tmp:
         domain = tmp.groups()[0]
         myaddr = socket.getaddrinfo(domain, 'http')
         return myaddr[0][4][0]
@@ -756,14 +755,14 @@ def add_panel_dir():
                 ]
 
         is_break = False
-        for sobj in slist:            
+        for sobj in slist:
             if not os.path.exists(sobj[0]):
-                os.makedirs(sobj[0])  
+                os.makedirs(sobj[0])
                 n = 0
                 while n < 5:
                     if os.path.exists(sobj[0]): break
 
-                    os.makedirs(sobj[0])  
+                    os.makedirs(sobj[0])
                     time.sleep(0.5)
                     n += 1
 
@@ -773,17 +772,17 @@ def add_panel_dir():
 
                 del_file_access(sobj[0],'users')
 
-                for user in sobj[1]:                       
+                for user in sobj[1]:
                     n = 0
-                    while n < 3:                        
+                    while n < 3:
                         status,error = set_file_access(sobj[0],user,2032127)
-                        if status: break                            
+                        if status: break
                         time.sleep(0.5)
 
                     if not status:
                         writeFile(error_path,"目录{}设置{}权限设置错误 -> {}".format(sobj[0],user,error))
                         break
-                
+
         del_file_access(setupPath,'users')
         url = get_url()
 
@@ -793,18 +792,18 @@ def add_panel_dir():
             download_url = '{}/win/panel/data/{}'.format(url,f_name)
 
             n = 0
-            while n < 10:   
+            while n < 10:
                 n += 1;
 
                 try:
-                    if os.path.exists(local_path) and os.path.getsize(local_path) < 10: os.remove(local_path) 
-                    if not os.path.exists(local_path): downloadFileByWget(download_url,local_path)   
-                    if os.path.getsize(local_path) and os.path.getsize(local_path) > 10: break;       
+                    if os.path.exists(local_path) and os.path.getsize(local_path) < 10: os.remove(local_path)
+                    if not os.path.exists(local_path): downloadFileByWget(download_url,local_path)
+                    if os.path.getsize(local_path) and os.path.getsize(local_path) > 10: break;
 
-                    writeFile(error_path,'download {} error ->> {} \r\n {}'.format(f_name,download_url,""))   
+                    writeFile(error_path,'download {} error ->> {} \r\n {}'.format(f_name,download_url,""))
                 except :
                     ip = getIP(url)
-                    writeFile(error_path,'download {} error ->> {}  \r\n connect {} \r\n {}'.format(ip,f_name,download_url,get_error_info()))   
+                    writeFile(error_path,'download {} error ->> {}  \r\n connect {} \r\n {}'.format(ip,f_name,download_url,get_error_info()))
 
                 if n > 5: return False
                 time.sleep(0.2)
@@ -816,9 +815,9 @@ def add_panel_dir():
 
 def unzip(src_path,dst_path):
     import zipfile
-    zip_file = zipfile.ZipFile(src_path)  
-    for names in zip_file.namelist():  
-        zip_file.extract(names,dst_path)      
+    zip_file = zipfile.ZipFile(src_path)
+    for names in zip_file.namelist():
+        zip_file.extract(names,dst_path)
     zip_file.close()
     return True
 
@@ -834,44 +833,44 @@ def download_panel(file_list = []):
         #下载面板
         loacl_path = setupPath + '/panel.zip'
         tmpPath = "{}/temp/panel".format(setupPath)
-        if os.path.exists(loacl_path): os.remove(loacl_path)   
+        if os.path.exists(loacl_path): os.remove(loacl_path)
         if os.path.exists(tmpPath): shutil.rmtree(tmpPath,True)
         if not os.path.exists(tmpPath): os.makedirs(tmpPath)
-        
+
         p_ver = sys.argv[2]
         downUrl =  url + '/win/panel/panel_' + p_ver + '.zip';
-        downloadFileByWget(downUrl,loacl_path);        
-        unzip(loacl_path,tmpPath)    
-        
+        downloadFileByWget(downUrl,loacl_path);
+        unzip(loacl_path,tmpPath)
+
         for ff_path in file_list:
-            if os.path.exists(tmpPath + '/' + ff_path): os.remove(tmpPath + '/' + ff_path)  
+            if os.path.exists(tmpPath + '/' + ff_path): os.remove(tmpPath + '/' + ff_path)
 
         tcPath = '{}\class'.format(tmpPath)
-        for name in os.listdir(tcPath): 
-            try:              
+        for name in os.listdir(tcPath):
+            try:
                 if name.find('win_amd64.pyd') >=0:
                     oldName = os.path.join(tcPath,name);
-                    lName = name.split('.')[0] + '.pyd' 
-                    newName = os.path.join(tcPath,lName)                
+                    lName = name.split('.')[0] + '.pyd'
+                    newName = os.path.join(tcPath,lName)
                     if not os.path.exists(newName):os.rename(oldName,newName)
             except :pass
 
         cPath = '{}/panel/class'.format(setupPath)
 
-        if os.path.exists(cPath):            
+        if os.path.exists(cPath):
             os.system("del /s {}\*.pyc".format(to_path(cPath)))
             os.system("del /s {}\*.pyt".format(to_path(cPath)))
             for name in os.listdir(cPath):
                 try:
-                    if name.find('.pyd') >=0: 
+                    if name.find('.pyd') >=0:
                         oldName = os.path.join(cPath,name)
-                        newName = os.path.join(cPath,GetRandomString(8) + '.pyt')                  
-                        os.rename(oldName,newName)                    
+                        newName = os.path.join(cPath,GetRandomString(8) + '.pyt')
+                        os.rename(oldName,newName)
                 except : pass
             os.system("del /s {}\*.pyc".format(to_path(cPath)))
             os.system("del /s {}\*.pyt".format(to_path(cPath)))
 
-        os.system("xcopy /s /c /e /y /r {} {}".format(to_path(tmpPath),to_path(panelPath)))    
+        os.system("xcopy /s /c /e /y /r {} {}".format(to_path(tmpPath),to_path(panelPath)))
         try:
             os.remove(loacl_path)
         except : pass
@@ -880,7 +879,7 @@ def download_panel(file_list = []):
             shutil.rmtree(tmpPath,True)
         except : pass
 
-        s_ver = platform.platform()        
+        s_ver = platform.platform()
         net_v = '45'
         if s_ver.find('2008') >= 0: net_v = '20'
         writeFile('{}/data/net'.format(setupPath),net_v)
@@ -910,7 +909,7 @@ def download_panel(file_list = []):
         try:
             from gevent import monkey
         except :
-            os.system('"C:\Program Files\python\python.exe" -m pip install gevent')         
+            os.system('"C:\Program Files\python\python.exe" -m pip install gevent')
     except :
         writeFile(error_path,get_error_info())
 
@@ -918,7 +917,7 @@ def update_panel():
 
     file_list = ['config/config.json','config/index.json','data/libList.conf','data/plugin.json']
     download_panel(file_list)
-    
+
     py_path = 'C:/Program Files/python/python.exe'
 
     ExecShell("\"{}\" {}/panel/runserver.py --startup auto install".format(py_path,setupPath))
@@ -929,7 +928,7 @@ def update_panel():
 def init_panel_data():
     try:
         sql =  Sql()
-        username = sql.table('users').where('id=?',(1,)).getField('username')  
+        username = sql.table('users').where('id=?',(1,)).getField('username')
         if username == 'admin':
             username = GetRandomString(8)
             password = GetRandomString(8)
@@ -937,12 +936,12 @@ def init_panel_data():
 
             sql.table('users').where('id=?',(1,)).setField('username',username)
             pwd = password_salt(md5(password),uid=1)
-    
+
             result = sql.table('users').where('id=?',(1,)).setField('password',pwd)
 
             backup_path = panelPath[:2] + '/backup'
             www_path = panelPath[:2] + '/wwwroot'
-            
+
             if not os.path.exists(backup_path): os.makedirs(backup_path)
             if not os.path.exists(www_path): os.makedirs(www_path)
 
@@ -953,11 +952,11 @@ def init_panel_data():
             if not os.path.exists(bind_path): writeFile(bind_path,'True')
 
         admin_path = panelPath+ '/data/admin_path.pl'
-        if not os.path.exists(admin_path): writeFile(admin_path,"/" + GetRandomString(8))        
+        if not os.path.exists(admin_path): writeFile(admin_path,"/" + GetRandomString(8))
 
         port_path = panelPath+ '/data/port.pl'
         if not os.path.exists(port_path): writeFile(port_path,'8888')
-    
+
         recycle_bin_db = panelPath+ '/data/recycle_bin_db.pl'
         if not os.path.exists(recycle_bin_db): writeFile(recycle_bin_db,'True')
 
@@ -975,26 +974,26 @@ def init_panel_data():
     except :
         writeFile(error_path,get_error_info())
         return False
-    
+
 def add_panel_services(num = 0):
    try:
         py_path = 'C:/Program Files/python/python.exe'
 
-        delete_server('btPanel')    
+        delete_server('btPanel')
         ret = ExecShell("\"{}\" {}/panel/runserver.py --startup auto install".format(py_path,setupPath))
-   
+
         delete_server('btTask')
-        ExecShell("\"{}\" {}/panel/task.py --startup auto install".format(py_path,setupPath))
-    
-        if get_server_status('btPanel') < 0 or get_server_status('btTask') < 0:     
+        ret1 = ExecShell("\"{}\" {}/panel/task.py --startup auto install".format(py_path,setupPath))
+
+        if get_server_status('btPanel') < 0 or get_server_status('btTask') < 0:
             if num <= 0 :
                 localPath = setupPath + "/temp/Time_Zones.reg";
                 downloadFileByWget(get_url() + '/win/panel/data/Time_Zones.reg',localPath)
                 ExecShell("regedit /s " + localPath)
 
-                add_panel_services(1)            
+                add_panel_services(1)
             else:
-                writeFile(error_path,ret[0] + ret[1])            
+                writeFile(error_path,ret[0] + ret[1] + ret1[0] + ret1[1])
         else:
             os.system('sc failure btPanel reset=1800 actions=restart/60000/restart/120000/restart/30000')
             os.system('sc failure btTask reset=1800 actions=restart/60000/restart/120000/restart/30000')
@@ -1005,9 +1004,9 @@ def add_panel_services(num = 0):
 
 
 def add_firewall_byport():
-    
+
     conf = ExecShell('netsh advfirewall firewall show rule "宝塔面板"')[0]
-    if conf.lower().find('tcp') == -1:        
+    if conf.lower().find('tcp') == -1:
         ExecShell("netsh advfirewall firewall add rule name=宝塔面板 dir=in action=allow protocol=tcp localport=8888");
         ExecShell("netsh advfirewall firewall add rule name=网站访问端口 dir=in action=allow protocol=tcp localport=80");
         ExecShell("netsh advfirewall firewall add rule name=远程桌面 dir=in action=allow protocol=tcp localport=3389");
@@ -1029,8 +1028,8 @@ def get_error_log():
     return error
 
 if __name__ == "__main__":
-    stype = sys.argv[1];    
-    if not stype in ['get_error_log']:        
+    stype = sys.argv[1];
+    if not stype in ['get_error_log']:
         if os.path.exists(error_path): os.remove(error_path)
     result = eval('{}()'.format(stype))
     print(result)
