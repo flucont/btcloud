@@ -16,9 +16,7 @@
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py）
 
-- class/panelAuth.py 替换 http://www.bt.cn/api/ => http://www.example.com/api/
-
-- 全局搜索替换 http://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
+- 全局搜索替换 https://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
 - class/ajax.py 文件 \#是否执行升级程序 下面的 public.get_url() 改成 public.GetConfigValue('home')
 
@@ -56,12 +54,14 @@
   temp_file = temp_file.replace('wget -O Tpublic.sh', '#wget -O Tpublic.sh')
   temp_file = temp_file.replace('\cp -rpa Tpublic.sh', '#\cp -rpa Tpublic.sh')
   temp_file = temp_file.replace('http://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
+  temp_file = temp_file.replace('https://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
 
 - install/install_soft.sh 在bash执行之前加入以下代码
 
   ```shell
   sed -i "s/http:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" lib.sh
+  sed -i "s/https:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" lib.sh
   sed -i "/wget -O Tpublic.sh/d" $name.sh
   ```
   

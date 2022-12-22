@@ -163,6 +163,19 @@ if("undefined" != typeof database && database.hasOwnProperty("del_database")){
                             }
                         ],
                         success: function () {
+                            $('#check_layer_content').find('.glyphicon-info-sign').click(function (e) {
+                                var msg = $(this).parent().prop('title')
+                                msg = msg.replace('数据库：','<br>数据库：')
+                                layer.tips(msg, $(this).parent(), { tips: [1, 'red'], time: 3000 })
+                                $(document).click(function (ev) {
+                                  layer.closeAll('tips');
+                                  $(this).unbind('click');
+                                  ev.stopPropagation();
+                                  ev.preventDefault();
+                                });
+                                e.stopPropagation();
+                                e.preventDefault();
+                            });
                             if ($('.remote_database').length) {
                                 $('.remote_database').each(function (index, el) {
                                     var id = $(el).parent().parent().parent().index()

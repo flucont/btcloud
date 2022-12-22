@@ -52,9 +52,11 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
 
   - 删除最下面 logs_analysis() 这1行
 
-- 去除首页广告：BTPanel/static/js/index.js 文件删除最下面index.recommend_paid_version()这一行
+- 去除首页广告：BTPanel/static/js/index.js 文件删除最下面index.recommend_paid_version()这一行以及index.consultancy_services()这一行
 
 - 去除首页自动检测更新，避免频繁请求云端：BTPanel/static/js/index.js 文件注释掉bt.system.check_update这一段代码外的setTimeout
+
+- 去除内页广告：BTPanel/templates/default/layout.html 删除getPaymentStatus();这一行
 
 - [可选]去除各种计算题：复制win/bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/layout.html 的尾部加入
 
