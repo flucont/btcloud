@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Linux_Version="7.9.6"
+Linux_Version="7.9.7"
 Windows_Version="7.8.0"
 
 FILES=(

@@ -70,7 +70,7 @@ select_node(){
 get_version(){
     version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
     if [ "$version" = '' ];then
-        version='7.9.6'
+        version='7.9.7'
     fi
 }
 
