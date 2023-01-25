@@ -197,6 +197,28 @@ class Api extends BaseController
         return json($data);
     }
 
+    //宝塔云监控获取最新版本
+    public function btm_latest_version(){
+        $data = [
+            'version' => config_get('new_version_btm'),
+            'description' => config_get('update_msg_btm'),
+            'create_time' => config_get('update_date_btm')
+        ];
+        return json($data);
+    }
+
+    //宝塔云监控更新日志
+    public function btm_update_history(){
+        $data = [
+            [
+                'version' => config_get('new_version_btm'),
+                'description' => config_get('update_msg_btm'),
+                'create_time' => config_get('update_date_btm')
+            ]
+        ];
+        return json($data);
+    }
+
     //获取内测版更新日志
     public function get_beta_logs(){
         return json(['beta_ps'=>'当前暂无内测版', 'list'=>[]]);
@@ -259,9 +281,35 @@ class Api extends BaseController
 
     //绑定账号
     public function get_auth_token(){
-        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'address'=>'127.0.0.1', 'serverid'=>'1', 'access_key'=>random(32), 'secret_key'=>random(48), 'ukey'=>md5(time()), 'state'=>1];
+        if(!$_POST['data']) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin($_POST['data']);
+        parse_str($reqData, $arr);
+        $serverid = $arr['serverid'];
+        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'address'=>'127.0.0.1', 'serverid'=>$serverid, 'access_key'=>random(32), 'secret_key'=>random(48), 'ukey'=>md5(time()), 'state'=>1];
         $data = bin2hex(urlencode(json_encode($userinfo)));
         return json(['status'=>true, 'msg'=>'登录成功！', 'data'=>$data]);
+    }
+
+    //绑定账号新
+    public function authorization_login(){
+        if(!$_POST['data']) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin($_POST['data']);
+        parse_str($reqData, $arr);
+        $serverid = $arr['serverid'];
+        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'ip'=>'127.0.0.1', 'server_id'=>$serverid, 'access_key'=>random(32), 'secret_key'=>random(48)];
+        $data = bin2hex(urlencode(json_encode($userinfo)));
+        return json(['status'=>true, 'msg'=>'登录成功！', 'data'=>$data]);
+    }
+
+    //刷新授权信息
+    public function authorization_info(){
+        if(!$_POST['data']) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin($_POST['data']);
+        parse_str($reqData, $arr);
+        $id = isset($arr['id'])&&$arr['id']>0?$arr['id']:1;
+        $userinfo = ['id'=>$id, 'product'=>$arr['product'], 'status'=>2, 'clients'=>9999, 'durations'=>0, 'end_time'=>strtotime('+10 year')];
+        $data = bin2hex(urlencode(json_encode($userinfo)));
+        return json(['status'=>true, 'data'=>$data]);
     }
 
     //一键部署列表

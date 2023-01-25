@@ -15,6 +15,14 @@ Route::post('/panel/get_unbinding', 'api/return_success');
 Route::post('/bt_cert', 'api/return_error');
 Route::post('/Auth/GetAuthToken', 'api/get_auth_token');
 Route::post('/Auth/GetBindCode', 'api/return_error');
+Route::any('/bt_monitor/update_history', 'api/btm_update_history');
+Route::any('/bt_monitor/latest_version', 'api/btm_latest_version');
+
+Route::group('authorization', function () {
+    Route::post('/login', 'api/authorization_login');
+    Route::post('/info', 'api/authorization_info');
+    Route::miss('api/return_error');
+});
 
 Route::group('api', function () {
     Route::any('/panel/get_soft_list', 'api/get_plugin_list');

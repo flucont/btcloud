@@ -2,6 +2,7 @@
 
 Linux_Version="7.9.7"
 Windows_Version="7.8.0"
+Btm_Version="1.0.11"
 
 FILES=(
 public/install/src/panel6.zip
@@ -13,6 +14,9 @@ public/win/install/panel_update.py
 public/win/panel/panel_${Windows_Version}.zip
 public/win/panel/data/api.py
 public/win/panel/data/setup.py
+public/install/src/bt-monitor-${Btm_Version}.zip
+public/install/install_btmonitor.sh
+public/install/update_btmonitor.sh
 )
 
 DIR=$1

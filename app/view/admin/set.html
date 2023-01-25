@@ -48,6 +48,19 @@
       <input type="date" name="update_date_win" value="{:config_get('update_date_win')}" class="form-control"/>
 	  <font color="green">用于检测更新接口返回</font>
     </div>
+	<div class="form-group">
+      <label>宝塔云监控最新版本号：</label>
+      <input type="text" name="new_version_btm" value="{:config_get('new_version_btm')}" class="form-control"/>
+      <font color="green">用于一键更新脚本获取最新版本号，以及检测更新接口。并确保已在/public/install/src/放置对应版本更新包</font>
+    </div>
+	<div class="form-group">
+      <label>宝塔云监控更新日志：</label>
+      <textarea class="form-control" name="update_msg_btm" rows="3" placeholder="支持HTML代码">{:config_get('update_msg_btm')}</textarea>
+    </div>
+	<div class="form-group">
+      <label>宝塔云监控更新日期：</label>
+      <input type="date" name="update_date_btm" value="{:config_get('update_date_btm')}" class="form-control"/>
+    </div>
 	<div class="form-group text-center">
 	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
 	</div>

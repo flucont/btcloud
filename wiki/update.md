@@ -8,7 +8,7 @@
 
 - 将class文件夹里面所有的.so文件删除
 
-- 将PluginLoader.py复制到class文件夹
+- 将linux/PluginLoader.py复制到class文件夹
 
 - 批量解密模块文件：执行 php think decrypt classdir <面板class文件夹路径>
 

@@ -331,10 +331,6 @@ canvas {
 	color: #20a53a;
 }
 
-.d4 {
-	background-color: #edf6ef;
-}
-
 .d4 .desc {
 	margin-bottom: 16px;
 	line-height: 30px;
@@ -375,7 +371,7 @@ canvas {
 	animation: flap-right 0.75s linear infinite;
 }
 
-/* °²×°½Å±¾ */
+/* ï¿½ï¿½×°ï¿½Å±ï¿½ */
 .layui-layer .install-code {
 	display: flex;
 	flex-wrap: wrap;
