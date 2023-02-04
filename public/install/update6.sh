@@ -42,7 +42,7 @@ download_Url=$NODE_URL
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ "$version" = '' ];then
-	version='7.9.7'
+	version='7.9.8'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then

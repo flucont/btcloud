@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Linux_Version="7.9.7"
+Linux_Version="7.9.8"
 Windows_Version="7.8.0"
 Btm_Version="1.0.11"
 
