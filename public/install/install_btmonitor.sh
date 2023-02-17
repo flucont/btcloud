@@ -330,6 +330,12 @@ EOF
 		/etc/init.d/btm stop
 		sleep 1
 	fi
+	
+	if [ -f "/www/server/bt-monitor/sqlite-server.sh" ]; then
+		chmod +x /www/server/bt-monitor/sqlite-server.sh
+		/www/server/bt-monitor/sqlite-server.sh stop
+		sleep 1
+	fi
 
     version="1.0.2"
     file_name="bt-monitor"
@@ -669,6 +675,12 @@ Install_Main(){
 Uninstall_Monitor(){
 	pkill BT-MONITOR
 	/etc/init.d/btm stop
+	
+	if [ -f "/www/server/bt-monitor/sqlite-server.sh" ]; then
+		chmod +x /www/server/bt-monitor/sqlite-server.sh
+		/www/server/bt-monitor/sqlite-server.sh stop
+		sleep 1
+	fi
 
 	Service_Del
 

@@ -57,6 +57,8 @@
   temp_file = temp_file.replace('https://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
 
+- class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
+
 - install/install_soft.sh 在bash执行之前加入以下代码
 
   ```shell

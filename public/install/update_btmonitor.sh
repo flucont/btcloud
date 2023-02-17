@@ -23,6 +23,12 @@ if [ -f "/etc/init.d/btm" ]; then
 	sleep 1
 fi
 
+if [ -f "/www/server/bt-monitor/sqlite-server.sh" ]; then
+	chmod +x /www/server/bt-monitor/sqlite-server.sh
+	/www/server/bt-monitor/sqlite-server.sh stop
+	sleep 1
+fi
+
 get_node_url(){
 	if [ ! -f /bin/curl ];then
 		if [ "${PM}" = "yum" ]; then

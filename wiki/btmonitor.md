@@ -40,3 +40,5 @@
 
 - init.sh   http://download.bt.cn => http://www.example.com
 
+- 根目录BT-MONITOR 取消第一个CreateSSL方法定义的注释，删除第二个CreateSSL方法定义
+
