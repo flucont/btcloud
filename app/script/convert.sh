@@ -2,7 +2,7 @@
 
 Linux_Version="7.9.8"
 Windows_Version="7.8.0"
-Btm_Version="1.0.12"
+Btm_Version="2.0.8"
 
 FILES=(
 public/install/src/panel6.zip

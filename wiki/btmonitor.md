@@ -14,7 +14,7 @@
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除/panel/get_ip_info）
 
-- core/public.py 在 
+- core/include/public.py 在 
 
   ```python
   def GetConfigValue(key):
@@ -30,15 +30,15 @@
 
 - core/basic_monitor.py
 
-  在 def report_module_logs(self): 这一行下面加上 return
+  在 def report_module_logs(self, force=False): 这一行下面加上 return
 
 - modules/configModule/main.py
 
-  http://download.bt.cn => http://www.example.com
+  https://download.bt.cn => http://www.example.com
 
 - update/update_btmonitor.sh 修改Install_Monitor方法内的download_Url变量
 
-- init.sh   http://download.bt.cn => http://www.example.com
+- init.sh   https://download.bt.cn => http://www.example.com
 
-- 根目录BT-MONITOR 取消第一个CreateSSL方法定义的注释，删除第二个CreateSSL方法定义
+- BT-MONITOR 取消第一个CreateSSL方法定义的注释，删除第二个CreateSSL方法定义
 

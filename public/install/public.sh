@@ -10,7 +10,7 @@ export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 
 get_node_url(){
-	nodes=(https://dg2.bt.cn https://dg1.bt.cn https://download.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn);
+	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -29,7 +29,7 @@ get_node_url(){
 		NODE_STATUS=$(echo ${NODE_CHECK}|awk '{print $2}')
 		TIME_TOTAL=$(echo ${NODE_CHECK}|awk '{print $3 * 1000 - 500 }'|cut -d '.' -f 1)
 		if [ "${NODE_STATUS}" == "200" ];then
-			if [ $TIME_TOTAL -lt 100 ];then
+			if [ $TIME_TOTAL -lt 300 ];then
 				if [ $RES -ge 1500 ];then
 					echo "$RES $node" >> $tmp_file1
 				fi
@@ -40,7 +40,7 @@ get_node_url(){
 			fi
 
 			i=$(($i+1))
-			if [ $TIME_TOTAL -lt 100 ];then
+			if [ $TIME_TOTAL -lt 200 ];then
 				if [ $RES -ge 3000 ];then
 					break;
 				fi

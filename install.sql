@@ -18,9 +18,9 @@ INSERT INTO `cloud_config` (`key`, `value`) VALUES
 ('new_version_win', '7.8.0'),
 ('update_msg_win', '暂无更新日志'),
 ('update_date_win', '2022-12-08'),
-('new_version_btm', '1.0.12'),
+('new_version_btm', '2.0.8'),
 ('update_msg_btm', '暂无更新日志'),
-('update_date_btm', '2023-02-12'),
+('update_date_btm', '2023-03-31'),
 ('updateall_type', '0'),
 ('syskey', 'UqP94LtI8eWAIgCP');
 

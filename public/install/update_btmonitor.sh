@@ -11,7 +11,7 @@ is64bit=$(getconf LONG_BIT)
 
 if [ ! -d $monitor_path ]; then
 	echo "没有安装云监控,请执行下面的命令安装堡塔云监控!"
-	echo "curl -sSO http://download.bt.cn/install/install_btmonitor.sh && bash install_btmonitor.sh"
+	echo "curl -sSO ${Btapi_Url}/install/install_btmonitor.sh && bash install_btmonitor.sh"
 	exit 1
 fi
 
@@ -48,7 +48,8 @@ get_node_url(){
 	echo '---------------------------------------------';
 	echo "Selected download node...";
 	# nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://38.34.185.130 http://116.213.43.206:5880 http://128.1.164.196);
-	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://116.213.43.206:5880);
+	#nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://116.213.43.206:5880);
+	nodes=(https://dg2.bt.cn https://dg1.bt.cn https://download.bt.cn);
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
 	[ -f "${tmp_file1}" ] && rm -f ${tmp_file1}
@@ -85,7 +86,7 @@ get_node_url(){
 	if [ -z "$NODE_URL" ];then
 		NODE_URL=$(cat $tmp_file2|sort -g -t " " -k 1|head -n 1|awk '{print $2}')
 		if [ -z "$NODE_URL" ];then
-			NODE_URL='http://download.bt.cn';
+			NODE_URL='https://download.bt.cn';
 		fi
 	fi
 	rm -f $tmp_file1
@@ -332,8 +333,11 @@ Install_Monitor(){
 	chmod +x /etc/init.d/btm
 	ln -sf /etc/init.d/btm /usr/bin/btm
 
-	if [ ! -f /www/server/bt-monitor/data/user.json ]; then
-		echo "{\"uid\":1,\"username\":\"Administrator\",\"ip\":\"127.0.0.1\",\"server_id\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\"}" > /www/server/bt-monitor/data/user.json
+	if [ ! -f $monitor_path/data/user.json ]; then
+		echo "{\"uid\":1,\"username\":\"Administrator\",\"ip\":\"127.0.0.1\",\"server_id\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\"}" > $monitor_path/data/user.json
+	fi
+	if [ -f $monitor_path/core/include/c_loader/PluginLoader.so ]; then
+		rm -f $monitor_path/core/include/c_loader/PluginLoader.so
 	fi
 }
 

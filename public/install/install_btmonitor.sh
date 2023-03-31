@@ -12,21 +12,28 @@ LANG=en_US.UTF-8
 
 Btapi_Url='http://www.example.com'
 
+is64bit=$(getconf LONG_BIT)
+if [ "${is64bit}" != '64' ];then
+    echo -e "\033[31m 抱歉, 堡塔云监控系统不支持32位系统, 请使用64位系统! \033[0m"
+    exit 1
+fi
+
+S390X_CHECK=$(uname -a|grep s390x)
+if [ "${S390X_CHECK}" ];then
+    echo -e "\033[31m 抱歉, 堡塔云监控系统不支持s390x架构进行安装，请使用x86_64服务器架构 \033[0m"
+    exit 1
+fi
+
+is_aarch64=$(uname -a|grep aarch64)
+if [ "${is_aarch64}" != "" ];then
+    echo -e "\033[31m 抱歉, 堡塔云监控系统暂不支持aarch64架构进行安装，请使用x86_64服务器架构 \033[0m"
+    exit 1
+fi
+
 Command_Exists() {
     command -v "$@" >/dev/null 2>&1
 }
 
-monitor_path="/www/server/bt-monitor"
-run_bin="/www/server/bt-monitor/BT-MONITOR"
-if [ ! -d "/www/server" ];then 
-    mkdir -p /www/server
-fi
-old_dir="/www/server/old_btmonitor"
-
-cd ~
-setup_path="/www"
-python_bin=$setup_path/server/bt-monitor/pyenv/bin/python
-cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
 
 GetSysInfo(){
 	if [ -s "/etc/redhat-release" ];then
@@ -43,6 +50,7 @@ GetSysInfo(){
 	echo -e Bit:${SYS_BIT} Mem:${MEM_TOTAL}M Core:${CPU_INFO}
 	echo -e ${SYS_INFO}
 	echo -e "请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+
 }
 
 Red_Error(){
@@ -51,6 +59,19 @@ Red_Error(){
 	GetSysInfo
 	exit 1;
 }
+
+
+monitor_path="/www/server/bt-monitor"
+run_bin="/www/server/bt-monitor/BT-MONITOR"
+if [ ! -d "/www/server" ];then 
+    mkdir -p /www/server
+fi
+old_dir="/www/server/old_btmonitor"
+
+cd ~
+setup_path="/www"
+python_bin=$setup_path/server/bt-monitor/pyenv/bin/python
+cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
 
 get_node_url(){
 	if [ ! -f /bin/curl ];then
@@ -71,7 +92,8 @@ get_node_url(){
 	echo '---------------------------------------------';
 	echo "Selected download node...";
 	# nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://38.34.185.130 http://116.213.43.206:5880 http://128.1.164.196);
-	nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://116.213.43.206:5880 http://128.1.164.196);
+	#nodes=(http://dg2.bt.cn http://dg1.bt.cn http://125.90.93.52:5880 http://36.133.1.8:5880 http://123.129.198.197 http://116.213.43.206:5880 http://128.1.164.196);
+	nodes=(https://dg2.bt.cn https://dg1.bt.cn https://download.bt.cn);
 	tmp_file1=/dev/shm/net_test1.pl
 	tmp_file2=/dev/shm/net_test2.pl
 	[ -f "${tmp_file1}" ] && rm -f ${tmp_file1}
@@ -108,7 +130,7 @@ get_node_url(){
 	if [ -z "$NODE_URL" ];then
 		NODE_URL=$(cat $tmp_file2|sort -g -t " " -k 1|head -n 1|awk '{print $2}')
 		if [ -z "$NODE_URL" ];then
-			NODE_URL='http://download.bt.cn';
+			NODE_URL='https://download.bt.cn';
 		fi
 	fi
 	rm -f $tmp_file1
@@ -231,6 +253,7 @@ Install_Python_Lib(){
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
 		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}${isbtm}.tar.gz -t 5 -T 10
+
 		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
 		if [ $tmp_size -lt 703460 ];then
 			rm -f $pyenv_file
@@ -249,7 +272,7 @@ Install_Python_Lib(){
 			$pyenv_path/pyenv/bin/pip install backports.lzma
 			if [ ! -f $pyenv_path/pyenv/bin/python ];then
 				rm -f $pyenv_file
-				Red_Error "ERROR: Install python env fielded." "ERROR: 下载堡塔云监控运行环境失败，请尝试重新安装！" 
+				Red_Error "ERROR: Install python env fielded." "ERROR: 下载堡塔云监控主控端运行环境失败，请尝试重新安装！" 
 			fi
 			$pyenv_path/pyenv/bin/python3.7 -V
 			if [ $? -eq 0 ];then
@@ -272,7 +295,7 @@ Install_Python_Lib(){
 	tmp_size=$(du -b $python_src|awk '{print $1}')
 	if [ $tmp_size -lt 10703460 ];then
 		rm -f $python_src
-		Red_Error "ERROR: Download python source code fielded." "ERROR: 下载堡塔云监控运行环境失败，请尝试重新安装！"
+		Red_Error "ERROR: Download python source code fielded." "ERROR: 下载堡塔云监控主控端运行环境失败，请尝试重新安装！"
 	fi
 	tar xvf $python_src
 	rm -f $python_src
@@ -282,7 +305,7 @@ Install_Python_Lib(){
 	make install
 	if [ ! -f $pyenv_path/pyenv/bin/python3.7 ];then
 		rm -rf $python_src_path
-		Red_Error "ERROR: Make python env fielded." "ERROR: 编译堡塔云监控运行环境失败！"
+		Red_Error "ERROR: Make python env fielded." "ERROR: 编译堡塔云监控主控端运行环境失败！"
 	fi
 	cd ~
 	rm -rf $python_src_path
@@ -337,14 +360,14 @@ EOF
 		sleep 1
 	fi
 
-    version="1.0.2"
+    version="2.0.8"
     file_name="bt-monitor"
     agent_src="bt-monitor.zip"
 
 	cd ~
 	version=`curl -sf ${Btapi_Url}/bt_monitor/latest_version |awk -F '\"version\"' '{print $2}'|awk -F ':' '{print $2}'|awk -F '"' '{print $2}'`
 	if [ -z $version ]; then
-		version="1.0.2"
+		version="2.0.6"
 	fi
 	if [ "$re_install" == "1" ]; then
 		new_dir="/www/server/new_btmonitor"
@@ -355,7 +378,7 @@ EOF
 		unzip -o $agent_src -d $new_dir/ > /dev/null
 		if [ ! -f $new_dir/BT-MONITOR ];then
 			ls -lh $agent_src
-			Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载堡塔云监控失败，请尝试重新安装！"
+			Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载堡塔云监控主控端失败，请尝试重新安装！"
 		fi
 
 		rm -rf $new_dir/config
@@ -371,7 +394,7 @@ EOF
 		unzip -o $agent_src -d $monitor_path/ > /dev/null
 		if [ ! -f $run_bin ];then
 			ls -lh $agent_src
-			Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载堡塔云监控失败，请尝试重新安装！"
+			Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载堡塔云监控主控端失败，请尝试重新安装！"
 		fi
 	fi
 	rm -rf $agent_src
@@ -379,23 +402,27 @@ EOF
 	chmod +x $monitor_path/tools.py
 	wget -O /etc/init.d/btm ${download_Url}/init/btmonitor.init -t 5 -T 10
     # \cp -r $monitor_path/init.sh /etc/init.d/btm
+
 	chmod +x /etc/init.d/btm
 	ln -sf /etc/init.d/btm /usr/bin/btm
 
-	if [ ! -f /www/server/bt-monitor/data/user.json ]; then
-		echo "{\"uid\":1,\"username\":\"Administrator\",\"ip\":\"127.0.0.1\",\"server_id\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\"}" > /www/server/bt-monitor/data/user.json
+	if [ ! -f $monitor_path/data/user.json ]; then
+		echo "{\"uid\":1,\"username\":\"Administrator\",\"ip\":\"127.0.0.1\",\"server_id\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\"}" > $monitor_path/data/user.json
+	fi
+	if [ -f $monitor_path/core/include/c_loader/PluginLoader.so ]; then
+		rm -f $monitor_path/core/include/c_loader/PluginLoader.so
 	fi
 }
 
 Start_Monitor(){
-	/etc/init.d/btm start
+    /etc/init.d/btm start
     if [ "$?" != "0" ]; then
-        echo "堡塔云监控启动失败！"
+        #echo "堡塔云监控主控端启动失败！"
 		tail $monitor_path/logs/error.log
-		exit 1
+        Red_Error "堡塔云监控主控端启动失败！"
     fi
 
-	echo "正在初始化云监控..."
+	echo "正在初始化云监控主控端..."
 	if [ "$re_install" == "1" ] || [ "$re_install" == "2" ]; then
 		user_pass=`$setup_path/server/bt-monitor/tools.py reset_pwd`
 		password=`echo $user_pass |awk '{print $3}'`
@@ -412,6 +439,10 @@ Start_Monitor(){
 			fi
 		done
 	fi
+	if [[ "$password" == "" ]];then
+		Red_Error "ERROR: 初始化云监控主控端失败，请尝试重新安装！"
+	fi
+
 	c_path=$(cat /www/server/bt-monitor/config/config.json |awk -F '\"admin_path\"' '{print $2}'|awk -F ":" '{print $2}'|awk -F '"' '{print $2}')
 	adminpath=$(echo $c_path|awk -F ',' '{print $1}')
 
@@ -427,8 +458,20 @@ Start_Monitor(){
 	fi
 
 	echo "正在给本机安装云监控被控端,请等待..."
-	sleep 20
-	curl -sSO ${download_Url}/install/btmonitoragent.sh && sh btmonitoragent.sh https://127.0.0.1:806 $md5_pl
+	sleep 15
+	curl -sSO ${download_Url}/install/btmonitoragent.sh && bash btmonitoragent.sh https://127.0.0.1:806 $md5_pl
+	target_dir="/usr/local/btmonitoragent"
+	if [ ! -f "$target_dir/BT-MonitorAgent" ];then
+		echo "ERROR: 安装云监控被控端失败，正在尝试重新安装！"
+		curl -sSO ${download_Url}/install/btmonitoragent.sh && bash btmonitoragent.sh https://127.0.0.1:806 $md5_pl
+            
+		if [ ! -f "$target_dir/BT-MonitorAgent" ];then
+			Red_Error "ERROR: 安装云监控被控端失败，请尝试重新安装！"
+		fi
+	fi
+	/etc/init.d/btm restart > /dev/null 2>&1
+
+
 }
 
 Set_Firewall(){
@@ -555,11 +598,11 @@ Install_Check(){
 	read -p "请输入对应选项[1|2]进行安装或输入任意内容退出安装: " yes;
 	if [ "$yes" == "1" ]; then
 		re_install="1"
-		echo "即将卸载并重装本机的堡塔云监控agent端..."
+		echo "即将卸载并重装本机的堡塔云监控被控端..."
 		Uninstall_agent
 	elif [ "$yes" == "2" ]; then
 		Backup_Monitor
-		echo "即将卸载并重装本机的堡塔云监控agent端..."
+		echo "即将卸载并重装本机的堡塔云监控被控端..."
 		Uninstall_agent
 	else
 		echo -e "------------"
@@ -577,9 +620,9 @@ Rev_Install_Check(){
 	read -p "请输入对应选项[1|2]进行安装或输入任意内容退出安装: " yes;
 	if [ "$yes" == "1" ]; then
 		re_install="2"
-		echo "开始安装堡塔云监控并还原数据..."
+		echo "开始安装堡塔云监控系统并还原数据..."
 	elif [ "$yes" == "2" ]; then
-		echo "开始全新安装堡塔云监控..."
+		echo "开始全新安装堡塔云监控系统..."
 	else
 		echo -e "------------"
 		echo "取消安装"
@@ -592,12 +635,16 @@ Backup_Monitor(){
 		/etc/init.d/btm stop
 		sleep 1
 	fi
-	if [ ! -d "$old_dir" ];then
-		mkdir -p $old_dir
+	if [ ! -d "${old_dir}" ];then
+		mkdir -p ${old_dir}
+	else
+		mv ${old_dir} ${old_dir}_$(date +%Y_%m_%d_%H_%M_%S)
+		mkdir -p ${old_dir}
 	fi
-	mv $monitor_path/data $old_dir/data
-	mv $monitor_path/config $old_dir/config
-	mv $monitor_path/ssl $old_dir/ssl
+	
+	mv ${monitor_path}/data ${old_dir}/data
+	mv ${monitor_path}/config ${old_dir}/config
+	mv ${monitor_path}/ssl ${old_dir}/ssl
 }
 
 Reinstall_Monitor(){
@@ -610,11 +657,6 @@ Reinstall_Monitor(){
 	rm -rf $old_dir
 }
 
-is64bit=$(getconf LONG_BIT)
-if [ "${is64bit}" != '64' ];then
-	Red_Error "抱歉, 堡塔云监控不支持32位系统, 请使用64位系统!";
-fi
-
 Get_Pack_Manager(){
 	if [ -f "/usr/bin/yum" ] && [ -d "/etc/yum.repos.d" ]; then
 		PM="yum"
@@ -624,7 +666,7 @@ Get_Pack_Manager(){
 }
 
 Install_RPM_Pack(){
-	yumPacks="wget curl unzip gcc gcc-c++ make libcurl-devel openssl-devel xz-devel python-backports-lzma xz"
+	yumPacks="wget curl unzip gcc gcc-c++ make libcurl-devel openssl-devel xz-devel python-backports-lzma xz crontabs zlib zlib-devel sqlite-devel libffi-devel bzip2-devel lsof net-tools"
 	yum install -y ${yumPacks}
 
 	for yumPack in ${yumPacks}
@@ -638,7 +680,8 @@ Install_RPM_Pack(){
 }
 
 Install_Deb_Pack(){
-    debPacks="wget curl unzip gcc g++ make libcurl4-openssl-dev libssl-dev liblzma-dev xz-utils libffi-dev libbz2-dev libsqlite3-dev libreadline-dev libgdbm-dev python3-bsddb3 tk-dev ncurses-dev uuid-dev";
+    debPacks="wget curl unzip gcc g++ make cron libcurl4-openssl-dev libssl-dev liblzma-dev xz-utils libffi-dev libbz2-dev libsqlite3-dev libreadline-dev libgdbm-dev python3-bsddb3 tk-dev ncurses-dev uuid-dev zlib1g zlib1g-dev lsof net-tools";
+	apt-get update -y
 	apt-get install -y $debPacks --force-yes
 
 	for debPack in ${debPacks}
@@ -650,17 +693,78 @@ Install_Deb_Pack(){
 	done
 }
 
+Check_Sys_Write(){
+    echo "正在检测系统关键目录是否可写"
+    if [ ! -d "/etc/init.d" ];then
+        mkdir -p /etc/init.d
+	fi
+	if [ -f /usr/bin/which ];then
+        Get_Pack_Manager
+        if [ "$PM" == "yum" ]; then
+	    	read_dir="/usr/lib/systemd/system/ /etc/init.d/ /var/spool/cron/"
+        else
+            read_dir="/usr/lib/systemd/system/ /etc/init.d/ /var/spool/cron/crontabs/"
+        fi
+        
+        for dir in ${read_dir[@]}
+        do
+            touch $dir/btm_install_test_111.pl
+            state=$(echo $?)
+            #echo $state
+            if [[ "$state" != "0" ]];then
+                echo -e "\033[31m错误：检测到系统关键目录不可写! $read_dir \033[0m"
+                echo "1、如果安装了[宝塔系统加固]，请先临时关闭"
+                echo "2、如果安装了云锁，请临时关闭[系统加固]功能"
+                echo "3、如果安装了安全狗，请临时关闭[系统防护]功能"
+                echo "4、如果使用了其它安全软件，请先卸载 "
+                echo -e "5、如果使用了禁止写入命令，请执行命令取消禁止写入：\n   chattr -iaR $read_dir "
+                echo ""
+                echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
+                echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+                exit 1
+            else
+                rm -f $dir/btm_install_test_111.pl
+            fi
+        done
+	fi
+}
+
+Check_Sys_Packs(){
+    echo "正在检查系统中是否存在必备的依赖包"
+    Packs="wget curl unzip gcc make"
+    for pack in ${Packs[@]}
+    do
+        check_pack=$(which $pack)
+        #echo $check_pack
+        if [[ "$check_pack" == "" ]]; then
+            echo -e "\033[31mERROR: $pack 命令不存在，尝试以下解决方法：\033[0m"
+            if [ "$PM" == "yum" ]; then
+                echo 1、使用命令重新安装依赖包：yum reinstall -y ${Packs}
+            else
+                echo 1、使用命令重新安装依赖包：apt-get reinstall -y ${Packs}
+            fi
+            echo -e "2、检查系统源是否可用？尝试更换可用的源参考教程：\n   https://www.bt.cn/bbs/thread-58005-1-1.html "
+            echo ""
+            echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
+            echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+            exit 1
+        fi
+    done
+}
+
 Install_Main(){
 	startTime=`date +%s`
+	Check_Sys_Write
 	System_Check
 	Get_Pack_Manager
 	get_node_url
 	
-	if [ $PM = "yum" ]; then
+	if [ "$PM" == "yum" ]; then
 		Install_RPM_Pack
 	else
 		Install_Deb_Pack
 	fi
+	Check_Sys_Packs
     Install_Python_Lib
     Install_Monitor
     Set_Firewall
@@ -688,7 +792,7 @@ Uninstall_Monitor(){
 	rm -rf /usr/bin/btm
 	rm -rf /etc/init.d/btm
 
-	echo -e "堡塔云监控Server端卸载成功!"
+	echo -e "堡塔云监控主控端卸载成功!"
 }
 
 Uninstall_agent(){
@@ -703,8 +807,8 @@ action="${1}"
 if [ "$action" == "uninstall" ];then
 	echo -e "----------------------------------------------------"
 	echo -e "\033[33m检测到您正在卸载堡塔云监控系统,请按照选项选择卸载方式!\033[0m"
-	echo -e "1) 备份数据后卸载：保存原有监控配置及数据并卸载堡塔云监控"
-	echo -e "2) 完全卸载：清空原有监控配置及数据并卸载堡塔云监控"
+	echo -e "1) 备份数据后卸载：保存原有监控配置及数据并卸载堡塔云监控系统"
+	echo -e "2) 完全卸载：清空原有监控配置及数据并卸载堡塔云监控系统"
 	echo -e "----------------------------------------------------"
 	read -p "请输入对应选项[1|2]进行卸载或输入任意内容退出卸载: " yes;
 	if [ "$yes" == "1" ]; then
@@ -712,7 +816,7 @@ if [ "$action" == "uninstall" ];then
 		echo -e "----------------------------------------------------"
 		echo -e "\033[33m已备份原有监控数据至: ${old_dir}\033[0m"
 	elif [ "$yes" == "2" ]; then
-		echo "正在清空堡塔云监控数据..."
+		echo "正在清空堡塔云监控系统数据..."
 	else
 		echo -e "------------"
 		echo "取消卸载"
@@ -726,9 +830,9 @@ echo "
 +----------------------------------------------------------------------
 | Bt-Monitor FOR CentOS/Ubuntu/Debian
 +----------------------------------------------------------------------
-| Copyright © 2015-2099 BT-SOFT(http://www.bt.cn) All rights reserved.
+| Copyright © 2015-2099 BT-SOFT(https://www.bt.cn) All rights reserved.
 +----------------------------------------------------------------------
-| The Monitor URL will be http://SERVER_IP:806 when installed.
+| The Monitor URL will be https://SERVER_IP:806 when installed.
 +----------------------------------------------------------------------
 "
 while [ "$go" != 'y' ] && [ "$go" != 'n' ]
@@ -736,14 +840,16 @@ do
 	read -p "Do you want to install Bt-Monitor to the $setup_path directory now?(y/n): " go;
 done
 
-	if [ "$go" == 'n' ];then
-		exit;
-	fi
+if [ "$go" == 'n' ];then
+  exit;
+fi
 	Install_Main
-	#curl -o /dev/null -fsSL --connect-time 10 "https://www.bt.cn/api/wpanel/SetupCountCloud?cloud_type=1&token=$md5_pl"
+	#curl -o /dev/null -fsSL --connect-time 10 "https://api.bt.cn/bt_monitor/setup_count?cloud_type=1&token=$md5_pl&src_code=$1"
+	#curl -o /dev/null -fsSL --connect-time 10 "https://api.bt.cn/bt_monitor/setup_count?cloud_type=1&token=$md5_pl&src_code=$1&status=1"
+
 fi
 echo -e "=================================================================="
-echo -e "\033[32m堡塔云监控安装完成! Installed successfully!\033[0m"
+echo -e "\033[32m堡塔云监控主控端安装完成! Installed successfully!\033[0m"
 echo -e "=================================================================="
 echo  "外网访问地址: https://${getIpAddress}:${panelPort}${adminpath}"
 echo  "内网访问地址: https://${LOCAL_IP}:${panelPort}${adminpath}"
@@ -751,7 +857,7 @@ echo -e "username: admin"
 echo -e "password: $password"
 echo -e "\033[33mIf you cannot access the Monitor,\033[0m"
 echo -e "\033[33mrelease the following Monitor port [${panelPort}] in the security group\033[0m"
-echo -e "\033[33m若无法访问堡塔云监控，请检查防火墙/安全组是否有放行[${panelPort}]端口\033[0m"
+echo -e "\033[33m若无法访问堡塔云监控主控端，请检查防火墙/安全组是否有放行[${panelPort}]端口\033[0m"
 echo -e "=================================================================="
 
 endTime=`date +%s`
