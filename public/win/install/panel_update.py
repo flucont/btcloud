@@ -105,5 +105,8 @@ class panel_update:
 
         os.system("echo f|xcopy /s /c /e /y /r {} {}".format(public.to_path(tmpPath),public.to_path(panelPath)))
 
-        return public.returnMsg(True,"升级面板成功，重启面板后生效.");
+        if os.path.exists('C:/update.py'): os.remove('C:/update.py')
+        os.system('bt restart')
+
+        return public.returnMsg(True,"升级面板成功.");
         

@@ -12,16 +12,16 @@ if [ ! -d /www/server/panel/BTPanel ];then
 	exit 0;
 fi
 
+if [ ! -f "/www/server/panel/pyenv/bin/python3" ];then
+	echo "============================================="
+	echo "错误, 当前面板过旧/py-2.7/无pyenv环境，无法升级至最新版面板"
+	echo "请截图发帖至论坛www.bt.cn/bbs求助"
+	exit 0;
+fi
+
 public_file=/www/server/panel/install/public.sh
-publicFileMd5=$(md5sum ${public_file} 2>/dev/null|awk '{print $1}')
-md5check="f6ccaaec227577b87a22bf162004667b"
-if [ "${publicFileMd5}" != "${md5check}"  ]; then
+if [ ! -f $public_file ];then
 	wget -O Tpublic.sh $Btapi_Url/install/public.sh -T 20;
-	publicFileMd5=$(md5sum Tpublic.sh 2>/dev/null|awk '{print $1}')
-	if [ "${publicFileMd5}" == "${md5check}"  ]; then
-		\cp -rpa Tpublic.sh $public_file
-	fi
-	rm -f Tpublic.sh
 fi
 . $public_file
 
@@ -42,7 +42,7 @@ download_Url=$NODE_URL
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ "$version" = '' ];then
-	version='7.9.8'
+	version='7.9.9'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then

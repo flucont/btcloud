@@ -36,9 +36,9 @@ setup_path="/www"
 python_bin=$setup_path/server/panel/pyenv/bin/python
 cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
 
-if [ "$1" ];then
-	IDC_CODE=$1
-fi
+# if [ "$1" ];then
+# 	IDC_CODE=$1
+# fi
 
 GetSysInfo(){
 	if [ -s "/etc/redhat-release" ];then
@@ -231,7 +231,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(https://dg2.bt.cn https://dg1.bt.cn https://download.bt.cn);
+	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -626,6 +626,9 @@ Install_Bt(){
 	else
 		panelPort=$(expr $RANDOM % 55535 + 10000)
 	fi
+	if [ "${PANEL_PORT}" ];then
+		panelPort=$PANEL_PORT
+	fi
 	mkdir -p ${setup_path}/server/panel/logs
 	mkdir -p ${setup_path}/server/panel/vhost/apache
 	mkdir -p ${setup_path}/server/panel/vhost/nginx
@@ -719,8 +722,15 @@ Set_Bt_Panel(){
 	fi
 
 	password=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
+	if [ "$PANEL_PASSWORD" ];then
+		password=$PANEL_PASSWORD
+	fi
 	sleep 1
 	admin_auth="/www/server/panel/data/admin_path.pl"
+	if [ "${SAFE_PATH}" ];then
+		auth_path=$SAFE_PATH
+		echo "/${auth_path}" > ${admin_auth}
+	fi
 	if [ ! -f ${admin_auth} ];then
 		auth_path=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
 		echo "/${auth_path}" > ${admin_auth}
@@ -742,6 +752,9 @@ Set_Bt_Panel(){
 	$python_bin -m py_compile tools.py
 	$python_bin tools.py username
 	username=$($python_bin tools.py panel ${password})
+	if [ "$PANEL_USER" ];then
+		username=$PANEL_USER
+	fi
 	cd ~
 	echo "${password}" > ${setup_path}/server/panel/default.pl
 	chmod 600 ${setup_path}/server/panel/default.pl
@@ -757,6 +770,12 @@ Set_Bt_Panel(){
 		ls -al python3.7 python
 		lsattr python3.7 python
 		Red_Error "ERROR: The BT-Panel service startup failed." "ERROR: 宝塔启动失败"
+	fi
+
+	if [ "$PANEL_USER" ];then
+		cd ${setup_path}/server/panel/
+		btpython -c 'import tools;tools.set_panel_username("'$PANEL_USER'")'
+		cd ~
 	fi
 }
 Set_Firewall(){
@@ -903,6 +922,35 @@ echo "
 | 为了您的正常使用，请确保使用全新或纯净的系统安装宝塔面板，不支持已部署项目/环境的系统安装
 +----------------------------------------------------------------------
 "
+
+while [ ${#} -gt 0 ]; do
+	case $1 in
+		-u|--user)
+			PANEL_USER=$2
+			shift 1
+			;;
+		-p|--password)
+			PANEL_PASSWORD=$2
+			shift 1
+			;;
+		-P|--port)
+			PANEL_PORT=$2
+			shift 1
+			;;
+		--safe-path)
+			SAFE_PATH=$2
+			shift 1
+			;;
+		-y)
+			go="y"
+			;;
+		*)
+			IDC_CODE=$1
+			;;
+	esac
+	shift 1
+done
+
 while [ "$go" != 'y' ] && [ "$go" != 'n' ]
 do
 	read -p "Do you want to install Bt-Panel to the $setup_path directory now?(y/n): " go;
@@ -915,7 +963,7 @@ fi
 ARCH_LINUX=$(cat /etc/os-release |grep "Arch Linux")
 if [ "${ARCH_LINUX}" ] && [ -f "/usr/bin/pacman" ];then
 	pacman -Sy 
-    pacman -S curl wget unzip firewalld openssl pkg-config make gcc cmake libxml2 libxslt libvpx gd libsodium oniguruma sqlite libzip autoconf inetutils sudo --noconfirm
+	pacman -S curl wget unzip firewalld openssl pkg-config make gcc cmake libxml2 libxslt libvpx gd libsodium oniguruma sqlite libzip autoconf inetutils sudo --noconfirm
 fi
 
 Install_Main
@@ -947,4 +995,5 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+
 

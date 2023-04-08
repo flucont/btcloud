@@ -70,7 +70,7 @@ select_node(){
 get_version(){
     version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
     if [ "$version" = '' ];then
-        version='7.9.8'
+        version='7.9.9'
     fi
 }
 
@@ -333,9 +333,9 @@ update_panel(){
 
     chattr -i /etc/init.d/bt
     chmod +x /etc/init.d/bt
-    if [ $up_plugin = 1 ];then
-        $pyenv_bin/python /www/server/panel/tools.py update_to6
-    fi
+    # if [ $up_plugin = 1 ];then
+    #     $pyenv_bin/python /www/server/panel/tools.py update_to6
+    # fi
 }
 
 update_start(){
