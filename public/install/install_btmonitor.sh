@@ -462,15 +462,23 @@ Start_Monitor(){
 	curl -sSO ${download_Url}/install/btmonitoragent.sh && bash btmonitoragent.sh https://127.0.0.1:806 $md5_pl
 	target_dir="/usr/local/btmonitoragent"
 	if [ ! -f "$target_dir/BT-MonitorAgent" ];then
-		echo "ERROR: 安装云监控被控端失败，正在尝试重新安装！"
-		curl -sSO ${download_Url}/install/btmonitoragent.sh && bash btmonitoragent.sh https://127.0.0.1:806 $md5_pl
-            
-		if [ ! -f "$target_dir/BT-MonitorAgent" ];then
+		tail -n 10 ${monitor_path}/logs/error.log
+		echo ""
+		ps aux|grep -v grep|grep ${monitor_path}
+		netstat -tulnp|grep ${panelPort}
+		/etc/init.d/btm restart
+		if [ "$?" -eq 0 ]; then
+			echo -e "\033[31m安装云监控被控端失败，正在尝试重新安装！\033[0m"
+			sleep 15
+			curl -sSO ${download_Url}/install/btmonitoragent.sh && bash btmonitoragent.sh https://127.0.0.1:806 $md5_pl
+			if [ ! -f "$target_dir/BT-MonitorAgent" ];then
+				Red_Error "ERROR: 安装云监控被控端失败，请尝试重新安装！"
+			fi
+		else
 			Red_Error "ERROR: 安装云监控被控端失败，请尝试重新安装！"
 		fi
 	fi
 	/etc/init.d/btm restart > /dev/null 2>&1
-
 
 }
 
@@ -708,22 +716,23 @@ Check_Sys_Write(){
         
         for dir in ${read_dir[@]}
         do
-            touch $dir/btm_install_test_111.pl
-            state=$(echo $?)
-            #echo $state
-            if [[ "$state" != "0" ]];then
-                echo -e "\033[31m错误：检测到系统关键目录不可写! $read_dir \033[0m"
-                echo "1、如果安装了[宝塔系统加固]，请先临时关闭"
-                echo "2、如果安装了云锁，请临时关闭[系统加固]功能"
-                echo "3、如果安装了安全狗，请临时关闭[系统防护]功能"
-                echo "4、如果使用了其它安全软件，请先卸载 "
-                echo -e "5、如果使用了禁止写入命令，请执行命令取消禁止写入：\n   chattr -iaR $read_dir "
-                echo ""
-                echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
-                echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
-                exit 1
-            else
-                rm -f $dir/btm_install_test_111.pl
+            if [[ -d "$dir" ]]; then
+                touch $dir/btm_install_test_111.pl
+                state=$(echo $?)
+                if [[ "$state" != "0" ]];then
+                    echo -e "\033[31m错误：检测到系统关键目录不可写! $read_dir \033[0m"
+                    echo "1、如果安装了[宝塔系统加固]，请先临时关闭"
+                    echo "2、如果安装了云锁，请临时关闭[系统加固]功能"
+                    echo "3、如果安装了安全狗，请临时关闭[系统防护]功能"
+                    echo "4、如果使用了其它安全软件，请先卸载 "
+                    echo -e "5、如果使用了禁止写入命令，请执行命令取消禁止写入：\n   chattr -iaR $read_dir "
+                    echo ""
+                    echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
+                    echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+                    exit 1
+                else
+                    rm -f $dir/btm_install_test_111.pl
+                fi
             fi
         done
 	fi
