@@ -1,8 +1,8 @@
 #!/bin/bash
 
-Linux_Version="7.9.9"
+Linux_Version="7.9.10"
 Windows_Version="7.8.0"
-Btm_Version="2.1.1"
+Btm_Version="2.1.7"
 
 FILES=(
 public/install/src/panel6.zip

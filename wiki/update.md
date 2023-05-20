@@ -71,11 +71,7 @@
 
 - 去除无用的定时任务：task.py 文件  删除以下几行
 
-  "update_software_list": update_software_list,
-
   "check_panel_msg": check_panel_msg,
-
-  PluginLoader.daemon_panel()
 
 - 去除WebRTC连接：BTPanel/static/js/public.js  删除stun.start();这一行
 
@@ -104,6 +100,8 @@
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
 
 - [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log()这一行
+
+- [可选]删除小图标广告：在BTPanel/static/js/site.js，删除“WAF防火墙，保护网站安全”对应的html标签，files.js，删除“开启保护，文件无法编辑”对应的html标签
 
 
 解压安装包panel6.zip，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（

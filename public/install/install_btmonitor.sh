@@ -213,6 +213,8 @@ Install_Python_Lib(){
 				$pyenv_path/pyenv/bin/pip install cachelib
 				$pyenv_path/pyenv/bin/pip install py7zr
 				$pyenv_path/pyenv/bin/pip install backports.lzma
+				$pyenv_path/pyenv/bin/pip install pandas
+				$pyenv_path/pyenv/bin/pip install msgpack
 			fi
 			source $pyenv_path/pyenv/bin/activate
 			chmod -R 700 $pyenv_path/pyenv/bin
@@ -270,6 +272,8 @@ Install_Python_Lib(){
 			$pyenv_path/pyenv/bin/pip install cachelib
 			$pyenv_path/pyenv/bin/pip install py7zr
 			$pyenv_path/pyenv/bin/pip install backports.lzma
+			$pyenv_path/pyenv/bin/pip install pandas
+			$pyenv_path/pyenv/bin/pip install msgpack
 			if [ ! -f $pyenv_path/pyenv/bin/python ];then
 				rm -f $pyenv_file
 				Red_Error "ERROR: Install python env fielded." "ERROR: 下载堡塔云监控主控端运行环境失败，请尝试重新安装！" 
@@ -325,6 +329,8 @@ Install_Python_Lib(){
 	$pyenv_path/pyenv/bin/pip install cachelib
 	$pyenv_path/pyenv/bin/pip install py7zr
 	$pyenv_path/pyenv/bin/pip install backports.lzma
+	$pyenv_path/pyenv/bin/pip install pandas
+	$pyenv_path/pyenv/bin/pip install msgpack
 	source $pyenv_path/pyenv/bin/activate
 
 	is_gevent=$($python_bin -m gevent 2>&1|grep -oE package)
@@ -360,7 +366,7 @@ EOF
 		sleep 1
 	fi
 
-    version="2.0.8"
+    version="2.1.7"
     file_name="bt-monitor"
     agent_src="bt-monitor.zip"
 

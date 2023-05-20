@@ -48,6 +48,10 @@ armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
 	version='7.7.0'
 fi
+
+if [ "$1" ];then
+	version=$1
+fi
 wget -T 5 -O /tmp/panel.zip $Btapi_Url/install/update/LinuxPanel-${version}.zip
 dsize=$(du -b /tmp/panel.zip|awk '{print $1}')
 if [ $dsize -lt 10240 ];then
@@ -69,10 +73,11 @@ rm -f /www/server/panel/class/*.pyc
 #pip install itsdangerous==0.24
 
 pip_list=$($mypip list)
-request_v=$(echo "$pip_list"|grep requests)
-if [ "$request_v" = "" ];then
-	$mypip install requests
+request_v=$(btpip list 2>/dev/null|grep "requests "|awk '{print $2}'|cut -d '.' -f 2)
+if [ "$request_v" = "" ] || [ "${request_v}" -gt "28" ];then
+	$mypip install requests==2.27.1
 fi
+
 openssl_v=$(echo "$pip_list"|grep pyOpenSSL)
 if [ "$openssl_v" = "" ];then
 	$mypip install pyOpenSSL

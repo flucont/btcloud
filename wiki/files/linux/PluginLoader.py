@@ -3,7 +3,7 @@ import public,os,sys,json
 
 #获取插件列表(0/1)
 def get_plugin_list(force = 0):
-    api_root_url = 'https://api.bt.cn'
+    api_root_url = 'http://www.example.com'
     api_url = api_root_url+ '/panel/get_plugin_list'
     cache_file = 'data/plugin_list.json'
     
@@ -120,3 +120,17 @@ def path_check(path):
         if i in list:
             return False
     return True
+
+#数据加密
+def db_encrypt(data):
+    result = {}
+    result['status'] = True
+    result['msg'] = data
+    return result
+
+#数据解密
+def db_decrypt(data):
+    result = {}
+    result['status'] = True
+    result['msg'] = data
+    return result

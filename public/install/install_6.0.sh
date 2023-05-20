@@ -307,6 +307,15 @@ Install_RPM_Pack(){
 		echo "exclude=httpd nginx php mysql mairadb python-psutil python2-psutil" >> $yumPath
 	fi
 
+	if [ -f "/etc/redhat-release" ] && [ $(cat /etc/os-release|grep PLATFORM_ID|grep -oE "el8") ];then
+		yum config-manager --set-enabled powertools
+		yum config-manager --set-enabled PowerTools
+	fi
+
+	if [ -f "/etc/redhat-release" ] && [ $(cat /etc/os-release|grep PLATFORM_ID|grep -oE "el9") ];then
+		dnf config-manager --set-enabled crb -y
+	fi
+
 	#SYS_TYPE=$(uname -a|grep x86_64)
 	#yumBaseUrl=$(cat /etc/yum.repos.d/CentOS-Base.repo|grep baseurl=http|cut -d '=' -f 2|cut -d '$' -f 1|head -n 1)
 	#[ "${yumBaseUrl}" ] && checkYumRepo=$(curl --connect-timeout 5 --head -s -o /dev/null -w %{http_code} ${yumBaseUrl})	
@@ -524,7 +533,7 @@ Install_Python_Lib(){
 		return
 	fi
 
-	py_version="3.7.8"
+	py_version="3.7.16"
 	mkdir -p $pyenv_path
 	echo "True" > /www/disk.pl
 	if [ ! -w /www/disk.pl ];then
@@ -601,7 +610,7 @@ Install_Python_Lib(){
 	cd ~
 	rm -rf $python_src_path
 	wget -O $pyenv_path/pyenv/bin/activate $download_Url/install/pyenv/activate.panel -T 5
-	wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.8.txt -T 5
+	wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.16.txt -T 5
 	ln -sf $pyenv_path/pyenv/bin/pip3.7 $pyenv_path/pyenv/bin/pip
 	ln -sf $pyenv_path/pyenv/bin/python3.7 $pyenv_path/pyenv/bin/python
 	ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
@@ -611,7 +620,23 @@ Install_Python_Lib(){
 	$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
 	$pyenv_path/pyenv/bin/pip install -U wheel==0.34.2 
 	$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
+
+	wget -O pip-packs.txt $download_Url/install/pyenv/pip-packs.txt
+	PIP_PACKS=$(cat pip-packs.txt)
+	for P_PACK in ${PIP_PACKS};
+	do
+		btpip show ${P_PACK} > /dev/null 2>&1
+		if [ "$?" == "1" ];then
+			btpip install ${P_PACK}
+		fi 
+	done
+
+	rm -f pip-packs.txt
+
 	source $pyenv_path/pyenv/bin/activate
+
+	btpip install psutil
+	btpip install gevent
 
 	is_gevent=$($python_bin -m gevent 2>&1|grep -oE package)
 	is_psutil=$($python_bin -m psutil 2>&1|grep -oE package)
