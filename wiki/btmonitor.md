@@ -10,7 +10,7 @@
 
   极少数文件解密失败是正常现象可无视
 
-- 全局搜索替换 https://api.bt.cn => http://www.example.com
+- 全局搜索替换 https://api.bt.cn => http://www.example.com（需排除/bt_monitor/latest_agent_version）
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除/panel/get_ip_info）
 

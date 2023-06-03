@@ -3,7 +3,7 @@ import public,os,sys,json
 
 #获取插件列表(0/1)
 def get_plugin_list(force = 0):
-    api_root_url = 'http://www.example.com'
+    api_root_url = 'https://api.bt.cn'
     api_url = api_root_url+ '/panel/get_plugin_list'
     cache_file = 'data/plugin_list.json'
     
@@ -123,14 +123,91 @@ def path_check(path):
 
 #数据加密
 def db_encrypt(data):
-    result = {}
-    result['status'] = True
-    result['msg'] = data
+    try:
+        key = __get_db_sgin()
+        iv = __get_db_iv()
+        str_arr = data.split('\n')
+        res_str = ''
+        for data in str_arr:
+            if not data: continue
+            res_str += __aes_encrypt(data, key, iv)
+    except:
+        res_str = data
+    result = {
+        'status' : True,
+        'msg' : res_str
+    }
     return result
 
 #数据解密
 def db_decrypt(data):
-    result = {}
-    result['status'] = True
-    result['msg'] = data
+    try:
+        key = __get_db_sgin()
+        iv = __get_db_iv()
+        str_arr = data.split('\n')
+        res_str = ''
+        for data in str_arr:
+            if not data: continue
+            res_str += __aes_decrypt(data, key, iv)
+    except:
+        res_str = data
+    result = {
+        'status' : True,
+        'msg' : res_str
+    }
     return result
+
+def __get_db_sgin():
+    keystr = '3gP7+k_7lSNg3$+Fj!PKW+6$KYgHtw#R'
+    key = ''
+    for i in range(31):
+        if i & 1 == 0:
+            key += keystr[i]
+    return key
+
+def __get_db_iv():
+    div_file = "{}/data/div.pl".format(public.get_panel_path())
+    if not os.path.exists(div_file):
+        str = public.GetRandomString(16)
+        str = __aes_encrypt_module(str)
+        div = public.get_div(str)
+        public.WriteFile(div_file, div)
+    if os.path.exists(div_file):
+        div = public.ReadFile(div_file)
+        div = __aes_decrypt_module(div)
+    else:
+        keystr = '4jHCpBOFzL4*piTn^-4IHBhj-OL!fGlB'
+        div = ''
+        for i in range(31):
+            if i & 1 == 0:
+                div += keystr[i]
+    return div
+
+def __aes_encrypt_module(data):
+    key = 'Z2B87NEAS2BkxTrh'
+    iv = 'WwadH66EGWpeeTT6'
+    return __aes_encrypt(data, key, iv)
+
+def __aes_decrypt_module(data):
+    key = 'Z2B87NEAS2BkxTrh'
+    iv = 'WwadH66EGWpeeTT6'
+    return __aes_decrypt(data, key, iv)
+
+def __aes_decrypt(data, key, iv):
+    from Crypto.Cipher import AES
+    import base64
+    encodebytes = base64.decodebytes(data.encode('utf-8'))
+    aes = AES.new(key.encode('utf-8'), AES.MODE_CBC, iv.encode('utf-8'))
+    de_text = aes.decrypt(encodebytes)
+    unpad = lambda s: s[0:-s[-1]]
+    de_text = unpad(de_text)
+    return de_text.decode('utf-8')
+
+def __aes_encrypt(data, key, iv):
+    from Crypto.Cipher import AES
+    import base64
+    data = (lambda s: s + (16 - len(s) % 16) * chr(16 - len(s) % 16).encode('utf-8'))(data.encode('utf-8'))
+    aes = AES.new(key.encode('utf8'), AES.MODE_CBC, iv.encode('utf8'))
+    encryptedbytes = aes.encrypt(data)
+    en_text = base64.b64encode(encryptedbytes)
+    return en_text.decode('utf-8')
