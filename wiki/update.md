@@ -81,6 +81,8 @@
 
 - 去除内页广告：BTPanel/templates/default/layout.html 删除getPaymentStatus();这一行
 
+- 删除问卷调查：BTPanel/templates/default/layout.html 删除if(window.localStorage.getItem('panelNPS') == null)以及下面的行
+
 - [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/layout.html 的\</body\>前面加入
 
   ```javascript
