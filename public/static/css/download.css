@@ -1,0 +1,716 @@
+.nav .new,
+.wapnava .new,
+.nava.bbs {
+	display: flex;
+	align-items: center;
+}
+.nava.bbs .icon {
+	width: 20px;
+	height: 20px;
+	margin-right: 6px;
+	background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAg1JREFUWEftlz9IG1Ecx7+/d63dOwqV6GhXm1i6mM1SyB+sYCfzZ5WCg1BxMF26OHQodGoucXATw6WC2eKYswiC6NAqdhBxFLpU7L1fueKFmF4uL3eSZMiDW+5+fz7v+37v/d4Rejyox/nRfwDPtjNj2o0cCarMb+DgIFm8ahenrkDEyM6B+TUIM+2cFL//AiFvxvRFL/s6QNjI7BAwrRhc2YykjNaSxd1WDg0KZFg5ageGDOT24vr7AYBfBU5AfK6sOFMIgP3Uh/8lIN43Y4UJ5eQAJkupEAtx5gYQLqffCIseWUOy8u1V8dKx8SxCBjYA/FCFEMBTBmbdACLldBVMUwB+gmjNjOU/23Zd2wXPK9nHfM0vJfCRiI/MWCHaVQBHFUcJM67/m7yHAnRELLO1RMF0W4Lb9a42F12zbXMRdgAAEOEtLHnoBsCaNg7mFQDDXjUSCEC1+AYAAwU8FLgC8wszUTj2sQ2DlSATfRUWb9WSerExkvI2ZKBkSWtpP7l+GgzlrrcSgFsHsw8eKcS8HxgBnNTiut1X0BqgnK4yiydgXtpL6KXmRGEjs0pAzg/Arc+m9vDBO+vPzRe7Kf13FKsEniyl7G7W8WBNzIORAnAB4u++ATrO3OAQMdIfAFp2XvlSIAiA7Rs2sgsE/mTfCcy4PnqnGwYNrurvLKNzVe+/XzPVmdyXXc8V+Av1tCwwyQQB+wAAAABJRU5ErkJggg==');
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	border-radius: 2px;
+	image-rendering: -webkit-optimize-contrast;
+	display: none;
+}
+.wapnava .new .icon,
+.nav .new .icon {
+	width: 28px;
+	height: 28px;
+	margin-right: 4px;
+	image-rendering: -webkit-optimize-contrast;
+}
+
+
+.head_pc {
+	background-color: #fff;
+	position: relative;
+	z-index: 2;
+}
+canvas {
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	top: 0;
+	z-index: 0;
+	opacity: 0.5;
+}
+.top-tips {
+	z-index: 1;
+}
+.wrap {
+	padding: 0;
+}
+.d1 {
+	background: linear-gradient(0deg, #fff, #d8efdb, #edf7ef);
+	padding-bottom: 60px;
+	position: relative;
+}
+.d1 .wrap {
+	padding-top: 60px;
+	position: relative;
+	z-index: 1;
+}
+
+.d2 .wrap,
+.d3 .wrap,
+.d4 .wrap {
+	padding: 70px 0;
+}
+
+.install-box {
+	position: relative;
+	top: 0;
+	display: flex;
+	align-items: center;
+	width: 24%;
+	padding: 30px 10px 16px 20px;
+	border-radius: 8px;
+	background-color: #fff;
+	box-shadow: 0 4px 8px 0 rgb(0 0 0 / 30%);
+	transition: all 0.3s;
+}
+.install-box:hover {
+	box-shadow: 0 6px 16px 0 rgb(0 0 0 / 50%);
+	top: -10px;
+}
+.install-box.linux,
+.install-box.windows {
+	align-items: center;
+	width: 41.5%;
+}
+
+.install-box + .install-box {
+	margin-left: 2%;
+}
+
+.install-box::before {
+	content: '';
+	position: absolute;
+	top: 20px;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	background-repeat: no-repeat;
+	background-position: right bottom;
+	background-size: auto 100%;
+	z-index: 10;
+	transition: all 0.25s;
+	opacity: 0.3;
+}
+
+.install-box.linux::before {
+	background-image: url(../images/downico1_01.png);
+}
+
+.install-box.windows::before {
+	background-image: url(../images/downico2_01.png);
+}
+
+.install-box.cloud::before {
+	background-image: url(../images/downico3_01.png);
+}
+
+.install-box.ssh::before {
+	background-image: url(../images/downico4_01.png);
+}
+
+.install-box.app::before {
+	background-image: url(../images/downico5_01.png);
+}
+
+.install-box .img {
+	position: relative;
+	flex: 0 0 44%;
+	z-index: 12;
+}
+.install-box .img img {
+	display: block;
+	width: 100%;
+}
+
+.install-box .cont {
+	flex: 1;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	margin-left: 5%;
+	padding-bottom: 12px;
+	z-index: 12;
+}
+
+.install-box.linux .cont,
+.install-box.windows .cont {
+	padding-bottom: 10px;
+}
+
+.install-box .bottom {
+	display: flex;
+	margin: 0 auto;
+}
+
+.install-box .title {
+	margin-bottom: 14px;
+	line-height: 1;
+	font-size: 20px;
+	font-weight: bold;
+	transition: color 0.25s;
+}
+
+.install-box.linux .title,
+.install-box.windows .title {
+	font-size: 28px;
+}
+
+.install-box .desc {
+	margin-bottom: 14px;
+	font-size: 12px;
+	color: #777;
+	transition: color 0.25s;
+}
+
+.install-box.linux .desc,
+.install-box.windows .desc {
+	font-size: 14px;
+}
+
+.install-box .mark {
+	margin-bottom: 20px;
+	height: 22px;
+	overflow: hidden;
+}
+.install-box .mark span {
+	margin-right: 10px;
+	line-height: 22px;
+	height: 22px;
+	padding: 0 6px;
+	font-size: 12px;
+	border-radius: 2px;
+	display: inline-block;
+}
+.install-box .mark span:nth-child(1) {
+	border: #6bdc6b 1px solid;
+	color: #fff;
+	background-color: #6bdc6b;
+}
+.install-box .mark span:nth-child(2) {
+	border: #ffa565 1px solid;
+	color: #fff;
+	background-color: #ffa565;
+}
+.install-box .mark span:nth-child(3) {
+	border: #65a7ff 1px solid;
+	color: #fff;
+	background-color: #65a7ff;
+}
+.install-box .mark span:last-child {
+	margin-right: 0;
+}
+
+.install-box .btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 34px;
+	padding: 0 16px;
+	background-image: linear-gradient(#54b891, #22a53d);
+	border-radius: 6px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: 700;
+	line-height: 1;
+	border: none;
+}
+
+.install-box .btn.default {
+	margin-left: 10px;
+	background: none;
+	border: 1px solid #777;
+	color: #777;
+}
+.install-box .btn:hover {
+	filter: brightness(120%);
+	-webkit-filter: brightness(120%);
+}
+
+.install-box:hover {
+	background-image: linear-gradient(#e5f5e5, #fff);
+}
+
+
+.wrap-title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	margin-bottom: 50px;
+}
+
+.wrap-title::before {
+	content: '';
+	display: block;
+	width: 6px;
+	height: 36px;
+	margin-right: 20px;
+	background-color: #20a53a;
+}
+
+.wrap-title .text {
+	margin-right: 20px;
+	line-height: 36px;
+	font-size: 36px;
+	font-weight: bold;
+}
+
+.wrap-title a {
+	font-size: 16px;
+}
+
+.d2 .desc,
+.d2 .tips,
+.d4 .tips {
+	line-height: 30px;
+}
+
+.d2 .desc {
+	margin-bottom: 16px;
+}
+
+.d2 .tips,
+.d4 .tips {
+	margin-top: 16px;
+	/* color: #20a53a; */
+}
+
+.install-code {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	line-height: 30px;
+}
+.install-code .osname {
+	display: inline-block;
+	width: 160px;
+	font-weight: 700;
+}
+
+.install-code + .install-code {
+	margin-top: 16px;
+}
+.install-code .code-cont {
+	display: flex;
+	align-items: center;
+}
+.install-code .command {
+	position: relative;
+	display: flex;
+	margin-left: 12px;
+	margin-right: 15px;
+	padding: 7px 10px;
+	border-radius: 3px;
+	background-color: #20202f;
+	box-shadow: 0 0 5px #ececec;
+	font-size: 16px;
+	color: #fff;
+	font-family: SimSun;
+	width: 950px;
+}
+
+.install-code .ico-copy {
+	display: block;
+	width: 26px;
+	height: 30px;
+	background: url(../images/ico-copy.png) no-repeat left center;
+	cursor: pointer;
+	width: 65px;
+	text-indent: 2.4em;
+	font-weight: bold;
+	color: #20a53a;
+}
+
+.d4 .desc {
+	margin-bottom: 16px;
+	line-height: 30px;
+}
+
+.bird {
+	width: 25px;
+	height: 5px;
+	display: inline-block;
+	position: absolute;
+	transform: skew(20deg, 20deg);
+	animation: wave 2.5s ease-in-out infinite;
+	z-index: 0;
+}
+
+.bird:before,
+.bird:after {
+	content: '';
+	width: 100%;
+	height: 100%;
+	background-color: #1aa837;
+	position: absolute;
+	border-radius: 20%;
+	opacity: 0.1;
+}
+
+.bird:before {
+	right: 49%;
+	transform-origin: right;
+	transform: rotate(-40deg);
+	animation: flap-left 0.75s ease-in-out infinite;
+}
+
+.bird:after {
+	left: 49%;
+	transform-origin: left;
+	transform: rotate(40deg);
+	animation: flap-right 0.75s linear infinite;
+}
+
+/* ��װ�ű� */
+.layui-layer .install-code {
+	display: flex;
+	flex-wrap: wrap;
+	line-height: 30px;
+}
+.layui-layer .install-code .osname {
+	display: inline-block;
+	width: 160px;
+	font-weight: 700;
+	margin: 20px auto;
+	font-size: 18px;
+}
+
+.layui-layer .install-code + .install-code {
+	margin-top: 16px;
+}
+.layui-layer .install-code .code-cont {
+	display: flex;
+	align-items: center;
+}
+.layui-layer .install-code .command {
+	position: relative;
+	display: flex;
+	margin-right: 15px;
+	padding: 7px 10px;
+	border-radius: 3px;
+	background-color: #20202f;
+	box-shadow: 0 0 5px #ececec;
+	color: #fff;
+	font-family: SimSun;
+	width: 950px;
+}
+
+.layui-layer .install-code .ico-copy {
+	display: block;
+	width: 26px;
+	height: 30px;
+	background: url(../images/ico-copy.png) no-repeat left center;
+	cursor: pointer;
+	width: 65px;
+	text-indent: 2.4em;
+	font-weight: bold;
+	color: #20a53a;
+}
+.layui-layer .install-code {
+	flex-direction: column;
+	align-items: flex-start;
+}
+.layui-layer .install-code .code-cont {
+	width: 100%;
+}
+.layui-layer .install-code .command {
+	flex: 1;
+	width: 0;
+	margin-left: 0;
+	line-height: 30px;
+	font-size: 12px;
+	word-break: break-all;
+}
+
+@keyframes wave {
+	40% {
+		transform: translateY(40px) skew(20deg, 20deg);
+	}
+	50% {
+		transform: translateY(50px) skew(20deg, 20deg);
+	}
+	60% {
+		transform: translateY(40px) skew(20deg, 20deg);
+	}
+	100% {
+		transform: translateY(0) skew(20deg, 20deg);
+	}
+}
+
+@keyframes flap-left {
+	60% {
+		transform: rotate(10deg);
+	}
+	75% {
+		transform: rotate(20deg);
+	}
+	100% {
+		transform: rotate(-40deg);
+	}
+}
+
+@keyframes flap-right {
+	60% {
+		transform: rotate(-10deg);
+	}
+	75% {
+		transform: rotate(-20deg);
+	}
+	100% {
+		transform: rotate(40deg);
+	}
+}
+
+@media screen and (max-width: 1440px) {
+	.wrap {
+		width: 97%;
+	}
+}
+
+@media only screen and (max-width: 1299px) {
+	.d2 .wrap,
+	.d3 .wrap,
+	.d4 .wrap {
+		padding: 60px 0;
+	}
+
+}
+@media only screen and (max-width: 980px) {
+	.install-code {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.install-code .code-cont {
+		width: 100%;
+	}
+	.install-code .command {
+		flex: 1;
+		width: 0;
+		margin-left: 0;
+		line-height: 18px;
+		font-size: 12px;
+		word-break: break-all;
+	}
+	.d2 .desc,
+	.d2 .tips {
+		line-height: 24px;
+	}
+}
+
+@media only screen and (max-width: 768px) {
+	.d2 .wrap,
+	.d3 .wrap,
+	.d4 .wrap {
+		padding: 40px 0;
+	}
+	.d1 .wrap {
+		padding-top: 40px;
+	}
+	.wrap-title {
+		margin-bottom: 20px;
+	}
+	.wrap-title::before {
+		width: 3px;
+		height: 20px;
+		margin-right: 10px;
+	}
+	.wrap-title .text {
+		font-size: 20px;
+		margin-right: 10px;
+	}
+	.wrap-title a {
+		font-size: 12px;
+	}
+}
+
+@media screen and (max-width: 1440px) {
+	.wrap {
+		width: 97%;
+	}
+}
+
+@media only screen and (max-width: 1299px) {
+	.d2 .wrap,
+	.d3 .wrap,
+	.d4 .wrap {
+		padding: 60px 0;
+	}
+
+	.install-box {
+		padding: 24px 20px 10px;
+		padding-right: 0;
+	}
+
+	.install-box.linux .title,
+	.install-box.windows .title,
+	.install-box .title {
+		margin-bottom: 10px;
+		font-size: 20px;
+	}
+
+	.install-box .img {
+		flex: 0 0 40%;
+	}
+
+	.install-box.linux .title,
+	.install-box.windows .title {
+		margin-bottom: 16px;
+	}
+
+	.install-box .desc {
+		font-size: 13px;
+	}
+	.install-box .btn {
+		padding: 0 12px;
+		height: 30px;
+		border-radius: 8px;
+		font-size: 12px;
+	}
+}
+@media only screen and (max-width: 1200px) {
+	.install-box .title {
+		font-size: 16px;
+	}
+	.install-box .desc {
+		font-size: 12px;
+	}
+}
+@media only screen and (max-width: 980px) {
+	.install-list {
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+	.install-box,
+	.install-box.linux,
+	.install-box.windows {
+		width: 48%;
+		padding: 15px;
+		align-items: center;
+	}
+	.install-box:nth-child(2n) {
+		margin-left: 4%;
+	}
+	.install-box.app {
+		margin-top: 30px;
+		margin-left: 0;
+	}
+	.install-box.monitor {
+		margin-top: 30px;
+	}
+	.install-box.linux .title,
+	.install-box.windows .title,
+	.install-box .title {
+		font-size: 16px;
+	}
+	.install-box .btn {
+		height: 24px;
+		padding: 0 10px;
+		border-radius: 6px;
+		font-weight: normal;
+	}
+	.install-box .btn + .btn {
+		margin-left: 5px;
+	}
+
+	.install-code {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.install-code .code-cont {
+		width: 100%;
+	}
+	.install-code .command {
+		flex: 1;
+		width: 0;
+		margin-left: 0;
+		line-height: 18px;
+		font-size: 12px;
+		word-break: break-all;
+	}
+	.online-install-cont {
+		flex-direction: column;
+	}
+	.online-install-cont .form {
+		margin-bottom: 20px;
+	}
+	.online-install-cont .pr-70 {
+		padding-right: 0;
+	}
+	.online-install-cont .pl-10 {
+		padding-left: 0;
+	}
+	.online-install-cont .first-line {
+		flex-wrap: wrap;
+	}
+	.online-install-cont .server-line {
+		width: 100%;
+		flex: none;
+	}
+	.online-install-cont .port-line {
+		flex: none;
+		margin-top: 20px;
+		width: 100%;
+	}
+
+	.d2 .desc,
+	.d2 .tips {
+		line-height: 24px;
+	}
+}
+
+@media only screen and (max-width: 768px) {
+	.d2 .wrap,
+	.d3 .wrap,
+	.d4 .wrap {
+		padding: 40px 0;
+	}
+	.d1 .wrap {
+		padding-top: 40px;
+	}
+	.install-box {
+		flex-wrap: wrap;
+	}
+	.install-box .img,
+	.install-box .cont {
+		flex: 0 0 100%;
+	}
+	.install-box .cont {
+		margin-top: 10px;
+		margin-left: 0;
+		padding: 0;
+	}
+	.install-box .title,
+	.install-box.linux .title,
+	.install-box.windows .title {
+		margin-bottom: 10px;
+	}
+	.install-box .desc {
+		margin-bottom: 10px;
+	}
+
+	.wrap-title {
+		margin-bottom: 20px;
+	}
+	.wrap-title::before {
+		width: 3px;
+		height: 20px;
+		margin-right: 10px;
+	}
+	.wrap-title .text {
+		font-size: 20px;
+		margin-right: 10px;
+	}
+	.wrap-title a {
+		font-size: 12px;
+	}
+}

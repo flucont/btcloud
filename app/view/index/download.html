@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="renderer" content="webkit" />
+		<meta name="force-rendering" content="webkit" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<title>宝塔面板安装脚本</title>
+		<link rel="stylesheet" type="text/css" href="/static/css/sanren.css" />
+		<link rel="stylesheet" type="text/css" href="/static/css/style.css" />
+		<link rel="stylesheet" type="text/css" href="/static/css/download.css" />
+	</head>
+	<body>
+<div class="down-main">
+	<div class="d1">
+		<div class="wrap">
+			<div class="i1t textcenter">
+				<h1 class="disflex flex_center flex_lrcenter textcenter">宝塔面板安装脚本<img class="ml10" src="/static/images/i1ico_03.png"></h1>
+				<div class="text20 mt_25 wap_mt15 textcenter cl8">
+					<p>2分钟装好面板，一键管理服务器</p>
+					<p>集成LAMP/LNMP环境安装，网站、FTP、数据库、文件管理、软件安装等功能</p>
+				</div>
+				<div class="disflex flex_lrcenter mt_50 install-list">
+					<div class="install-box linux">
+						<div class="img">
+							<img src="/static/images/prd_1_03.png">
+						</div>
+						<div class="cont">
+							<div class="top">
+								<div class="title">Linux面板 {:config_get('new_version')}</div>
+								<div class="desc">
+									支持Centos、Ubuntu、Deepin、Debian、Fedora等Linux系统。
+									<a class="link" href="https://demo.bt.cn/login" target="_blank" style="margin-left: 5px; font-weight: 700" rel="noreferrer">查看演示</a>
+								</div>
+								<div class="mark">
+									<span>2分钟装好</span>
+									<span>阿里云推荐</span>
+									<span>腾讯云推荐</span>
+								</div>
+							</div>
+							<div class="bottom">
+								<a class="btn" href="javascript:;" id="goInstallLinux">查看安装脚本</a>
+							</div>
+						</div>
+					</div>
+					<div class="install-box windows">
+						<div class="img">
+							<img src="/static/images/prd_2_03.png">
+						</div>
+						<div class="cont">
+							<div class="top">
+								<div class="title">Windows面板 {:config_get('new_version_win')}</div>
+								<div class="desc">支持Windows Server 2008 R2/2012/2016/2019/2022，64位系统</div>
+								<div class="mark">
+									<span>操作简单</span>
+									<span>使用方便</span>
+								</div>
+							</div>
+							<div class="bottom">
+								<a class="btn" href="javascript:;" id="goInstallWindows">查看安装方法</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				{if config_get('new_version_btm')}<div class="disflex flex_lrcenter mt_30 install-list">
+					<div class="install-box monitor">
+						<div class="img">
+							<img src="/static/images/bt_monitor.png" />
+						</div>
+						<div class="cont">
+							<div class="top">
+								<div class="title">堡塔云监控</div>
+								<div class="desc">多服务监控和异常告警通知</div>
+							</div>
+							<div class="bottom">
+								<a class="btn" href="javascript:;" id="goInstallMonitor">查看安装脚本</a>
+							</div>
+						</div>
+					</div>
+				</div>{/if}
+			</div>
+		</div>
+	</div>
+	<div class="d2" id="instal-linux">
+		<div class="wrap">
+			<div class="wrap-title linux-title">
+				<div class="text">Linux面板{:config_get('new_version')}安装脚本</div>
+			</div>
+			<div class="desc">
+				使用 SSH 连接工具，如
+				<a class="link" href="https://www.putty.org/" target="_blank" rel="noreferrer">PUTTY</a>
+				连接到您的 Linux 服务器后，
+				<a class="link" href="https://www.bt.cn/bbs/thread-50002-1-1.html" target="_blank" rel="noreferrer">挂载磁盘</a>
+				，根据系统执行相应命令开始安装：
+			</div>
+			<div class="install-code">
+				<span class="osname">Centos安装脚本</span>
+				<div class="code-cont">
+					<div class="command" title="点击复制Centos安装脚本">yum install -y wget && wget -O install.sh {$siteurl}/install/install_6.0.sh && sh install.sh</div>
+					<span class="ico-copy" title="点击复制Centos安装脚本" data-clipboard-text="yum install -y wget && wget -O install.sh {$siteurl}/install/install_6.0.sh && sh install.sh">复制</span>
+				</div>
+			</div>
+			<div class="install-code">
+				<span class="osname">Ubuntu/Debian安装脚本</span>
+				<div class="code-cont">
+					<div class="command" title="点击复制Ubuntu/Debian安装脚本">wget -O install.sh {$siteurl}/install/install_6.0.sh && bash install.sh</div>
+					<span class="ico-copy" title="点击复制Ubuntu/Debian安装脚本" data-clipboard-text="wget -O install.sh {$siteurl}/install/install_6.0.sh && bash install.sh">复制</span>
+				</div>
+			</div>
+			<div class="install-code">
+				<span class="osname">一键更新脚本</span>
+				<div class="code-cont">
+					<div class="command" title="点击复制一键更新脚本">curl {$siteurl}/install/update6.sh|bash</div>
+					<span class="ico-copy" title="点击复制一键更新脚本" data-clipboard-text="curl {$siteurl}/install/update6.sh|bash">复制</span>
+				</div>
+			</div>
+			<div class="tips" style="color: orangered; font-weight: 700">
+				<p>注意：必须为没装过其它环境如Apache/Nginx/php/MySQL的新系统,推荐使用centos 7.X的系统安装宝塔面板</p>
+				<p style="text-indent: 3em">推荐使用Chrome、火狐、edge浏览器，国产浏览器请使用极速模式访问面板登录地址</p>
+				<p style="text-indent: 3em">如果使用过官方版或其他第三方云端的版本，使用一键更新脚本即可切换到此云端</p>
+			</div>
+		</div>
+	</div>
+	<div class="d4" id="instal-windows" style="background-color: #edf6ef;">
+		<div class="wrap">
+			<div class="wrap-title">
+				<div class="text">Windows面板{:config_get('new_version_win')}安装方法</div>
+			</div>
+			<div class="desc">
+				<p>1、使用<a class="link" href="https://download.bt.cn/win/panel/BtSoft.zip" target="_blank" rel="noreferrer">官方安装程序</a>进行安装，安装完先不要进入面板。</p>
+				<p>2、在命令提示符（cmd）输入以下一键更新命令，然后重启面板。</p>
+			</div>
+			<div class="install-code">
+				<div class="code-cont">
+					<div class="command" title="点击复制一键更新命令">wget {$siteurl}/win/panel/data/setup.py -O C:/update.py && &quot;C:\Program Files\python\python.exe&quot; C:/update.py update_panel {:config_get('new_version_win')}</div>
+					<span class="ico-copy" title="点击复制一键更新命令" data-clipboard-text="wget {$siteurl}/win/panel/data/setup.py -O C:/update.py && &quot;C:\Program Files\python\python.exe&quot; C:/update.py update_panel {:config_get('new_version_win')}">复制</span>
+				</div>
+			</div>
+			<div class="tips" style="color: orangered; font-weight: 700">
+				<p>注意：仅支持Windows Server 2008 R2/2012/2016/2019/2022，64位系统（中文简体），且未安装其它环境</p>
+			</div>
+		</div>
+	</div>
+	{if config_get('new_version_btm')}
+	<div class="d4" id="instal-monitor">
+		<div class="wrap">
+			<div class="wrap-title">
+				<div class="text" style="margin-right: 12px;">堡塔云监控{:config_get('new_version_btm')}安装脚本</div>
+			</div>
+			<div class="desc">
+				使用 SSH 连接工具，如
+				<a class="link" href="https://www.putty.org/" target="_blank" rel="noreferrer">PUTTY</a>
+				连接到您的 Linux 服务器后，根据系统执行相应命令开始安装：
+			</div>
+			<div class="install-code">
+				<span class="osname">堡塔云监控安装脚本</span>
+				<div class="code-cont">
+					<div class="command" title="点击复制安装脚本">curl -sS {$siteurl}/install/install_btmonitor.sh -o /tmp/install_btmonitor.sh && bash /tmp/install_btmonitor.sh</div>
+					<span class="ico-copy" title="点击复制安装脚本" data-clipboard-text="curl -sS {$siteurl}/install/install_btmonitor.sh -o /tmp/install_btmonitor.sh && bash /tmp/install_btmonitor.sh">复制</span>
+				</div>
+			</div>
+			<div class="install-code">
+				<span class="osname">堡塔云监控更新脚本</span>
+				<div class="code-cont">
+					<div class="command" title="点击复制更新脚本">curl {$siteurl}/install/update_btmonitor.sh|bash</div>
+					<span class="ico-copy" title="点击复制更新脚本" data-clipboard-text="curl {$siteurl}/install/update_btmonitor.sh|bash">复制</span>
+				</div>
+			</div>
+			<div class="tips" style="color: orangered; font-weight: 700">
+				<p>注意：推荐使用Chrome、火狐、edge浏览器，国产浏览器（极速模式）</p>
+			</div>
+		</div>
+	</div>{/if}
+	<div class="animate-bg"></div>
+</div>
+ 
+		<div class="foot">
+			<div class="wrap">
+				<div class="fb textcenter">
+					<div class="fb1 textcenter">
+						<a href="http://www.bt.cn/new/agreement_open.html" target="_blank" rel="noreferrer">《开源许可协议》</a>
+						<i>丨</i>
+						<a href="http://www.bt.cn/new/agreement_user.html" target="_blank" rel="noreferrer">《用户协议》</a>
+						<i>丨</i>
+						<a href="http://www.bt.cn/new/agreement_privacy.html" target="_blank" rel="noreferrer">《隐私声明》</a>
+					</div>
+					<div class="fb2 mt_15">
+						<p>
+							Copyright © {:date('Y')}  宝塔面板安装脚本
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		 
+		<script src="//cdn.staticfile.org/jquery/3.6.0/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="//cdn.staticfile.org/layer/3.5.1/layer.js" type="text/javascript" charset="utf-8"></script>
+		
+<script type="text/javascript" src="//cdn.staticfile.org/clipboard.js/1.7.1/clipboard.min.js"></script>
+<script type="text/javascript" src="/static/js/dx.js"></script>
+<script>
+	$(function () {
+		var userId = '';
+
+		// 复制安装命令
+		var clipboard = new Clipboard('.ico-copy', {
+			text: function (element) {
+				return $(element).prev().text();
+			},
+		});
+		clipboard
+			.on('success', function (e) {
+				layer.msg(e.trigger.title + '成功', { icon: 1 });
+			})
+			.on('error', function (e) {
+				layer.msg('复制失败，请手动选中文本Ctrl+c复制内容', { icon: 2 });
+			});
+
+		$('.install-code .command').click(function () {
+			$(this).next('.ico-copy').click();
+		});
+
+		$('#goInstallLinux').click(function () {
+			scrollTop('#instal-linux');
+		});
+
+		$('#goInstallWindows').click(function () {
+			scrollTop('#instal-windows');
+		});
+
+		$('#goInstallCloud').click(function () {
+			scrollTop('#instal-cloud');
+		});
+
+		$('#goInstallMonitor').click(function () {
+			scrollTop('#instal-monitor');
+		});
+
+		function GetRequest() {
+			var url = location.search;
+			//获取url中"?"符后的字串
+			var theRequest = new Object();
+			if (url.indexOf('?') != -1) {
+				var str = url.substr(1);
+			}
+			return str;
+		}
+		if (GetRequest() == 'bt') {
+			scrollTop('#instal-linux');
+		}
+
+		// 滚动到指定位置
+		function scrollTop(el) {
+			var headHeight = 0;
+			$('html, body').animate({ scrollTop: $(el).offset().top - headHeight }, { duration: 200, easing: 'swing' });
+		}
+	});
+</script>
+
+	</body>
+</html>

@@ -1,0 +1,60 @@
+{extend name="admin/layout" /}
+{block name="title"}宝塔第三方云端管理中心{/block}
+{block name="main"}
+<style>
+.table>tbody>tr>td{white-space: normal;}
+.query-title {
+    background-color:#f5fafe;
+    word-break: keep-all;
+}
+.query-result{
+    word-break: break-all;
+}
+</style>
+<div class="container" style="padding-top:70px;">
+    <div class="col-xs-12 col-sm-10 col-md-8 center-block" style="float: none;">
+        <div class="panel panel-primary">
+<div class="panel-heading"><h3 class="panel-title">后台管理首页</h3></div>
+<div class="list-group">
+    <div class="list-group-item"><span class="glyphicon glyphicon-stats"></span> <b>宝塔插件统计：</b>共有 {$stat.total} 个，其中免费插件 {$stat.free} 个，专业版插件 {$stat.pro} 个，企业版插件 {$stat.ltd} 个，第三方插件 {$stat.third} 个</div>
+    <div class="list-group-item"><span class="glyphicon glyphicon-tint"></span> <b>使用记录统计：</b>历史总共数量：{$stat.record_total}，正在使用数量：{$stat.record_isuse}</div>
+    <div class="list-group-item"><span class="glyphicon glyphicon-time"></span> <b>任务运行情况：</b>上次运行时间：{$stat.runtime|raw}&nbsp;&nbsp;<a href="/admin/set/mod/task" class="btn btn-xs btn-info">查看详情</a></div>
+    <div class="list-group-item"><span class="glyphicon glyphicon-cog"></span> <b>常用功能入口：</b><a href="/admin/plugins" class="btn btn-xs btn-default">插件列表</a>&nbsp;<a href="/admin/record" class="btn btn-xs btn-default">使用记录</a>&nbsp;<a href="/admin/list" class="btn btn-xs btn-default">黑白名单</a>&nbsp;<a href="/download" class="btn btn-xs btn-default" target="_blank">安装脚本</a></div>
+</div>
+</div>
+<div class="panel panel-info">
+	<div class="panel-heading">
+		<h3 class="panel-title">服务器信息</h3>
+	</div>
+    <table class="table table-bordered">
+        <tbody>
+        <tr>
+            <td class="query-title">框架版本</td>
+            <td class="query-result">{$info.framework_version}</td>
+        </tr>
+        <tr>
+            <td class="query-title">PHP版本</td>
+            <td class="query-result">{$info.php_version}</td>
+        </tr>
+        <tr>
+            <td class="query-title">MySQL版本</td>
+            <td class="query-result">{$info.mysql_version}</td>
+        </tr>
+        <tr>
+            <td class="query-title">WEB软件</td>
+            <td class="query-result">{$info.software}</td>
+        </tr>
+        <tr>
+            <td class="query-title">操作系统</td>
+            <td class="query-result">{$info.os}</td>
+        </tr>
+        <tr>
+            <td class="query-title">服务器时间</td>
+            <td class="query-result">{$info.date}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+    </div>
+  </div>
+{/block}

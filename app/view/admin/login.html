@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>管理员登录</title>
+  <link href="//cdn.staticfile.org/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="//cdn.staticfile.org/modernizr/2.8.3/modernizr.min.js"></script>
+  <script src="//cdn.staticfile.org/jquery/2.1.4/jquery.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdn.staticfile.org/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="//cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<nav class="navbar navbar-fixed-top navbar-default">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">导航按钮</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="./">宝塔第三方云端管理中心</a>
+      </div><!-- /.navbar-header -->
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="active">
+            <a href="#"><span class="glyphicon glyphicon-user"></span> 登录</a>
+          </li>
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container -->
+  </nav><!-- /.navbar -->
+  <div class="container" style="padding-top:70px;">
+    <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6 center-block" style="float: none;">
+      <div class="panel panel-primary">
+        <div class="panel-heading"><h3 class="panel-title">管理员登录</h3></div>
+        <div class="panel-body">
+          <form class="form-horizontal" role="form" onsubmit="return submitlogin()">
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+              <input type="text" name="user" value="" class="form-control input-lg" placeholder="用户名" required="required"/>
+            </div><br/>
+            <div class="input-group">
+              <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+              <input type="password" name="pass" class="form-control input-lg" placeholder="密码" required="required"/>
+            </div><br/>
+			<div class="input-group">
+				<span class="input-group-addon"><span class="glyphicon glyphicon-adjust"></span></span>
+				<input type="text" class="form-control input-lg" name="code" placeholder="输入验证码" autocomplete="off" required>
+				<span class="input-group-addon" style="padding: 0">
+					<img src="/admin/verifycode" height="45" id="verifycode" onclick="this.src='/admin/verifycode?r='+Math.random();" title="点击更换验证码">
+				</span>
+			</div><br/>
+            <div class="form-group">
+              <div class="col-xs-12"><input type="submit" value="立即登录" class="btn btn-primary btn-block btn-lg"/></div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+<script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
+<script>
+function submitlogin(){
+    var user = $("input[name='user']").val();
+	  var pass = $("input[name='pass']").val();
+    var code = $("input[name='code']").val();
+    if(user=='' || pass==''){layer.alert('用户名或密码不能为空！');return false;}
+    var ii = layer.load(2);
+    $.ajax({
+      type : 'POST',
+      url : '{:request()->url()}',
+      data: {username:user, password:pass, code:code},
+      dataType : 'json',
+      success : function(data) {
+        layer.close(ii);
+        if(data.code == 0){
+          layer.msg('登录成功，正在跳转', {icon: 1,shade: 0.01,time: 15000});
+          window.location.href='/admin';
+        }else{
+          if(data.msg.indexOf('验证码')==-1){
+            $("#verifycode").attr('src', '/admin/verifycode?r='+Math.random())
+          }
+          layer.alert(data.msg, {icon: 2});
+        }
+      },
+      error:function(data){
+        layer.close(ii);
+        layer.msg('服务器错误');
+      }
+    });
+    return false;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+{extend name="admin/layout" /}
+{block name="title"}插件列表{/block}
+{block name="main"}
+<style>
+td{overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width:340px;}
+.bt-ico-ask {
+  border: 1px solid #fb7d00;
+  border-radius: 8px;
+  color: #fb7d00;
+  cursor: help;
+  display: inline-block;
+  font-family: arial;
+  font-size: 11px;
+  font-style: normal;
+  height: 16px;
+  line-height: 16px;
+  margin-left: 5px;
+  text-align: center;
+  width: 16px
+}
+.bt-ico-ask:hover {
+  background-color: #fb7d00;
+  color: #fff
+}
+</style>
+<div class="modal fade" id="help" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+				<h4 class="modal-title">帮助</h4>
+			</div>
+			<div class="modal-body">
+				<p>“版本与状态”一列中，红色的按钮代表本地不存在该版本插件包，需要点击下载；绿色的按钮代表已存在。</p>
+                <p>官方插件包本地存储路径是/data/win/plugins/package/软件标识-版本号.zip，第三方插件包路径是/data/plugins/other/other/，对于部分包含二次验证的插件可以自行修改。</p>
+                <p>点击【重新获取】按钮会从宝塔官方获取最新插件列表，但是插件包需要手动点击下载。如果需要批量下载插件包，可查看<a href="/admin/set/mod/task">定时任务设置</a></p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="container" style="padding-top:70px;">
+	<div class="col-xs-12 center-block" style="float: none;">
+
+<div id="searchToolbar">
+<form onsubmit="return searchSubmit()" method="GET" class="form-inline">
+  <div class="form-group">
+    <label>搜索</label>
+	<input type="text" class="form-control" name="keyword" placeholder="应用名称">
+  </div>
+  <div class="form-group">
+	<select name="type" class="form-control"><option value="0">全部插件</option>
+    {foreach $typelist as $k=>$v}<option value="{$k}">{$v}</option>{/foreach} </select>
+  </div>
+  <div class="form-group">
+	<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i>搜索</button>&nbsp;
+	<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-repeat"></i>重置</a>&nbsp;
+    <a href="javascript:refresh_plugins()" class="btn btn-success"><i class="fa fa-refresh"></i>重新获取</a>&nbsp;
+    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#help"><i class="fa fa-info-circle"></i>帮助</button>
+  </div>
+</form>
+</div>
+
+      <table id="listTable">
+	  </table>
+	</div>
+  </div>
+<script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
+<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/bootstrap-table.min.js"></script>
+<script src="//cdn.staticfile.org/bootstrap-table/1.20.2/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
+<script src="/static/js/custom.js"></script>
+<script>
+
+function download_version(name, version, status){
+    if(status == true){
+        var confirm = layer.confirm('是否确定重新下载'+version+'版本插件包？', {
+            btn: ['确定','取消']
+        }, function(){
+            download_plugin(name, version)
+        }, function(){
+            layer.close(confirm)
+        });
+    }else{
+        download_plugin(name, version)
+    }
+}
+
+function download_plugin(name, version){
+    var ii = layer.msg('正在下载，请稍候...', {icon: 16, shade:0.1, time: 0});
+    $.ajax({
+		type : 'POST',
+		url : '/admin/download_plugin',
+        data: { name:name, version:version, os:'Windows'},
+		dataType : 'json',
+		success : function(data) {
+            layer.close(ii)
+			if(data.code == 0){
+				layer.alert(data.msg, {icon:1}, function(){layer.closeAll();searchSubmit();});
+			}else{
+				layer.alert(data.msg, {icon:2});
+			}
+		},
+		error:function(data){
+            layer.close(ii)
+			layer.msg('服务器错误', {icon:2});
+		}
+	});
+}
+
+function refresh_plugins(){
+    var confirm = layer.confirm('是否确定从宝塔官方获取最新插件列表？', {
+        btn: ['确定','取消']
+    }, function(){
+        layer.close(confirm)
+        var ii = layer.msg('正在获取插件列表，请稍候...', {icon: 16, shade:0.1, time: 0});
+        $.ajax({
+            type : 'GET',
+            url : '/admin/refresh_plugins?os=Windows',
+            dataType : 'json',
+            success : function(data) {
+                layer.close(ii)
+                if(data.code == 0){
+                    layer.alert(data.msg, {icon:1}, function(){layer.closeAll();searchSubmit();});
+                }else{
+                    layer.alert(data.msg, {icon:2});
+                }
+            },
+            error:function(data){
+                layer.close(ii)
+                layer.msg('服务器错误', {icon:2});
+            }
+        });
+    }, function(){
+        layer.close(confirm)
+    });
+}
+
+function searchByType(type){
+    $("input[name=keyword]").val('');
+    $("select[name=type]").val(type);
+    searchSubmit()
+}
+
+$(document).ready(function(){
+	updateToolbar();
+	const defaultPageSize = 20;
+
+	$("#listTable").bootstrapTable({
+		url: '/admin/plugins_data?os=Windows',
+		pageNumber: 1,
+		pageSize: 15,
+        sidePagination: 'client',
+		classes: 'table table-striped table-hover table-bottom-border',
+		columns: [
+			{
+				field: 'name',
+				title: '软件标识',
+				formatter: function(value, row, index) {
+					return '<b>'+value+'</b>';
+				}
+			},
+			{
+				field: 'title',
+				title: '软件名称'
+			},
+            {
+				field: 'type',
+				title: '软件分类',
+				formatter: function(value, row, index) {
+					return '<a href="javascript:searchByType('+value+')" title="查看该分类下的插件">'+row.typename+'</a>';
+				}
+			},
+			{
+				field: 'desc',
+				title: '说明',
+			},
+			{
+				field: 'price',
+				title: '价格',
+				formatter: function(value, row, index) {
+					return value > 0 ? '<span style="color:#fc6d26">￥'+value+'</span>' : '免费';
+				}
+			},
+			{
+				field: 'author',
+				title: '开发商'
+			},
+			{
+				field: 'versions',
+				title: '版本与状态',
+				formatter: function(value, row, index) {
+                    var html = '';
+                    if(row.type == 5){
+                        html += '<a href="javascript:" class="btn btn-xs btn-success" disabled>无需下载</a>';
+                    }else{
+                        $.each(value, function(index,item){
+                            if(item.status)
+                                html += '<a href="javascript:download_version(\''+row.name+'\',\''+item.version+'\','+item.status+')" class="btn btn-xs btn-success">'+item.version+'</a>&nbsp;';
+                            else
+                                html += '<a href="javascript:download_version(\''+row.name+'\',\''+item.version+'\','+item.status+')" class="btn btn-xs btn-danger">'+item.version+'</a>&nbsp;';
+                        })
+                    }
+                    return html
+				}
+			},
+		],
+	})
+})
+</script>
+{/block}

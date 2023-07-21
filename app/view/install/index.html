@@ -1,0 +1,268 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>宝塔第三方云端 - 安装程序</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="renderer" content="webkit">
+    <style>
+        body {
+            background: #f1f6fd;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body, input, button {
+            font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, 'Microsoft Yahei', Arial, sans-serif;
+            font-size: 14px;
+            color: #7E96B3;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        a {
+            color: #4e73df;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 28px;
+            font-weight: normal;
+            color: #3C5675;
+            margin-bottom: 0;
+            margin-top: 0;
+        }
+
+        form {
+            margin-top: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group .form-field:first-child input {
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+
+        .form-group .form-field:last-child input {
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .form-field input {
+            background: #fff;
+            margin: 0 0 2px;
+            border: 2px solid transparent;
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+            width: 100%;
+            padding: 15px 15px 15px 180px;
+            box-sizing: border-box;
+        }
+
+        .form-field input:focus {
+            border-color: #4e73df;
+            background: #fff;
+            color: #444;
+            outline: none;
+        }
+
+        .form-field label {
+            float: left;
+            width: 160px;
+            text-align: right;
+            margin-right: -160px;
+            position: relative;
+            margin-top: 15px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        button, .btn {
+            background: #3C5675;
+            color: #fff;
+            border: 0;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 15px 30px;
+            -webkit-appearance: none;
+        }
+
+        button[disabled] {
+            opacity: 0.5;
+        }
+
+        .form-buttons {
+            height: 52px;
+            line-height: 52px;
+        }
+
+        .form-buttons .btn {
+            margin-right: 5px;
+        }
+
+        #error, .error, #success, .success, #warmtips, .warmtips {
+            background: #D83E3E;
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        #success {
+            background: #3C5675;
+        }
+
+        #error a, .error a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        #warmtips {
+            background: #fff;
+            font-size: 14px;
+            color: #3C5675;
+            border: 2px solid #4e73df;
+            text-align: left;
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1>
+        <svg t="1660545699809" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4887" width="100px" height="100px">
+             <path d="M811.4 418.7C765.6 297.9 648.9 212 512.2 212S258.8 297.8 213 418.6C127.3 441.1 64 519.1 64 612c0 110.5 89.5 200 199.9 200h496.2C870.5 812 960 722.5 960 612c0-92.7-63.1-170.7-148.6-193.3z m36.3 281c-23.4 23.4-54.5 36.3-87.6 36.3H263.9c-33.1 0-64.2-12.9-87.6-36.3-23.4-23.4-36.3-54.6-36.3-87.7 0-28 9.1-54.3 26.2-76.3 16.7-21.3 40.2-36.8 66.1-43.7l37.9-9.9 13.9-36.6c8.6-22.8 20.6-44.1 35.7-63.4 14.9-19.2 32.6-35.9 52.4-49.9 41.1-28.9 89.5-44.2 140-44.2s98.9 15.3 140 44.2c19.9 14 37.5 30.8 52.4 49.9 15.1 19.3 27.1 40.7 35.7 63.4l13.8 36.5 37.8 10c54.3 14.5 92.1 63.8 92.1 120 0 33.1-12.9 64.3-36.3 87.7z" p-id="4888" fill="#4e73df"></path>
+        </svg>
+    </h1>
+    <h2>宝塔第三方云端 - 安装程序</h2>
+    <div>
+
+        <form method="post">
+            <div id="error" style="display:none"></div>
+            <div id="success" style="display:none"></div>
+            <div id="warmtips" style="display:none"><p>安装完成后，你还需要进行以下操作：</p><p>1、在后台使用批量替换工具，执行命令一键替换压缩包与安装脚本中的域名。</p><p></p>2、在后台配置面板对接，同步插件列表与插件包。</p></div>
+
+            <div class="form-group">
+                <div class="form-field">
+                    <label>MySQL 数据库地址</label>
+                    <input type="text" name="mysql_host" value="localhost" required="">
+                </div>
+
+                <div class="form-field">
+                    <label>MySQL 数据库端口</label>
+                    <input type="number" name="mysql_port" value="3306">
+                </div>
+
+                <div class="form-field">
+                    <label>MySQL 用户名</label>
+                    <input type="text" name="mysql_user" value="" required="">
+                </div>
+
+                <div class="form-field">
+                    <label>MySQL 密码</label>
+                    <input type="text" name="mysql_pwd" value="" required="">
+                </div>
+
+                <div class="form-field">
+                    <label>MySQL 数据库名</label>
+                    <input type="text" name="mysql_name" value="" required="">
+                </div>
+
+                <div class="form-field">
+                    <label>MySQL 数据表前缀</label>
+                    <input type="text" name="mysql_prefix" value="cloud_">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="form-field">
+                    <label>管理员用户名</label>
+                    <input type="text" name="admin_username" value="admin" required=""/>
+                </div>
+
+                <div class="form-field">
+                    <label>管理员密码</label>
+                    <input type="text" name="admin_password" value="123456" required="">
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <!--@formatter:off-->
+                <button type="submit" >点击安装</button>
+                <!--@formatter:on-->
+            </div>
+        </form>
+    </div>
+</div>
+<script src="//cdn.staticfile.org/jquery/2.1.4/jquery.min.js"></script>
+<script>
+    $(function () {
+        $('form').on('submit', function (e) {
+            e.preventDefault();
+            var form = this;
+            var $error = $("#error");
+            var $success = $("#success");
+            var $button = $(this).find('button')
+                .text("安装中...")
+                .prop('disabled', true);
+            $.ajax({
+                url: "",
+                type: "POST",
+                dataType: "json",
+                data: $(this).serialize(),
+                success: function (ret) {
+                    if (ret.code == 1) {
+                        $error.hide();
+                        $(".form-group", form).remove();
+                        $button.remove();
+                        $("#success").text(ret.msg).show();
+                        $("#warmtips").show();
+
+                        $buttons = $(".form-buttons", form);
+                        $('<a class="btn" href="/admin" style="background:#4e73df">进入后台</a>').appendTo($buttons);
+
+                    } else {
+                        $error.show().text(ret.msg);
+                        $button.prop('disabled', false).text("点击安装");
+                        $("html,body").animate({
+                            scrollTop: 0
+                        }, 500);
+                    }
+                },
+                error: function (xhr) {
+                    $error.show().text(xhr.responseText);
+                    $button.prop('disabled', false).text("点击安装");
+                    $("html,body").animate({
+                        scrollTop: 0
+                    }, 500);
+                }
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

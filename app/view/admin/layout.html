@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="renderer" content="webkit">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>{block name="title"}标题{/block}</title>
+  <link href="//cdn.staticfile.org/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="//cdn.staticfile.org/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <link href="/static/css/bootstrap-table.css" rel="stylesheet" />
+  <script src="//cdn.staticfile.org/modernizr/2.8.3/modernizr.min.js"></script>
+  <script src="//cdn.staticfile.org/jquery/2.1.4/jquery.min.js"></script>
+  <script src="//cdn.staticfile.org/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdn.staticfile.org/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="//cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+  <nav class="navbar navbar-fixed-top navbar-default">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+          aria-expanded="false" aria-controls="navbar">
+          <span class="sr-only">导航按钮</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="./">宝塔第三方云端管理中心</a>
+      </div><!-- /.navbar-header -->
+      <div id="navbar" class="collapse navbar-collapse">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="{:checkIfActive('index')}">
+            <a href="/admin"><i class="fa fa-home"></i> 后台首页</a>
+          </li>
+          <li class="{:checkIfActive('plugins,pluginswin,deplist')}">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cubes"></i> 插件列表<b class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li class="{:checkIfActive('plugins')}"><a href="/admin/plugins">Linux面板</a></li>
+              <li class="{:checkIfActive('pluginswin')}"><a href="/admin/pluginswin">Windows面板</a></li>
+              <li class="{:checkIfActive('deplist')}"><a href="/admin/deplist">一键部署列表</a></li>
+            </ul>
+          </li>
+          <li class="{:checkIfActive('record')}">
+            <a href="/admin/record"><i class="fa fa-list"></i> 使用记录</a>
+          </li>
+          <li class="{:checkIfActive('list')}">
+            <a href="/admin/list"><i class="fa fa-globe"></i> 黑白名单</a>
+          </li>
+          <li class="{:checkIfActive('log')}">
+            <a href="/admin/log"><i class="fa fa-calendar"></i> 操作日志</a>
+          </li>
+          <li class="{:checkIfActive('set')}">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> 系统设置<b
+                class="caret"></b></a>
+            <ul class="dropdown-menu">
+              <li><a href="/admin/set">系统基本设置</a></li>
+              <li><a href="/admin/set/mod/task">定时任务设置</a></li>
+              <li><a href="/admin/set/mod/tools">批量替换工具</a></li>
+              <li><a href="/admin/set/mod/account">管理账号设置</a></li>
+            </ul>
+          </li>
+          <li>
+            <a href="/admin/logout" onclick="return confirm('确定退出登录吗？')"><i class="fa fa-power-off"></i> 退出登录</a>
+          </li>
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container -->
+  </nav><!-- /.navbar -->
+  {block name="main"}主内容{/block}
+</body>
+</html>
