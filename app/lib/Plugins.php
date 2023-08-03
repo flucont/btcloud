@@ -255,6 +255,9 @@ class Plugins
         $data = str_replace('\'http://www.bt.cn/api/wpanel/notpro', 'public.GetConfigValue(\'home\')+\'/api/wpanel/notpro', $data);
         $data = str_replace('\'https://www.bt.cn/api/wpanel/notpro', 'public.GetConfigValue(\'home\')+\'/api/wpanel/notpro', $data);
 
+        $data = str_replace('\'http://www.bt.cn/api/bt_waf/getSpiders', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/getSpiders', $data);
+        $data = str_replace('\'https://www.bt.cn/api/bt_waf/getSpiders', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/getSpiders', $data);
+
         file_put_contents($main_filepath, $data);
     }
 

@@ -156,6 +156,19 @@ class Btapi
 		$data = json_decode($result,true);
       	return $data;
 	}
+
+	//BTWAF-获取蜘蛛列表
+	public function btwaf_getspiders(){
+		$url = $this->BT_PANEL.'/plugin?action=a&name=kaixin&s=btwaf_getspiders';
+		
+		$p_data = $this->GetKeyData();
+		
+		$result = $this->curl($url,$p_data);
+		$result = str_replace("\u0000", '', $result);
+		
+		$data = json_decode($result,true);
+      	return $data;
+	}
 	
 
   	private function GetKeyData(){

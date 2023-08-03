@@ -346,6 +346,23 @@ class Api extends BaseController
         return json(['page'=>"<div><span class='Pcurrent'>1</span><span class='Pnumber'>1/0</span><span class='Pline'>从1-1000条</span><span class='Pcount'>共计0条数据</span></div>", 'data'=>[]]);
     }
 
+    public function btwaf_getspiders(){
+        $result = cache('btwaf_getspiders');
+        if($result){
+            return json($result);
+        }
+        $bt_url = config_get('bt_url');
+        $bt_key = config_get('bt_key');
+        if(!$bt_url || !$bt_key) return json([]);
+        $btapi = new \app\lib\Btapi($bt_url, $bt_key);
+        $result = $btapi->btwaf_getspiders();
+        if(isset($result['status']) && $result['status']){
+            cache('btwaf_getspiders', $result['data'], 3600 * 24 * 3);
+            return json($result['data']);
+        }
+        return json($result);
+    }
+
     //检查黑白名单
     private function checklist(){
         if(config_get('whitelist') == 1){

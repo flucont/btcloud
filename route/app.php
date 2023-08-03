@@ -101,6 +101,8 @@ Route::group('api', function () {
     Route::get('/panel/get_beta_logs', 'api/get_beta_logs');
     Route::get('/wpanel/get_beta_logs', 'api/get_beta_logs');
 
+    Route::any('/bt_waf/getSpiders', 'api/btwaf_getspiders');
+
     Route::miss('api/return_error');
 });
 

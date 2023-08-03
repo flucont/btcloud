@@ -188,6 +188,15 @@
   </form>
 </div>
 </div>
+<div class="panel panel-primary">
+	<div class="panel-heading"><h3 class="panel-title">清理旧版本插件工具</h3></div>
+	<div class="panel-body">
+	  <form onsubmit="return saveAccount(this)" method="post" class="form" role="form">
+		<div class="alert alert-info" style="word-break:break-all;">使用以下命令可清理旧版本的插件文件，以释放空间占用。</div>
+		<div class="list-group-item" style="word-break:break-all;">php {:app()->getRootPath()}think clean</div><br/>
+	  </form>
+	</div>
+</div>
 {/if}
 <script src="//cdn.staticfile.org/layer/3.5.1/layer.js"></script>
 <script>
