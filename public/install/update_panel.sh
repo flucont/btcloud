@@ -78,7 +78,7 @@ install_pack(){
 	if [ -f /usr/bin/yum ];then
 		yum install libcurl-devel libffi-devel zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel -y
 	else
-		apt install libcurl4-openssl-dev net-tools swig build-essential libffi-dev zlib1g.dev libbz2-dev libssl-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils -y
+		apt install libcurl4-openssl-dev net-tools swig build-essential libffi-dev zlib1g-dev libbz2-dev libssl-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils -y
 	fi
 }
 

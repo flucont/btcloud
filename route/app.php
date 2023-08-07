@@ -21,6 +21,7 @@ Route::any('/bt_monitor/latest_version', 'api/btm_latest_version');
 Route::group('authorization', function () {
     Route::post('/login', 'api/authorization_login');
     Route::post('/info', 'api/authorization_info');
+    Route::post('/info_v2', 'api/authorization_info');
     Route::miss('api/return_error');
 });
 
@@ -100,6 +101,8 @@ Route::group('api', function () {
     Route::post('/wpanel/to_beta', 'api/return_error');
     Route::get('/panel/get_beta_logs', 'api/get_beta_logs');
     Route::get('/wpanel/get_beta_logs', 'api/get_beta_logs');
+
+    Route::post('/v2/common_v1_authorization/get_pricing', 'api/return_error2');
 
     Route::any('/bt_waf/getSpiders', 'api/btwaf_getspiders');
 

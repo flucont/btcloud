@@ -333,6 +333,10 @@ class Api extends BaseController
     public function return_error(){
         return json(['status'=>false, 'msg'=>'不支持当前操作']);
     }
+
+    public function return_error2(){
+        return json(['success'=>false, 'res'=>'不支持当前操作']);
+    }
     
     public function return_empty(){
         return '';

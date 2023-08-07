@@ -215,6 +215,7 @@ Install_Python_Lib(){
 				$pyenv_path/pyenv/bin/pip install backports.lzma
 				$pyenv_path/pyenv/bin/pip install pandas
 				$pyenv_path/pyenv/bin/pip install msgpack
+				$pyenv_path/pyenv/bin/pip install simple-websocket==0.10.0
 			fi
 			source $pyenv_path/pyenv/bin/activate
 			chmod -R 700 $pyenv_path/pyenv/bin
@@ -274,6 +275,7 @@ Install_Python_Lib(){
 			$pyenv_path/pyenv/bin/pip install backports.lzma
 			$pyenv_path/pyenv/bin/pip install pandas
 			$pyenv_path/pyenv/bin/pip install msgpack
+			$pyenv_path/pyenv/bin/pip install simple-websocket==0.10.0
 			if [ ! -f $pyenv_path/pyenv/bin/python ];then
 				rm -f $pyenv_file
 				Red_Error "ERROR: Install python env fielded." "ERROR: 下载堡塔云监控主控端运行环境失败，请尝试重新安装！" 
@@ -331,6 +333,7 @@ Install_Python_Lib(){
 	$pyenv_path/pyenv/bin/pip install backports.lzma
 	$pyenv_path/pyenv/bin/pip install pandas
 	$pyenv_path/pyenv/bin/pip install msgpack
+	$pyenv_path/pyenv/bin/pip install simple-websocket==0.10.0
 	source $pyenv_path/pyenv/bin/activate
 
 	is_gevent=$($python_bin -m gevent 2>&1|grep -oE package)
@@ -407,7 +410,13 @@ EOF
 	chmod +x $monitor_path/BT-MONITOR
 	chmod +x $monitor_path/tools.py
 	wget -O /etc/init.d/btm ${download_Url}/init/btmonitor.init -t 5 -T 10
-    # \cp -r $monitor_path/init.sh /etc/init.d/btm
+	tmp_size=$(du -b "/etc/init.d/btm"|awk '{print $1}')
+    if [ ${tmp_size} == 0 ]; then
+		\cp -r $monitor_path/init.sh /etc/init.d/btm
+    fi
+	if [ ! -f "/etc/init.d/btm" ];then
+		\cp -r $monitor_path/init.sh /etc/init.d/btm
+	fi
 
 	chmod +x /etc/init.d/btm
 	ln -sf /etc/init.d/btm /usr/bin/btm

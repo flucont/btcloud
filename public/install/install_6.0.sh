@@ -421,12 +421,34 @@ Install_Deb_Pack(){
 Get_Versions(){
 	redhat_version_file="/etc/redhat-release"
 	deb_version_file="/etc/issue"
+
+	if [[ $(grep Anolis /etc/os-release) ]] && [[ $(grep VERSION /etc/os-release|grep 8.8) ]];then
+		if [ -f "/usr/bin/yum" ];then
+			os_type="anolis"
+			os_version="8"
+			return
+		fi
+	fi
+
 	if [ -f $redhat_version_file ];then
 		os_type='el'
 		is_aliyunos=$(cat $redhat_version_file|grep Aliyun)
 		if [ "$is_aliyunos" != "" ];then
 			return
 		fi
+
+		if [[ $(grep "Alibaba Cloud" /etc/redhat-release) ]] && [[ $(grep al8 /etc/os-release) ]];then
+			os_type="ali-linux-"
+			os_version="al8"
+			return
+		fi
+
+		if [[ $(grep "TencentOS Server" /etc/redhat-release|grep 3.1) ]];then
+			os_type="TencentOS-"
+			os_version="3.1"
+			return
+		fi
+
 		os_version=$(cat $redhat_version_file|grep CentOS|grep -Eo '([0-9]+\.)+[0-9]+'|grep -Eo '^[0-9]')
 		if [ "${os_version}" = "5" ];then
 			os_version=""
@@ -763,14 +785,16 @@ Set_Bt_Panel(){
 	auth_path=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
 	echo "/${auth_path}" > ${admin_auth}
 	chmod -R 700 $pyenv_path/pyenv/bin
+	btpip install docxtpl==0.16.7
 	/www/server/panel/pyenv/bin/pip3 install pymongo
 	/www/server/panel/pyenv/bin/pip3 install psycopg2-binary
 	/www/server/panel/pyenv/bin/pip3 install flask -U
 	/www/server/panel/pyenv/bin/pip3 install flask-sock
+	btpip install simple-websocket==0.10.0
 	auth_path=$(cat ${admin_auth})
 	cd ${setup_path}/server/panel/
 	if [ "$SET_SSL" == true ]; then
-        btpip install -I pyOpenSSl
+        btpip install -I pyOpenSSl 2>/dev/null
         btpython /www/server/panel/tools.py ssl
     fi
 	/etc/init.d/bt start
@@ -1003,18 +1027,20 @@ fi
 echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="
 echo -e "\033[32mCongratulations! Installed successfully!\033[0m"
-echo -e "=================================================================="
-echo  "外网面板地址: ${HTTP_S}://${getIpAddress}:${panelPort}${auth_path}"
-echo  "内网面板地址: ${HTTP_S}://${LOCAL_IP}:${panelPort}${auth_path}"
-echo -e "username: $username"
-echo -e "password: $password"
-echo -e "\033[33mIf you cannot access the panel,\033[0m"
-echo -e "\033[33mrelease the following panel port [${panelPort}] in the security group\033[0m"
-echo -e "\033[33m若无法访问面板，请检查防火墙/安全组是否有放行面板[${panelPort}]端口\033[0m"
-if [ "${HTTP_S}" == "https" ];then
-    echo -e "\033[33m因已开启面板自签证书，访问面板会提示不匹配证书，请参考以下链接配置证书\033[0m"
-	echo -e "\033[33mhttps://www.bt.cn/bbs/thread-105443-1-1.html\033[0m"
-fi
+echo -e "========================面板账户登录信息=========================="
+echo -e ""
+echo -e " 外网面板地址: ${HTTP_S}://${getIpAddress}:${panelPort}${auth_path}"
+echo -e " 内网面板地址: ${HTTP_S}://${LOCAL_IP}:${panelPort}${auth_path}"
+echo -e " username: $username"
+echo -e " password: $password"
+echo -e " "
+echo -e "=========================打开面板前请看==========================="
+echo -e ""
+echo -e " 【云服务器】请在安全组放行 $panelPort 端口"
+echo -e " 因默认启用自签证书https加密访问，浏览器将提示不安全"
+echo -e " 点击【高级】-【继续访问】或【接受风险并继续】访问"
+echo -e " 教程：https://www.bt.cn/bbs/thread-117246-1-1.html"
+echo -e "" 
 echo -e "=================================================================="
 
 endTime=`date +%s`
