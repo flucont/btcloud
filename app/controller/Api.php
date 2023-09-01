@@ -31,15 +31,9 @@ class Api extends BaseController
         }else{
             Db::name('record')->insert(['ip'=>$this->clientip, 'addtime'=>date("Y-m-d H:i:s"), 'usetime'=>date("Y-m-d H:i:s")]);
         }
-        $json_file = get_data_dir('Windows').'config/plugin_list.json';
-        if(file_exists($json_file)){
-            $data = file_get_contents($json_file);
-            $json_arr = json_decode($data, true);
-            if($json_arr){
-                return json($json_arr);
-            }
-        }
-        return json((object)[]);
+        $json_arr = Plugins::get_plugin_list('Windows');
+        if(!$json_arr) return json((object)[]);
+        return json($json_arr);
     }
 
     //下载插件包
@@ -351,20 +345,12 @@ class Api extends BaseController
     }
 
     public function btwaf_getspiders(){
-        $result = cache('btwaf_getspiders');
-        if($result){
+        try{
+            $result = Plugins::btwaf_getspiders();
             return json($result);
+        }catch(\Exception $e){
+            return json(['status'=>false, 'msg'=>$e->getMessage()]);
         }
-        $bt_url = config_get('bt_url');
-        $bt_key = config_get('bt_key');
-        if(!$bt_url || !$bt_key) return json([]);
-        $btapi = new \app\lib\Btapi($bt_url, $bt_key);
-        $result = $btapi->btwaf_getspiders();
-        if(isset($result['status']) && $result['status']){
-            cache('btwaf_getspiders', $result['data'], 3600 * 24 * 3);
-            return json($result['data']);
-        }
-        return json($result);
     }
 
     //检查黑白名单

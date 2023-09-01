@@ -129,20 +129,33 @@ class Admin extends BaseController
     }
 
     public function testbturl(){
-        $bt_url = input('post.bt_url');
-        $bt_key = input('post.bt_key');
-        if(!$bt_url || !$bt_key)return json(['code'=>-1, 'msg'=>'参数不能为空']);
-        $btapi = new Btapi($bt_url, $bt_key);
-        $result = $btapi->get_config();
-        if($result && isset($result['status']) && ($result['status']==1 || isset($result['sites_path']))){
-            $result = $btapi->get_user_info();
-            if($result && isset($result['username'])){
-                return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
+        $bt_type = input('post.bt_type/d');
+        
+        if($bt_type == 1){
+            $bt_surl = input('post.bt_surl');
+            if(!$bt_surl)return json(['code'=>-1, 'msg'=>'参数不能为空']);
+            $res = get_curl($bt_surl . 'api/SetupCount');
+            if(strpos($res, 'ok')!==false){
+                return json(['code'=>0, 'msg'=>'第三方云端连接测试成功！']);
             }else{
-                return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件']);
+                return json(['code'=>-1, 'msg'=>'第三方云端连接测试失败']);
             }
         }else{
-            return json(['code'=>-1, 'msg'=>isset($result['msg'])?$result['msg']:'面板地址无法连接']);
+            $bt_url = input('post.bt_url');
+            $bt_key = input('post.bt_key');
+            if(!$bt_url || !$bt_key)return json(['code'=>-1, 'msg'=>'参数不能为空']);
+            $btapi = new Btapi($bt_url, $bt_key);
+            $result = $btapi->get_config();
+            if($result && isset($result['status']) && ($result['status']==1 || isset($result['sites_path']))){
+                $result = $btapi->get_user_info();
+                if($result && isset($result['username'])){
+                    return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
+                }else{
+                    return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件']);
+                }
+            }else{
+                return json(['code'=>-1, 'msg'=>isset($result['msg'])?$result['msg']:'面板地址无法连接']);
+            }
         }
     }
 
@@ -151,6 +164,7 @@ class Admin extends BaseController
         $json_arr = Plugins::get_plugin_list();
         if($json_arr){
             foreach($json_arr['type'] as $type){
+                if($type['title'] == '一键部署') continue;
                 $typelist[$type['id']] = $type['title'];
             }
         }
@@ -163,6 +177,7 @@ class Admin extends BaseController
         $json_arr = Plugins::get_plugin_list('Windows');
         if($json_arr){
             foreach($json_arr['type'] as $type){
+                if($type['title'] == '一键部署') continue;
                 $typelist[$type['id']] = $type['title'];
             }
         }

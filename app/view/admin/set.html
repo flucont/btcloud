@@ -4,7 +4,7 @@
 <div class="container" style="padding-top:70px;">
 {if $mod=='sys'}
 <div class="col-sm-12 col-md-6 center-block">
-<div class="panel panel-primary">
+<div class="panel panel-success">
 <div class="panel-heading"><h3 class="panel-title">系统基本设置</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
@@ -18,6 +18,16 @@
 	  <select class="form-control" name="download_page" default="{:config_get('download_page')}"><option value="0">关闭</option><option value="1">开启</option></select>
       <font color="green">页面地址：<a href="/download" target="_blank">/download</a>，开启后可以公开访问，否则只能管理员访问</font>
 	</div>
+	<div class="form-group text-center">
+	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
+	</div>
+  </form>
+</div>
+</div>
+<div class="panel panel-info">
+<div class="panel-heading"><h3 class="panel-title">Linux面板版本设置</h3></div>
+<div class="panel-body">
+  <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
     <div class="form-group">
       <label>宝塔Linux面板最新版本号：</label>
       <input type="text" name="new_version" value="{:config_get('new_version')}" class="form-control"/>
@@ -33,6 +43,18 @@
       <input type="date" name="update_date" value="{:config_get('update_date')}" class="form-control"/>
 	  <font color="green">用于检测更新接口返回</font>
     </div>
+	<div class="form-group text-center">
+	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
+	</div>
+  </form>
+</div>
+</div>
+</div>
+<div class="col-sm-12 col-md-6 center-block">
+<div class="panel panel-info">
+<div class="panel-heading"><h3 class="panel-title">Windows面板版本设置</h3></div>
+<div class="panel-body">
+  <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
 	<div class="form-group">
       <label>宝塔Windows面板最新版本号：</label>
       <input type="text" name="new_version_win" value="{:config_get('new_version_win')}" class="form-control"/>
@@ -48,6 +70,16 @@
       <input type="date" name="update_date_win" value="{:config_get('update_date_win')}" class="form-control"/>
 	  <font color="green">用于检测更新接口返回</font>
     </div>
+	<div class="form-group text-center">
+	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
+	</div>
+  </form>
+</div>
+</div>
+<div class="panel panel-info">
+<div class="panel-heading"><h3 class="panel-title">云监控版本设置</h3></div>
+<div class="panel-body">
+  <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
 	<div class="form-group">
       <label>宝塔云监控最新版本号：</label>
       <input type="text" name="new_version_btm" value="{:config_get('new_version_btm')}" class="form-control"/>
@@ -68,12 +100,18 @@
 </div>
 </div>
 </div>
+{elseif $mod=='api'}
 <div class="col-sm-12 col-md-6 center-block">
-<div class="panel panel-primary">
+<div class="panel panel-info">
 <div class="panel-heading"><h3 class="panel-title">宝塔Linux面板接口设置</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
-    <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取最新插件列表及插件包</p>
+	<div class="form-group">
+	  <label>对接方式：</label><br/>
+	  <select class="form-control" name="bt_type" default="{:config_get('bt_type')}"><option value="0">对接宝塔面板接口</option><option value="1">对接其他第三方云端</option></select>
+	</div><hr/>
+	<div id="bt_type_0" style="{if config_get('bt_type')==1}display:none;{/if}">
+    <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取插件列表及插件包</p>
     <p><a href="/static/file/kaixin.zip">下载专用插件(Linux)</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件。</p>
 	<div class="form-group">
 	  <label>宝塔面板URL：</label><br/>
@@ -84,6 +122,14 @@
 	  <label>宝塔面板接口密钥：</label>
 	  <input type="text" name="bt_key" value="{:config_get('bt_key')}" class="form-control"/>
 	</div>
+	</div>
+	<div id="bt_type_1" style="{if !config_get('bt_type')}display:none;{/if}">
+	<div class="form-group">
+	  <label>第三方云端首页URL：</label><br/>
+	  <input type="text" name="bt_surl" value="{:config_get('bt_surl')}" class="form-control"/>
+      <font color="green">填写规则如：<u>http://www.example.com/</u> ，必须以/结尾</font>
+	</div>
+	</div>
 	<div class="form-group text-center">
       <button type="button" class="btn btn-info btn-block" id="testbturl">测试连接</button>
 	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
@@ -91,11 +137,18 @@
   </form>
 </div>
 </div>
-<div class="panel panel-primary">
+</div>
+<div class="col-sm-12 col-md-6 center-block">
+<div class="panel panel-info">
 <div class="panel-heading"><h3 class="panel-title">宝塔Windows面板接口设置</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
-    <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取最新插件列表及插件包</p>
+	<div class="form-group">
+	  <label>对接方式：</label><br/>
+	  <select class="form-control" name="wbt_type" default="{:config_get('wbt_type')}"><option value="0">对接宝塔面板接口</option><option value="1">对接其他第三方云端</option></select>
+	</div><hr/>
+	<div id="wbt_type_0" style="{if config_get('wbt_type')==1}display:none;{/if}">
+    <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取插件列表及插件包</p>
     <p><a href="/static/file/win/kaixin.zip">下载专用插件(Win)</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件。</p>
 	<div class="form-group">
 	  <label>宝塔面板URL：</label><br/>
@@ -106,6 +159,14 @@
 	  <label>宝塔面板接口密钥：</label>
 	  <input type="text" name="wbt_key" value="{:config_get('wbt_key')}" class="form-control"/>
 	</div>
+	</div>
+	<div id="wbt_type_1" style="{if !config_get('wbt_type')}display:none;{/if}">
+	<div class="form-group">
+	  <label>第三方云端首页URL：</label><br/>
+	  <input type="text" name="wbt_surl" value="{:config_get('wbt_surl')}" class="form-control"/>
+      <font color="green">填写规则如：<u>http://www.example.com/</u> ，必须以/结尾</font>
+	</div>
+	</div>
 	<div class="form-group text-center">
       <button type="button" class="btn btn-info btn-block" id="testbturl2">测试连接</button>
 	  <input type="submit" name="submit" value="保存" class="btn btn-success btn-block"/>
@@ -114,10 +175,30 @@
 </div>
 </div>
 </div>
+<script>
+$("select[name='bt_type']").change(function(){
+	if($(this).val() == 1){
+		$("#bt_type_0").hide();
+		$("#bt_type_1").show();
+	}else{
+		$("#bt_type_0").show();
+		$("#bt_type_1").hide();
+	}
+});
+$("select[name='wbt_type']").change(function(){
+	if($(this).val() == 1){
+		$("#wbt_type_0").hide();
+		$("#wbt_type_1").show();
+	}else{
+		$("#wbt_type_0").show();
+		$("#wbt_type_1").hide();
+	}
+});
+</script>
 {elseif $mod=='task'}
 <div class="col-sm-12 col-md-6 center-block">
 <div class="panel panel-success">
-<div class="panel-heading"><h3 class="panel-title">定时任务说明</h3></div>
+<div class="panel-heading"><h3 class="panel-title">自动更新插件说明</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
     <div class="alert alert-info">使用以下命令可以从宝塔官方获取最新的插件列表并批量下载插件包（增量更新）。<br/>你也可以将此命令添加到crontab以使此云端的插件保持最新，建议1天执行1次。</div>
@@ -130,7 +211,7 @@
 </div>
 <div class="col-sm-12 col-md-6 center-block">
 <div class="panel panel-info">
-<div class="panel-heading"><h3 class="panel-title">定时任务设置</h3></div>
+<div class="panel-heading"><h3 class="panel-title">自动更新插件设置</h3></div>
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
 	<div class="form-group">
@@ -206,22 +287,35 @@ $(document).ready(function(){
 		$(items[i]).val($(items[i]).attr("default")||0);
 	}
     $("#testbturl").click(function(){
-        var bt_url = $("input[name=bt_url]").val();
-        var bt_key = $("input[name=bt_key]").val();
-        if(bt_url == ''){
-            layer.alert('宝塔面板URL不能为空');return;
-        }
-        if(bt_url.indexOf('http://')==-1 && bt_url.indexOf('https://')==-1){
-            layer.alert('宝塔面板URL不正确');return;
-        }
-        if(bt_key == ''){
-            layer.alert('宝塔面板接口密钥不能为空');return;
-        }
+		var bt_type = $("select[name=bt_type]").val();
+		if(bt_type == '1'){
+			var bt_surl = $("input[name=bt_surl]").val();
+			if(bt_surl == ''){
+				layer.alert('第三方云端URL不能为空');return;
+			}
+			if(bt_surl.indexOf('http://')==-1 && bt_surl.indexOf('https://')==-1){
+				layer.alert('第三方云端URL不正确');return;
+			}
+			var postdata = {bt_type:bt_type, bt_surl:bt_surl};
+		}else{
+			var bt_url = $("input[name=bt_url]").val();
+			var bt_key = $("input[name=bt_key]").val();
+			if(bt_url == ''){
+				layer.alert('宝塔面板URL不能为空');return;
+			}
+			if(bt_url.indexOf('http://')==-1 && bt_url.indexOf('https://')==-1){
+				layer.alert('宝塔面板URL不正确');return;
+			}
+			if(bt_key == ''){
+				layer.alert('宝塔面板接口密钥不能为空');return;
+			}
+			var postdata = {bt_type:bt_type, bt_url:bt_url, bt_key:bt_key};
+		}
         var ii = layer.load(2, {shade:[0.1,'#fff']});
         $.ajax({
             type : 'POST',
             url : '/admin/testbturl',
-            data : {bt_url:bt_url, bt_key:bt_key},
+            data : postdata,
             dataType : 'json',
             success : function(data) {
                 layer.close(ii);
@@ -238,22 +332,35 @@ $(document).ready(function(){
         });
     })
 	$("#testbturl2").click(function(){
-        var wbt_url = $("input[name=wbt_url]").val();
-        var wbt_key = $("input[name=wbt_key]").val();
-        if(wbt_url == ''){
-            layer.alert('宝塔面板URL不能为空');return;
-        }
-        if(wbt_url.indexOf('http://')==-1 && wbt_url.indexOf('https://')==-1){
-            layer.alert('宝塔面板URL不正确');return;
-        }
-        if(wbt_key == ''){
-            layer.alert('宝塔面板接口密钥不能为空');return;
-        }
+		var wbt_type = $("select[name=wbt_type]").val();
+		if(wbt_type == '1'){
+			var wbt_surl = $("input[name=wbt_surl]").val();
+			if(wbt_surl == ''){
+				layer.alert('第三方云端URL不能为空');return;
+			}
+			if(wbt_surl.indexOf('http://')==-1 && wbt_surl.indexOf('https://')==-1){
+				layer.alert('第三方云端URL不正确');return;
+			}
+			var postdata = {bt_type:wbt_type, bt_surl:wbt_surl};
+		}else{
+			var wbt_url = $("input[name=wbt_url]").val();
+			var wbt_key = $("input[name=wbt_key]").val();
+			if(wbt_url == ''){
+				layer.alert('宝塔面板URL不能为空');return;
+			}
+			if(wbt_url.indexOf('http://')==-1 && wbt_url.indexOf('https://')==-1){
+				layer.alert('宝塔面板URL不正确');return;
+			}
+			if(wbt_key == ''){
+				layer.alert('宝塔面板接口密钥不能为空');return;
+			}
+			var postdata = {bt_type:wbt_type, bt_url:wbt_url, bt_key:wbt_key};
+		}
         var ii = layer.load(2, {shade:[0.1,'#fff']});
         $.ajax({
             type : 'POST',
             url : '/admin/testbturl',
-            data : {bt_url:wbt_url, bt_key:wbt_key},
+            data : postdata,
             dataType : 'json',
             success : function(data) {
                 layer.close(ii);

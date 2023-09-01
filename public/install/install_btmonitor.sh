@@ -427,6 +427,9 @@ EOF
 	if [ -f $monitor_path/core/include/c_loader/PluginLoader.so ]; then
 		rm -f $monitor_path/core/include/c_loader/PluginLoader.so
 	fi
+	if [ -f $monitor_path/sqlite_server/PluginLoader.so ]; then
+		rm -f $monitor_path/sqlite_server/PluginLoader.so
+	fi
 }
 
 Start_Monitor(){

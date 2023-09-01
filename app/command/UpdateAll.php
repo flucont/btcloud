@@ -25,10 +25,10 @@ class UpdateAll extends Command
         $res = Db::name('config')->cache('configs',0)->column('value','key');
         Config::set($res, 'sys');
         
-        if(config_get('bt_url')){
+        if(!config_get('bt_type') && config_get('bt_url') || config_get('bt_type')==1 && config_get('bt_surl')){
             $this->process_plugins($input, $output, 'Linux');
         }
-        if(config_get('wbt_url')){
+        if(!config_get('wbt_type') && config_get('wbt_url') || config_get('wbt_type')==1 && config_get('wbt_surl')){
             $this->process_plugins($input, $output, 'Windows');
         }
 
@@ -100,18 +100,6 @@ class UpdateAll extends Command
         }catch(\Exception $e){
             $output->writeln($fullname.'  '.$e->getMessage());
             errorlog($fullname.'  '.$e->getMessage());
-            return false;
-        }
-    }
-
-    private function download_plugin_image(Input $input, Output $output, $fname){
-        try{
-            Plugins::download_plugin_other($fname);
-            $output->writeln('下载图片: '.$fname.' 成功');
-            return true;
-        }catch(\Exception $e){
-            $output->writeln($fname.'  '.$e->getMessage());
-            errorlog($fname.'  '.$e->getMessage());
             return false;
         }
     }

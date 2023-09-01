@@ -35,7 +35,6 @@ td{overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width:340px;
 			<div class="modal-body">
 				<p>“版本与状态”一列中，红色的按钮代表本地不存在该版本插件包，需要点击下载；绿色的按钮代表已存在。</p>
                 <p>官方插件包本地存储路径是/data/plugins/package/软件标识-版本号.zip，第三方插件包路径是/data/plugins/other/other/，对于部分包含二次验证的插件可以自行修改。</p>
-                <p>点击【重新获取】按钮会从宝塔官方获取最新插件列表，但是插件包需要手动点击下载。如果需要批量下载插件包，可查看<a href="/admin/set/mod/task">定时任务设置</a></p>
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
@@ -57,10 +56,11 @@ td{overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width:340px;
     {foreach $typelist as $k=>$v}<option value="{$k}">{$v}</option>{/foreach} </select>
   </div>
   <div class="form-group">
-	<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i>搜索</button>&nbsp;
-	<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-repeat"></i>重置</a>&nbsp;
-    <a href="javascript:refresh_plugins()" class="btn btn-success"><i class="fa fa-refresh"></i>重新获取</a>&nbsp;
-    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#help"><i class="fa fa-info-circle"></i>帮助</button>
+	<button class="btn btn-primary" type="submit"><i class="fa fa-search"></i> 搜索</button>&nbsp;
+	<a href="javascript:searchClear()" class="btn btn-default"><i class="fa fa-repeat"></i> 重置</a>&nbsp;
+    <a href="javascript:refresh_plugins()" class="btn btn-success"><i class="fa fa-refresh"></i> 刷新列表</a>&nbsp;
+    <a href="javascript:download_plugins()" class="btn btn-warning" id="batch_down" style="display:none;"><i class="fa fa-download"></i> 批量下载</a>&nbsp;
+    <button type="button" class="btn btn-default" data-toggle="modal" data-target="#help"><i class="fa fa-info-circle"></i> 帮助</button>
   </div>
 </form>
 </div>
@@ -139,6 +139,48 @@ function refresh_plugins(){
     });
 }
 
+function download_plugins(){
+    var confirm = layer.confirm('批量下载当前分类下未下载的插件包', {
+        btn: ['确定','取消']
+    }, function(){
+        layer.close(confirm)
+        $.downloadCount = 0;
+        $.preDownloadCount = $.preDownload.length;
+        download_item();
+    }, function(){
+        layer.close(confirm)
+    });
+}
+
+function download_item(){
+    if($.preDownload.length == 0){
+        layer.alert('成功下载'+$.downloadCount+'个插件包！', {icon:1}, function(){layer.closeAll();searchSubmit();});
+        return;
+    }
+    $.downloadCount++;
+    var plugin = $.preDownload[0];
+    var ii = layer.msg('['+$.downloadCount+'/'+$.preDownloadCount+']正在下载'+plugin.name+'-'+plugin.version, {icon: 16, shade:0.1, time: 0});
+    $.ajax({
+		type : 'POST',
+		url : '/admin/download_plugin',
+        data: { name:plugin.name, version:plugin.version},
+		dataType : 'json',
+		success : function(data) {
+            layer.close(ii)
+			if(data.code == 0){
+                $.preDownload.shift();
+				download_item();
+			}else{
+				layer.alert(data.msg, {icon:2});
+			}
+		},
+		error:function(data){
+            layer.close(ii)
+			layer.msg('服务器错误', {icon:2});
+		}
+	});
+}
+
 function searchByType(type){
     $("input[name=keyword]").val('');
     $("select[name=type]").val(type);
@@ -208,6 +250,26 @@ $(document).ready(function(){
 				}
 			},
 		],
+        onLoadSuccess: function(data){
+            $.preDownload = [];
+            var type = $("select[name=type] option:selected").text();
+            if(type != '全部插件' && type != '运行环境' && type != '第三方应用'){
+                $("#batch_down").show();
+                if(data.length > 0){
+                    $.each(data, function(index, plugin){
+                        if(plugin.versions.length > 0){
+                            $.each(plugin.versions, function(index, version){
+                                if(!version.status){
+                                    $.preDownload.push({name:plugin.name, version:version.version})
+                                }
+                            });
+                        }
+                    });
+                }
+            }else{
+                $("#batch_down").hide();
+            }
+        }
 	})
 })
 </script>

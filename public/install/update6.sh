@@ -113,6 +113,18 @@ fi
 if [ ! -f /www/server/panel/data/userInfo.json ]; then
 	echo "{\"uid\":1,\"username\":\"Administrator\",\"address\":\"127.0.0.1\",\"serverid\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\",\"ukey\":\"123456\",\"state\":1}" > /www/server/panel/data/userInfo.json
 fi
+if [ ! -f /www/server/panel/data/panel_nps.pl ]; then
+	echo "" > /www/server/panel/data/panel_nps.pl
+fi
+if [ ! -f /www/server/panel/data/btwaf_nps.pl ]; then
+	echo "" > /www/server/panel/data/btwaf_nps.pl
+fi
+if [ ! -f /www/server/panel/data/tamper_proof_nps.pl ]; then
+	echo "" > /www/server/panel/data/tamper_proof_nps.pl
+fi
+if [ ! -f /www/server/panel/data/total_nps.pl ]; then
+	echo "" > /www/server/panel/data/total_nps.pl
+fi
 
 chattr -i /etc/init.d/bt
 chmod +x /etc/init.d/bt

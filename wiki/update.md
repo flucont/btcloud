@@ -107,7 +107,7 @@
 
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
 
-- [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log()这一行
+- [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log这一行
 
 - [可选]删除小图标广告：在BTPanel/static/js/site.js，删除“WAF防火墙”对应的span标签
 

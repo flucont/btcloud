@@ -759,6 +759,18 @@ Install_Bt(){
 	if [ ! -f /www/server/panel/data/userInfo.json ]; then
 		echo "{\"uid\":1,\"username\":\"Administrator\",\"address\":\"127.0.0.1\",\"serverid\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\",\"ukey\":\"123456\",\"state\":1}" > /www/server/panel/data/userInfo.json
 	fi
+	if [ ! -f /www/server/panel/data/panel_nps.pl ]; then
+		echo "" > /www/server/panel/data/panel_nps.pl
+	fi
+	if [ ! -f /www/server/panel/data/btwaf_nps.pl ]; then
+		echo "" > /www/server/panel/data/btwaf_nps.pl
+	fi
+	if [ ! -f /www/server/panel/data/tamper_proof_nps.pl ]; then
+		echo "" > /www/server/panel/data/tamper_proof_nps.pl
+	fi
+	if [ ! -f /www/server/panel/data/total_nps.pl ]; then
+		echo "" > /www/server/panel/data/total_nps.pl
+	fi
 }
 Set_Bt_Panel(){
 	Run_User="www"
@@ -1022,7 +1034,7 @@ if [ "${PANEL_SSL}" == "True" ];then
 	HTTP_S="https"
 else
 	HTTP_S="http"
-fi 
+fi
 
 echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="
@@ -1042,7 +1054,6 @@ echo -e " 点击【高级】-【继续访问】或【接受风险并继续】访
 echo -e " 教程：https://www.bt.cn/bbs/thread-117246-1-1.html"
 echo -e "" 
 echo -e "=================================================================="
-
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
