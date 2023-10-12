@@ -10,7 +10,7 @@ class Api extends BaseController
 
     //获取插件列表
     public function get_plugin_list(){
-        if(!$this->checklist()) return '';
+        if(!$this->checklist()) return json('你的服务器被禁止使用此云端');
         $record = Db::name('record')->where('ip',$this->clientip)->find();
         if($record){
             Db::name('record')->where('id',$record['id'])->update(['usetime'=>date("Y-m-d H:i:s")]);
@@ -24,7 +24,7 @@ class Api extends BaseController
 
     //获取插件列表(win)
     public function get_plugin_list_win(){
-        if(!$this->checklist()) return '';
+        if(!$this->checklist()) return json('你的服务器被禁止使用此云端');
         $record = Db::name('record')->where('ip',$this->clientip)->find();
         if($record){
             Db::name('record')->where('id',$record['id'])->update(['usetime'=>date("Y-m-d H:i:s")]);

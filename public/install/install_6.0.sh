@@ -786,16 +786,14 @@ Set_Bt_Panel(){
 	fi
 	sleep 1
 	admin_auth="/www/server/panel/data/admin_path.pl"
-	if [ "${SAFE_PATH}" ];then
-		auth_path=$SAFE_PATH
-		echo "/${auth_path}" > ${admin_auth}
-	fi
 	if [ ! -f ${admin_auth} ];then
 		auth_path=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
 		echo "/${auth_path}" > ${admin_auth}
 	fi
-	auth_path=$(cat /dev/urandom | head -n 16 | md5sum | head -c 8)
-	echo "/${auth_path}" > ${admin_auth}
+	if [ "${SAFE_PATH}" ];then
+		auth_path=$SAFE_PATH
+		echo "/${auth_path}" > ${admin_auth}
+	fi
 	chmod -R 700 $pyenv_path/pyenv/bin
 	btpip install docxtpl==0.16.7
 	/www/server/panel/pyenv/bin/pip3 install pymongo
@@ -1034,7 +1032,7 @@ if [ "${PANEL_SSL}" == "True" ];then
 	HTTP_S="https"
 else
 	HTTP_S="http"
-fi
+fi 
 
 echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="
@@ -1057,5 +1055,6 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+
 
 
