@@ -30,6 +30,11 @@ if [ "${UbuntuCheck}" ] && [ "${UbuntuCheck}" -lt "16" ];then
 	echo "Ubuntu ${UbuntuCheck}不支持安装宝塔面板，建议更换Ubuntu18/20安装宝塔面板"
 	exit 1
 fi
+HOSTNAME_CHECK=$(cat /etc/hostname)
+if [ -z "${HOSTNAME_CHECK}" ];then
+	echo "当前主机名hostname为空无法安装宝塔面板，请咨询服务器运营商设置好hostname后再重新安装"
+	exit 1
+fi
 
 cd ~
 setup_path="/www"

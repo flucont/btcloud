@@ -91,6 +91,7 @@ Route::group('api', function () {
     Route::get('/panel/notpro', 'api/return_empty');
     Route::post('/Btdeployment/get_deplist', 'api/get_deplist');
     Route::post('/panel/get_deplist', 'api/get_deplist');
+    Route::get('/ip/info_json', 'api/return_empty_array');
 
     Route::post('/LinuxBeta', 'api/return_error');
     Route::post('/panel/apple_beta', 'api/return_error');

@@ -16,7 +16,11 @@ def get_plugin_list(force = 0):
         except Exception as ex:
             raise public.error_conn_cloud(str(ex))
         softList = json.loads(jsonData)
-        if type(softList)!=dict or 'list' not in softList: raise Exception('云端插件列表获取失败')
+        if type(softList)!=dict or 'list' not in softList:
+            if type(softList)==str:
+                raise Exception(softList)
+            else:
+                raise Exception('云端插件列表获取失败')
         public.writeFile(cache_file, jsonData)
     return softList
 

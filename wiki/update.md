@@ -16,9 +16,11 @@
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py）
 
+- 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/（需排除js文件）
+
 - 全局搜索替换 https://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
-- class/ajax.py 文件 \#是否执行升级程序 下面的 public.get_url() 改成 public.GetConfigValue('home')
+- class/ajax.py 文件 \# 是否执行升级程序 下面的 public.get_url() 改成 public.GetConfigValue('home')
 
   class/jobs.py 文件 \#尝试升级到独立环境 下面的 public.get_url() 改成 public.GetConfigValue('home')
 
@@ -63,6 +65,8 @@
 
 - class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
+- script/flush_plugin.py 文件，删除clear_hosts()一行
+
 - install/install_soft.sh 在bash执行之前加入以下代码
 
   ```shell
@@ -97,11 +101,11 @@
 
 - [可选]去除创建网站自动创建的垃圾文件：在class/panelSite.py，分别删除
 
-  htaccess = self.sitePath+'/.htaccess'
+  htaccess = self.sitePath + '/.htaccess'
 
-  index = self.sitePath+'/index.html'
+  index = self.sitePath + '/index.html'
 
-  doc404 = self.sitePath+'/404.html'
+  doc404 = self.sitePath + '/404.html'
 
   这3行及分别接下来的4行代码
 
