@@ -185,3 +185,43 @@ function errorlog($msg){
 	fwrite($handle, date('Y-m-d H:i:s')."\t".$msg."\r\n");
 	fclose($handle);
 }
+
+function licenseEncrypt($data, $key){
+	$iv = substr($key, 0, 16);
+	return openssl_encrypt($data, 'AES-256-CBC', $key, 0, $iv);
+}
+
+function licenseDecrypt($data, $key){
+	$iv = substr($key, 0, 16);
+	return openssl_decrypt($data, 'AES-256-CBC', $key, 0, $iv);
+}
+
+function generateKeyPairs(){
+	$pkey_dir = app()->getRootPath().'data/config/';
+	$public_key_path = $pkey_dir.'public_key.pem';
+	$private_key_path = $pkey_dir.'private_key.pem';
+	if(file_exists($public_key_path) && file_exists($private_key_path)){
+		return [file_get_contents($public_key_path), file_get_contents($private_key_path)];
+	}
+	$pkey_config = ['private_key_bits'=>4096];
+	$pkey_res = openssl_pkey_new($pkey_config);
+	$private_key = '';
+	openssl_pkey_export($pkey_res, $private_key, null, $pkey_config);
+	$pkey_details = openssl_pkey_get_details($pkey_res);
+	if(!$pkey_details) return false;
+	$public_key = $pkey_details['key'];
+	file_put_contents($public_key_path, $public_key);
+	file_put_contents($private_key_path, $private_key);
+	return [$public_key, $private_key];
+}
+
+function pemToBase64($pem){
+    $lines = explode("\n", $pem);
+    $encoded = '';
+    foreach ($lines as $line) {
+        if (trim($line) != '' && strpos($line, '-----BEGIN') === false && strpos($line, '-----END') === false) {
+            $encoded .= trim($line);
+        }
+    }
+    return $encoded;
+}

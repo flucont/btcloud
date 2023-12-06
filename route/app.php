@@ -17,11 +17,16 @@ Route::post('/Auth/GetAuthToken', 'api/get_auth_token');
 Route::post('/Auth/GetBindCode', 'api/return_error');
 Route::any('/bt_monitor/update_history', 'api/btm_update_history');
 Route::any('/bt_monitor/latest_version', 'api/btm_latest_version');
+Route::any('/bt_waf/get_malicious_ip', 'api/get_ssl_list');
+Route::any('/bt_waf/daily_count_v2', 'api/get_ssl_list');
+Route::any('/bt_waf/latest_version', 'api/btwaf_latest_version');
 
 Route::group('authorization', function () {
     Route::post('/login', 'api/authorization_login');
     Route::post('/info', 'api/authorization_info');
     Route::post('/info_v2', 'api/authorization_info');
+    Route::post('/update_license', 'api/update_license');
+    Route::post('/is_obtained_btw_trial', 'api/is_obtained_btw_trial');
     Route::miss('api/return_error');
 });
 

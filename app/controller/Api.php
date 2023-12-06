@@ -213,6 +213,17 @@ class Api extends BaseController
         return json($data);
     }
 
+    //宝塔云WAF最新版本
+    public function btwaf_latest_version(){
+        $data = [
+            'version' => '2.5',
+            'description' => '暂无更新日志',
+            'create_time' => 1701252997,
+        ];
+        $data = bin2hex(json_encode($data));
+        return json(['status'=>true,'err_no'=>0,'msg'=>'获取成功','data'=>$data]);
+    }
+
     //获取内测版更新日志
     public function get_beta_logs(){
         return json(['beta_ps'=>'当前暂无内测版', 'list'=>[]]);
@@ -275,35 +286,67 @@ class Api extends BaseController
 
     //绑定账号
     public function get_auth_token(){
-        if(!$_POST['data']) return json(['status'=>false, 'msg'=>'参数不能为空']);
-        $reqData = hex2bin($_POST['data']);
+        if(!input('?post.data')) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin(input('post.data'));
         parse_str($reqData, $arr);
         $serverid = $arr['serverid'];
-        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'address'=>'127.0.0.1', 'serverid'=>$serverid, 'access_key'=>random(32), 'secret_key'=>random(48), 'ukey'=>md5(time()), 'state'=>1];
-        $data = bin2hex(urlencode(json_encode($userinfo)));
+        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'address'=>'127.0.0.1', 'serverid'=>$serverid, 'access_key'=>random(48), 'secret_key'=>random(48), 'ukey'=>md5(time()), 'state'=>1];
+        $data = bin2hex(json_encode($userinfo));
         return json(['status'=>true, 'msg'=>'登录成功！', 'data'=>$data]);
     }
 
     //绑定账号新
     public function authorization_login(){
-        if(!$_POST['data']) return json(['status'=>false, 'msg'=>'参数不能为空']);
-        $reqData = hex2bin($_POST['data']);
+        if(!input('?post.data')) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin(input('post.data'));
         parse_str($reqData, $arr);
         $serverid = $arr['serverid'];
-        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'ip'=>'127.0.0.1', 'server_id'=>$serverid, 'access_key'=>random(32), 'secret_key'=>random(48)];
-        $data = bin2hex(urlencode(json_encode($userinfo)));
-        return json(['status'=>true, 'msg'=>'登录成功！', 'data'=>$data]);
+        $userinfo = ['uid'=>1, 'username'=>'Administrator', 'ip'=>'127.0.0.1', 'server_id'=>$serverid, 'access_key'=>random(48), 'secret_key'=>random(48)];
+        $data = bin2hex(json_encode($userinfo));
+        return json(['status'=>true, 'err_no'=>0, 'msg'=>'账号绑定成功', 'data'=>$data]);
     }
 
     //刷新授权信息
     public function authorization_info(){
-        if(!$_POST['data']) return json(['status'=>false, 'msg'=>'参数不能为空']);
-        $reqData = hex2bin($_POST['data']);
+        if(!input('?post.data')) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin(input('post.data'));
         parse_str($reqData, $arr);
         $id = isset($arr['id'])&&$arr['id']>0?$arr['id']:1;
         $userinfo = ['id'=>$id, 'product'=>$arr['product'], 'status'=>2, 'clients'=>9999, 'durations'=>0, 'end_time'=>strtotime('+10 year')];
-        $data = bin2hex(urlencode(json_encode($userinfo)));
-        return json(['status'=>true, 'data'=>$data]);
+        $data = bin2hex(json_encode($userinfo));
+        return json(['status'=>true, 'err_no'=>0, 'data'=>$data]);
+    }
+
+    //刷新授权信息
+    public function update_license(){
+        if(!input('?post.data')) return json(['status'=>false, 'msg'=>'参数不能为空']);
+        $reqData = hex2bin(input('post.data'));
+        parse_str($reqData, $arr);
+        if(!isset($arr['product']) || !isset($arr['serverid'])) return json(['status'=>false, 'msg'=>'缺少参数']);
+
+        $license_data = ['product'=>$arr['product'], 'uid'=>random(32), 'phone'=>'138****8888', 'auth_id'=>random(32), 'server_id'=>substr($arr['serverid'], 0, 32), 'auth'=>['apis'=>[], 'menu'=>[], 'extra'=>['type'=>3,'location'=>-1,'smart_cc'=>-1,'site'=>0]], 'pages'=>[], 'end_time'=>strtotime('+10 year')];
+        $json = json_encode($license_data);
+
+        [$public_key, $private_key] = generateKeyPairs();
+        $public_key = pemToBase64($public_key);
+
+        $key1 = random(32);
+        $key2 = substr($public_key, 0, 32);
+        $encrypted1 = licenseEncrypt($json, $key1);
+        $encrypted2 = licenseEncrypt($key1, $key2);
+        $sign_data = $encrypted1.'.'.$encrypted2;
+        openssl_sign($sign_data, $signature, $private_key, OPENSSL_ALGO_SHA256);
+        $signature = base64_encode($signature);
+
+        $license = base64_encode($sign_data.'.'.$signature);
+        $data = bin2hex(json_encode(['public_key'=>$public_key, 'license'=>$license]));
+        return json(['status'=>true, 'err_no'=>0, 'msg'=>'授权获取成功', 'data'=>$data]);
+    }
+
+    public function is_obtained_btw_trial(){
+        $data = ['is_obtained'=>0];
+        $data = bin2hex(json_encode($data));
+        return json(['status'=>true, 'err_no'=>0, 'data'=>$data, 'msg'=>'检测成功']);
     }
 
     //一键部署列表
@@ -390,5 +433,17 @@ class Api extends BaseController
         }
         fclose($handle);
         exit;
+    }
+
+    public function logerror(){
+        $content = date('Y-m-d H:i:s')."\r\n";
+        $content.=$_SERVER['REQUEST_METHOD'].' '.$_SERVER['REQUEST_URI']."\r\n";
+        if($_SERVER['REQUEST_METHOD'] == 'POST'){
+            $content.=file_get_contents('php://input')."\r\n";
+        }
+        $handle = fopen(app()->getRootPath()."record.txt", 'a');
+        fwrite($handle, $content."\r\n");
+        fclose($handle);
+        return json(['status'=>false, 'msg'=>'不支持当前操作']);
     }
 }
