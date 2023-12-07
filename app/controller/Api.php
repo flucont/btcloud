@@ -387,6 +387,7 @@ class Api extends BaseController
         return json(['page'=>"<div><span class='Pcurrent'>1</span><span class='Pnumber'>1/0</span><span class='Pline'>从1-1000条</span><span class='Pcount'>共计0条数据</span></div>", 'data'=>[]]);
     }
 
+    //获取所有蜘蛛IP列表
     public function btwaf_getspiders(){
         try{
             $result = Plugins::btwaf_getspiders();
@@ -394,6 +395,14 @@ class Api extends BaseController
         }catch(\Exception $e){
             return json(['status'=>false, 'msg'=>$e->getMessage()]);
         }
+    }
+
+    //分类获取蜘蛛IP列表
+    public function get_spider(){
+        $type = input('get.spider/d');
+        if(!$type) return json([]);
+        $result = Plugins::get_spider($type);
+        return json($result);
     }
 
     //检查黑白名单

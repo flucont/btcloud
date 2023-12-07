@@ -26,6 +26,7 @@ Route::group('authorization', function () {
     Route::post('/info', 'api/authorization_info');
     Route::post('/info_v2', 'api/authorization_info');
     Route::post('/update_license', 'api/update_license');
+    Route::post('/get_unactivated_licenses', 'api/get_ssl_list');
     Route::post('/is_obtained_btw_trial', 'api/is_obtained_btw_trial');
     Route::miss('api/return_error');
 });
@@ -109,11 +110,13 @@ Route::group('api', function () {
     Route::get('/wpanel/get_beta_logs', 'api/get_beta_logs');
 
     Route::post('/v2/common_v1_authorization/get_pricing', 'api/return_error2');
+    Route::post('/v2/common_v2_authorization/get_pricing', 'api/return_error2');
 
     Route::any('/bt_waf/getSpiders', 'api/btwaf_getspiders');
     Route::post('/bt_waf/addSpider', 'api/return_empty');
     Route::post('/bt_waf/getVulScanInfoList', 'api/return_empty');
     Route::post('/bt_waf/reportInterceptFail', 'api/return_empty');
+    Route::any('/panel/get_spider', 'api/get_spider');
 
     Route::miss('api/return_error');
 });

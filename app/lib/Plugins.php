@@ -151,4 +151,18 @@ class Plugins
         return $result;
     }
 
+    //分类获取蜘蛛IP列表
+    public static function get_spider($type){
+        $result = cache('get_spider_'.$type);
+        if($result){
+            return $result;
+        }
+        $url = 'https://www.bt.cn/api/panel/get_spider?spider='.$type;
+        $data = get_curl($url);
+        $result = json_decode($data, true);
+        if(!$result) return [];
+        cache('get_spider_'.$type, $result, 3600 * 24);
+        return $result;
+    }
+
 }
