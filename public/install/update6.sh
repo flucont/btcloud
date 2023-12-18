@@ -71,7 +71,7 @@ rm -f /www/server/panel/*.pyc
 rm -f /www/server/panel/class/*.pyc
 #pip install flask_sqlalchemy
 #pip install itsdangerous==0.24
-
+btpip install natsort
 pip_list=$($mypip list)
 request_v=$(btpip list 2>/dev/null|grep "requests "|awk '{print $2}'|cut -d '.' -f 2)
 if [ "$request_v" = "" ] || [ "${request_v}" -gt "28" ];then

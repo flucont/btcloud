@@ -806,6 +806,7 @@ Set_Bt_Panel(){
 	/www/server/panel/pyenv/bin/pip3 install flask -U
 	/www/server/panel/pyenv/bin/pip3 install flask-sock
 	btpip install simple-websocket==0.10.0
+	btpip install natsort
 	auth_path=$(cat ${admin_auth})
 	cd ${setup_path}/server/panel/
 	if [ "$SET_SSL" == true ]; then
