@@ -11,8 +11,8 @@ if("undefined" != typeof bt && bt.hasOwnProperty("show_confirm")){
             shadeClose: true,
             btn: [lan['public'].ok, lan['public'].cancel],
             content: "<div class='bt-form webDelete pd20'>\
-					<p style='font-size:13px;word-break: break-all;margin-bottom: 5px;'>" + msg + "</p>" + (error || '') + "\
-				</div>",
+                    <p style='font-size:13px;word-break: break-all;margin-bottom: 5px;'>" + msg + "</p>" + (error || '') + "\
+                </div>",
             yes: function (index, layero) {
                 layer.close(index);
                 if (callback) callback();
@@ -29,8 +29,8 @@ if("undefined" != typeof bt && bt.hasOwnProperty("prompt_confirm")){
             closeBtn: 2,
             btn: ['确认', '取消'],
             content: "<div class='bt-form promptDelete pd20'>\
-            	<p>" + msg + "</p>\
-            	</div>",
+                <p>" + msg + "</p>\
+                </div>",
             yes: function (layers, index) {
                 layer.close(layers)
                 if (callback) callback()
@@ -40,28 +40,53 @@ if("undefined" != typeof bt && bt.hasOwnProperty("prompt_confirm")){
 }
 if("undefined" != typeof bt && bt.hasOwnProperty("compute_confirm")){
     bt.compute_confirm = function (config, callback) {
-		layer.open({
-			type: 1,
-			title: config.title,
-			area: '430px',
-			closeBtn: 2,
-			shadeClose: true,
-			btn: [lan['public'].ok, lan['public'].cancel],
-			content:
-				'<div class="bt-form hint_confirm pd30">\
+        layer.open({
+            type: 1,
+            title: config.title,
+            area: '430px',
+            closeBtn: 2,
+            shadeClose: true,
+            btn: [lan['public'].ok, lan['public'].cancel],
+            content:
+                '<div class="bt-form hint_confirm pd30">\
           <div class="hint_title">\
             <i class="hint-confirm-icon"></i>\
             <div class="hint_con">' +
-				config.msg +
-				'</div>\
+                config.msg +
+                '</div>\
           </div>\
       </div>',
-			yes: function (layers, index) {
+            yes: function (layers, index) {
                 layer.close(layers)
                 if (callback) callback()
             }
-		});
-	}
+        });
+    }
+}
+if("undefined" != typeof bt && bt.hasOwnProperty("input_confirm")){
+    bt.input_confirm = function (config, callback) {
+        layer.open({
+            type: 1,
+            title: config.title,
+            area: '430px',
+            closeBtn: 2,
+            shadeClose: true,
+            btn: [lan['public'].ok, lan['public'].cancel],
+            content:
+                '<div class="bt-form hint_confirm pd30">\
+                    <div class="hint_title">\
+                        <i class="hint-confirm-icon"></i>\
+                        <div class="hint_con">' +
+                config.msg +
+                '</div>\
+                    </div>\
+            </div>',
+            yes: function (layers, index) {
+                layer.close(layers);
+                if (callback) callback();
+            },
+        });
+    }
 }
 if("undefined" != typeof database && database.hasOwnProperty("del_database")){
     database.del_database = function (wid, dbname, obj, callback) {
@@ -431,24 +456,24 @@ if("undefined" != typeof bt && bt.hasOwnProperty("firewall") && bt.firewall.hasO
     }
 }
 function SafeMessage(j, h, g, f) {
-	if(f == undefined) {
-		f = ""
-	}
-	var mess = layer.open({
-		type: 1,
-		title: j,
-		area: "350px",
-		closeBtn: 2,
-		shadeClose: true,
-		content: "<div class='bt-form webDelete pd20 pb70'><p>" + h + "</p>" + f + "<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm bt-cancel'>"+lan.public.cancel+"</button> <button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div></div>"
-	});
-	$(".bt-cancel").click(function(){
-		layer.close(mess);
-	});
-	$("#toSubmit").click(function() {
-		layer.close(mess);
-		g();
-	})
+    if(f == undefined) {
+        f = ""
+    }
+    var mess = layer.open({
+        type: 1,
+        title: j,
+        area: "350px",
+        closeBtn: 2,
+        shadeClose: true,
+        content: "<div class='bt-form webDelete pd20 pb70'><p>" + h + "</p>" + f + "<div class='bt-form-submit-btn'><button type='button' class='btn btn-danger btn-sm bt-cancel'>"+lan.public.cancel+"</button> <button type='button' id='toSubmit' class='btn btn-success btn-sm' >"+lan.public.ok+"</button></div></div>"
+    });
+    $(".bt-cancel").click(function(){
+        layer.close(mess);
+    });
+    $("#toSubmit").click(function() {
+        layer.close(mess);
+        g();
+    })
 }
 $(document).ready(function () {
     if($('#updata_pro_info').length>0){

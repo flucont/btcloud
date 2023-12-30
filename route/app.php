@@ -49,6 +49,7 @@ Route::group('api', function () {
     Route::get('/index/get_win_date', 'api/get_win_date');
     Route::get('/panel/is_pro', 'api/is_pro');
     Route::get('/getIpAddress', 'api/get_ip_address');
+    Route::get('/GetAD', 'api/return_empty');
     Route::post('/Auth/GetAuthToken', 'api/get_auth_token');
     Route::post('/Auth/GetBindCode', 'api/return_error');
     Route::post('/Auth/GetSSLList', 'api/get_ssl_list');

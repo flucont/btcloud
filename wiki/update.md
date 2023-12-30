@@ -57,12 +57,10 @@
   __set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
 
   ```python
-  temp_file = temp_file.replace('wget -O Tpublic.sh', '#wget -O Tpublic.sh')
-  temp_file = temp_file.replace('\cp -rpa Tpublic.sh', '#\cp -rpa Tpublic.sh')
   temp_file = temp_file.replace('http://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   temp_file = temp_file.replace('https://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
-
+  
 - class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - script/flush_plugin.py 文件，删除clear_hosts()一行
