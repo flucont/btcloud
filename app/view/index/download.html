@@ -65,12 +65,12 @@
 				{if config_get('new_version_btm')}<div class="disflex flex_lrcenter mt_30 install-list">
 					<div class="install-box monitor">
 						<div class="img">
-							<img src="/static/images/bt_monitor.png" />
+							<img src="/static/images/bt_monitor.png" style="height: 96px;"/>
 						</div>
 						<div class="cont">
 							<div class="top">
-								<div class="title">堡塔云监控</div>
-								<div class="desc">多服务监控和异常告警通知</div>
+								<div class="title">云安全监控</div>
+								<div class="desc">多机跨平台安全管理和监控</div>
 							</div>
 							<div class="bottom">
 								<a class="btn" href="javascript:;" id="goInstallMonitor">查看安装脚本</a>
@@ -145,7 +145,7 @@
 	<div class="d4" id="instal-monitor">
 		<div class="wrap">
 			<div class="wrap-title">
-				<div class="text" style="margin-right: 12px;">堡塔云监控{:config_get('new_version_btm')}安装脚本</div>
+				<div class="text" style="margin-right: 12px;">云安全监控{:config_get('new_version_btm')}安装脚本</div>
 			</div>
 			<div class="desc">
 				使用 SSH 连接工具，如
@@ -153,21 +153,21 @@
 				连接到您的 Linux 服务器后，根据系统执行相应命令开始安装：
 			</div>
 			<div class="install-code">
-				<span class="osname">堡塔云监控安装脚本</span>
+				<span class="osname">云安全监控安装脚本</span>
 				<div class="code-cont">
 					<div class="command" title="点击复制安装脚本">curl -sS {$siteurl}/install/install_btmonitor.sh -o /tmp/install_btmonitor.sh && bash /tmp/install_btmonitor.sh</div>
 					<span class="ico-copy" title="点击复制安装脚本" data-clipboard-text="curl -sS {$siteurl}/install/install_btmonitor.sh -o /tmp/install_btmonitor.sh && bash /tmp/install_btmonitor.sh">复制</span>
 				</div>
 			</div>
 			<div class="install-code">
-				<span class="osname">堡塔云监控更新脚本</span>
+				<span class="osname">云安全监控更新脚本</span>
 				<div class="code-cont">
 					<div class="command" title="点击复制更新脚本">curl {$siteurl}/install/update_btmonitor.sh|bash</div>
 					<span class="ico-copy" title="点击复制更新脚本" data-clipboard-text="curl {$siteurl}/install/update_btmonitor.sh|bash">复制</span>
 				</div>
 			</div>
 			<div class="tips" style="color: orangered; font-weight: 700">
-				<p>注意：推荐使用Chrome、火狐、edge浏览器，国产浏览器（极速模式）</p>
+				<p>注意：安装完成后推荐使用Chrome、火狐、edge浏览器，国产浏览器（极速模式）访问登录系统</p>
 			</div>
 		</div>
 	</div>{/if}
@@ -193,10 +193,10 @@
 			</div>
 		</div>
 		 
-		<script src="//cdn.staticfile.org/jquery/3.6.0/jquery.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="//cdn.staticfile.org/layer/3.5.1/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/3.6.0/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/layer/3.5.1/layer.js" type="text/javascript" charset="utf-8"></script>
 		
-<script type="text/javascript" src="//cdn.staticfile.org/clipboard.js/1.7.1/clipboard.min.js"></script>
+<script type="text/javascript" src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/clipboard.js/1.7.1/clipboard.min.js"></script>
 <script type="text/javascript" src="/static/js/dx.js"></script>
 <script>
 	$(function () {

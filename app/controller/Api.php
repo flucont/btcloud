@@ -215,11 +215,20 @@ class Api extends BaseController
 
     //宝塔云WAF最新版本
     public function btwaf_latest_version(){
-        $data = [
-            'version' => '2.5',
-            'description' => '暂无更新日志',
-            'create_time' => 1701252997,
-        ];
+        $type = input('?post.type') ? input('post.type') : 0;
+        if($type == 1){
+            $data = [
+                'version' => '1.1',
+                'description' => '暂无更新日志',
+                'create_time' => 1705315163,
+            ];
+        }else{
+            $data = [
+                'version' => '3.0',
+                'description' => '暂无更新日志',
+                'create_time' => 1705315163,
+            ];
+        }
         $data = bin2hex(json_encode($data));
         return json(['status'=>true,'err_no'=>0,'msg'=>'获取成功','data'=>$data]);
     }
