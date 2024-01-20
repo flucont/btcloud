@@ -18,6 +18,11 @@ if [ ! -f "/www/server/panel/pyenv/bin/python3" ];then
 	echo "请截图发帖至论坛www.bt.cn/bbs求助"
 	exit 0;
 fi
+Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
+if [ "${Centos6Check}" ];then
+	echo "Centos6不支持升级宝塔面板，建议备份数据重装更换Centos7/8安装宝塔面板"
+	exit 1
+fi 
 
 public_file=/www/server/panel/install/public.sh
 if [ ! -f $public_file ];then
@@ -42,7 +47,7 @@ download_Url=$NODE_URL
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ "$version" = '' ];then
-	version='8.0.1'
+	version='8.0.5'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
@@ -58,6 +63,7 @@ if [ $dsize -lt 10240 ];then
 	echo "获取更新包失败，请稍后更新或联系宝塔运维"
 	exit;
 fi
+
 unzip -o /tmp/panel.zip -d $setup_path/server/ > /dev/null
 rm -f /tmp/panel.zip
 cd $setup_path/server/panel/
@@ -67,6 +73,8 @@ if [ "${check_bt}" = "" ];then
 	wget -O /etc/init.d/bt $download_Url/install/src/bt7.init -T 20
 	chmod +x /etc/init.d/bt
 fi
+echo "=============================================================="
+echo "正在修复面板依赖问题"
 rm -f /www/server/panel/*.pyc
 rm -f /www/server/panel/class/*.pyc
 #pip install flask_sqlalchemy
@@ -92,11 +100,22 @@ pymysql=$(echo "$pip_list"|grep pymysql)
 if [ "$pymysql" = "" ];then
 	$mypip install pymysql
 fi
+GEVENT_V=$(btpip list 2> /dev/null|grep "gevent "|awk '{print $2}'|cut -f 1 -d '.')
+if [ "${GEVENT_V}" -le "1" ];then
+    /www/server/panel/pyenv/bin/pip3 install -I gevent
+fi
+
+btpip uninstall enum34 -y
+btpip install geoip2==4.7.0
+btpip install pandas
 
 pymysql=$(echo "$pip_list"|grep pycryptodome)
 if [ "$pymysql" = "" ];then
 	$mypip install pycryptodome
 fi
+
+echo "修复面板依赖完成！"
+echo "==========================================="
 
 #psutil=$(echo "$pip_list"|grep psutil|awk '{print $2}'|grep '5.7.')
 #if [ "$psutil" = "" ];then

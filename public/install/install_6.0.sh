@@ -40,7 +40,7 @@ cd ~
 setup_path="/www"
 python_bin=$setup_path/server/panel/pyenv/bin/python
 cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
-
+panelPort=$(expr $RANDOM % 55535 + 10000)
 # if [ "$1" ];then
 # 	IDC_CODE=$1
 # fi
@@ -508,7 +508,7 @@ Install_Python_Lib(){
 			chmod -R 700 $pyenv_path/pyenv/bin
 			is_package=$($python_bin -m psutil 2>&1|grep package)
 			if [ "$is_package" = "" ];then
-				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 5
+				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 15
 				$pyenv_path/pyenv/bin/pip install -U pip
 				$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
 				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
@@ -584,10 +584,10 @@ Install_Python_Lib(){
 
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
-		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
+		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 15
 		if [ "$?" != "0" ];then
 			get_node_url $download_Url
-			wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 10
+			wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 15
 		fi
 		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
 		if [ $tmp_size -lt 703460 ];then
@@ -618,7 +618,7 @@ Install_Python_Lib(){
 	cd /www
 	python_src='/www/python_src.tar.xz'
 	python_src_path="/www/Python-${py_version}"
-	wget -O $python_src $download_Url/src/Python-${py_version}.tar.xz -T 5
+	wget -O $python_src $download_Url/src/Python-${py_version}.tar.xz -T 15
 	tmp_size=$(du -b $python_src|awk '{print $1}')
 	if [ $tmp_size -lt 10703460 ];then
 		rm -f $python_src
@@ -672,11 +672,8 @@ Install_Python_Lib(){
 	fi
 }
 Install_Bt(){
-	panelPort="8888"
 	if [ -f ${setup_path}/server/panel/data/port.pl ];then
 		panelPort=$(cat ${setup_path}/server/panel/data/port.pl)
-	else
-		panelPort=$(expr $RANDOM % 55535 + 10000)
 	fi
 	if [ "${PANEL_PORT}" ];then
 		panelPort=$PANEL_PORT
@@ -701,9 +698,9 @@ Install_Bt(){
 		sleep 1
 	fi
 
-	wget -O /etc/init.d/bt ${download_Url}/install/src/bt6.init -T 10
-	wget -O /www/server/panel/install/public.sh ${Btapi_Url}/install/public.sh -T 10
-	wget -O panel.zip ${Btapi_Url}/install/src/panel6.zip -T 10
+	wget -O /etc/init.d/bt ${download_Url}/install/src/bt6.init -T 15
+	wget -O /www/server/panel/install/public.sh ${Btapi_Url}/install/public.sh -T 15
+	wget -O panel.zip ${Btapi_Url}/install/src/panel6.zip -T 15
 
 	if [ -f "${setup_path}/server/panel/data/default.db" ];then
 		if [ -d "/${setup_path}/server/panel/old_data" ];then
@@ -716,6 +713,11 @@ Install_Bt(){
 		mv -f ${setup_path}/server/panel/data/system.db ${setup_path}/server/panel/old_data/system.db
 		mv -f ${setup_path}/server/panel/data/port.pl ${setup_path}/server/panel/old_data/port.pl
 		mv -f ${setup_path}/server/panel/data/admin_path.pl ${setup_path}/server/panel/old_data/admin_path.pl
+		
+		if [ -f "${setup_path}/server/panel/data/db/default.db" ];then
+			mv -f ${setup_path}/server/panel/data/db/ ${setup_path}/server/panel/old_data/
+		fi
+		
 	fi
 
 	if [ ! -f "/usr/bin/unzip" ]; then
@@ -734,6 +736,11 @@ Install_Bt(){
 		mv -f ${setup_path}/server/panel/old_data/system.db ${setup_path}/server/panel/data/system.db
 		mv -f ${setup_path}/server/panel/old_data/port.pl ${setup_path}/server/panel/data/port.pl
 		mv -f ${setup_path}/server/panel/old_data/admin_path.pl ${setup_path}/server/panel/data/admin_path.pl
+		
+		if [ -f "${setup_path}/server/panel/old_data/db/default.db" ];then
+			mv -f ${setup_path}/server/panel/old_data/db/ ${setup_path}/server/panel/data/db
+		fi
+		
 		if [ -d "/${setup_path}/server/panel/old_data" ];then
 			rm -rf ${setup_path}/server/panel/old_data
 		fi
@@ -743,6 +750,11 @@ Install_Bt(){
 		ls -lh panel.zip
 		Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载宝塔失败，请尝试重新安装！"
 	fi
+    
+    SYS_LOG_CHECK=$(grep ^weekly /etc/logrotate.conf)
+    if [ "${SYS_LOG_CHECK}" ];then
+        sed -i 's/rotate [0-9]*/rotate 8/g' /etc/logrotate.conf 
+    fi
 
 	rm -f panel.zip
 	rm -f ${setup_path}/server/panel/class/*.pyc
@@ -753,8 +765,8 @@ Install_Bt(){
 	chmod -R +x ${setup_path}/server/panel/script
 	ln -sf /etc/init.d/bt /usr/bin/bt
 	echo "${panelPort}" > ${setup_path}/server/panel/data/port.pl
-	wget -O /etc/init.d/bt ${download_Url}/install/src/bt7.init -T 10
-	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 10
+	wget -O /etc/init.d/bt ${download_Url}/install/src/bt7.init -T 15
+	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 15
 	wget -O /www/server/panel/data/softList.conf ${download_Url}/install/conf/softList.conf
 
 	rm -f /www/server/panel/class/*.so
@@ -805,14 +817,13 @@ Set_Bt_Panel(){
 	/www/server/panel/pyenv/bin/pip3 install psycopg2-binary
 	/www/server/panel/pyenv/bin/pip3 install flask -U
 	/www/server/panel/pyenv/bin/pip3 install flask-sock
+	/www/server/panel/pyenv/bin/pip3 install -I gevent
 	btpip install simple-websocket==0.10.0
 	btpip install natsort
+	btpip uninstall enum34 -y
+	btpip install geoip2==4.7.0
 	auth_path=$(cat ${admin_auth})
 	cd ${setup_path}/server/panel/
-	if [ "$SET_SSL" == true ]; then
-        btpip install -I pyOpenSSl 2>/dev/null
-        btpython /www/server/panel/tools.py ssl
-    fi
 	/etc/init.d/bt start
 	$python_bin -m py_compile tools.py
 	$python_bin tools.py username
@@ -824,6 +835,10 @@ Set_Bt_Panel(){
 	echo "${password}" > ${setup_path}/server/panel/default.pl
 	chmod 600 ${setup_path}/server/panel/default.pl
 	sleep 3
+	if [ "$SET_SSL" == true ]; then
+        btpip install -I pyOpenSSl 2>/dev/null
+        btpython /www/server/panel/tools.py ssl
+    fi
 	/etc/init.d/bt restart 	
 	sleep 3
 	isStart=$(ps aux |grep 'BT-Panel'|grep -v grep|awk '{print $2}')
@@ -982,7 +997,7 @@ echo "
 +----------------------------------------------------------------------
 | Copyright © 2015-2099 BT-SOFT(http://www.bt.cn) All rights reserved.
 +----------------------------------------------------------------------
-| The WebPanel URL will be http://SERVER_IP:8888 when installed.
+| The WebPanel URL will be http://SERVER_IP:${panelPort} when installed.
 +----------------------------------------------------------------------
 | 为了您的正常使用，请确保使用全新或纯净的系统安装宝塔面板，不支持已部署项目/环境的系统安装
 +----------------------------------------------------------------------

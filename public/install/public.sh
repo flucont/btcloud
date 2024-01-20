@@ -9,8 +9,13 @@ export PATH
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US:en
 
+NODE_FILE_CHECK=$(cat /www/server/panel/data/node.json |grep 125.88.182.172)
+if [ "${NODE_FILE_CHECK}" ];then
+	rm -f /www/server/panel/data/node.json
+fi
+
 get_node_url(){
-	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn);
+	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -40,8 +45,8 @@ get_node_url(){
 			fi
 
 			i=$(($i+1))
-			if [ $TIME_TOTAL -lt 200 ];then
-				if [ $RES -ge 3000 ];then
+			if [ $TIME_TOTAL -lt 300 ];then
+				if [ $RES -ge 2390 ];then
 					break;
 				fi
 			fi	

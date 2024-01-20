@@ -14,9 +14,13 @@ if [ "${is64bit}" != '64' ];then
 	echo "退出、不做任何操作"
 	exit 1
 fi
+Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
+if [ "${Centos6Check}" ];then
+	echo "Centos6不支持升级宝塔面板，建议备份数据重装更换Centos7/8安装宝塔面板"
+	exit 1
+fi 
 
 Btapi_Url='http://www.example.com'
-
 
 up_plugin=0
 

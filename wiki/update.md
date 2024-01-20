@@ -63,14 +63,21 @@
   
 - class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
+- class/config.py 文件，get_nps方法内data['nps'] = False改成True，get_nps_new方法下面加上 return public.returnMsg(False, "获取问卷失败")
+
 - script/flush_plugin.py 文件，删除clear_hosts()一行
 
-- install/install_soft.sh 在bash执行之前加入以下代码
+- script/reload_check.py 文件，在第2行插入sys.exit()
+
+- script/local_fix.sh 文件，${D_NODE_URL}替换成www.example.com
+
+- tools.py 文件，u_input == 16下面的public.get_url()替换成'http://www.example.com'
+
+- install/install_soft.sh 在. 执行之前加入以下代码
 
   ```shell
   sed -i "s/http:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" lib.sh
   sed -i "s/https:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" lib.sh
-  sed -i "/wget -O Tpublic.sh/d" $name.sh
   ```
   
 - install/public.sh 用官网最新版的[public.sh](http://download.bt.cn/install/public.sh)替换，并去除最下面bt_check一行
@@ -80,6 +87,8 @@
   "check_panel_msg": check_panel_msg,
 
   PluginLoader.daemon_panel()
+
+  check_node_status()
 
 - 去除WebRTC连接：BTPanel/static/js/public.js  删除stun.start();这一行
 
