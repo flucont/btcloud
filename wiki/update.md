@@ -125,7 +125,7 @@
 - [可选]上传文件默认选中覆盖，在BTPanel/static/js/upload-drog.js，id="all_operation"加checked属性
 
 
-解压安装包panel6.zip，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（
+解压安装包[panel6.zip](http://download.bt.cn/install/src/panel6.zip)，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（
 
 别忘了删除class文件夹里面所有的.so文件）
 
