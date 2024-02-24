@@ -48,7 +48,7 @@ CREATE TABLE `cloud_white` (
 DROP TABLE IF EXISTS `cloud_record`;
 CREATE TABLE `cloud_record` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ip` varchar(20) NOT NULL,
+  `ip` varchar(200) NOT NULL,
   `addtime` datetime NOT NULL,
   `usetime` datetime NOT NULL,
   PRIMARY KEY (`id`),
