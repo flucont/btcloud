@@ -105,6 +105,11 @@ if [ "${GEVENT_V}" -le "1" ];then
     /www/server/panel/pyenv/bin/pip3 install -I gevent
 fi
 
+BROTLI_C=$(btpip list 2> /dev/null |grep Brotli)
+if [ -z "$BROTLI_C" ]; then
+    btpip install brotli
+fi
+
 btpip uninstall enum34 -y
 btpip install geoip2==4.7.0
 btpip install pandas
@@ -144,6 +149,12 @@ fi
 if [ ! -f /www/server/panel/data/total_nps.pl ]; then
 	echo "" > /www/server/panel/data/total_nps.pl
 fi
+
+echo "==========================================="
+echo "正在更新面板文件..............."
+sleep 1
+echo "更新完成！"
+echo "==========================================="
 
 chattr -i /etc/init.d/bt
 chmod +x /etc/init.d/bt

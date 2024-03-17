@@ -59,26 +59,6 @@ GetSysInfo(){
 	echo -e ${SYS_VERSION}
 	echo -e Bit:${SYS_BIT} Mem:${MEM_TOTAL}M Core:${CPU_INFO}
 	echo -e ${SYS_INFO}
-
-	if [ -z "${os_version}" ];then
-		echo -e "============================================"
-		echo -e "检测到为非常用系统安装,建议更换至Centos-7或Debian-10+或Ubuntu-20+系统安装宝塔面板"
-		echo -e "详情请查看系统兼容表：https://docs.qq.com/sheet/DUm54VUtyTVNlc21H?tab=BB08J2"
-		echo -e "特殊情况可通过以下联系方式寻求安装协助情况"
-	fi
-
-	is64bit=$(getconf LONG_BIT)
-	if [ "${is64bit}" == '32' ];then
-		echo -e "宝塔面板不支持32位系统进行安装，请使用64位系统/服务器架构进行安装宝塔"
-		exit 1
-	fi
-
-	S390X_CHECK=$(uname -a|grep s390x)
-	if [ "${S390X_CHECK}" ];then
-		echo -e "宝塔面板不支持s390x架构进行安装，请使用64位系统/服务器架构进行安装宝塔"
-		exit 1
-	fi
-
 	echo -e "============================================"
 	echo -e "请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
 }
@@ -150,6 +130,14 @@ Set_Ssl(){
         esac
     fi
 }
+Add_lib_Install(){
+	Get_Versions
+	if [ "${os_type}" == "el" ] && [ "${os_version}" == "7" ];then
+		cd /www/server/panel/class
+		btpython -c "import panelPlugin; plugin = panelPlugin.panelPlugin(); plugin.check_install_lib('1')"
+		echo "True" > /tmp/panelTask.pl
+	fi
+}
 Get_Pack_Manager(){
 	if [ -f "/usr/bin/yum" ] && [ -d "/etc/yum.repos.d" ]; then
 		PM="yum"
@@ -167,6 +155,8 @@ Auto_Swap()
 	if [ ! -d /www ];then
 		mkdir /www
 	fi
+	echo "正在设置虚拟内存，请稍等..........";
+	echo '---------------------------------------------';
 	swapFile="/www/swap"
 	dd if=/dev/zero of=$swapFile bs=1M count=1025
 	mkswap -f $swapFile
@@ -236,7 +226,7 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn);
+	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com);
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -255,7 +245,7 @@ get_node_url(){
 		NODE_STATUS=$(echo ${NODE_CHECK}|awk '{print $2}')
 		TIME_TOTAL=$(echo ${NODE_CHECK}|awk '{print $3 * 1000 - 500 }'|cut -d '.' -f 1)
 		if [ "${NODE_STATUS}" == "200" ];then
-			if [ $TIME_TOTAL -lt 100 ];then
+			if [ $TIME_TOTAL -lt 300 ];then
 				if [ $RES -ge 1500 ];then
 					echo "$RES $node" >> $tmp_file1
 				fi
@@ -266,8 +256,8 @@ get_node_url(){
 			fi
 
 			i=$(($i+1))
-			if [ $TIME_TOTAL -lt 100 ];then
-				if [ $RES -ge 3000 ];then
+			if [ $TIME_TOTAL -lt 300 ];then
+				if [ $RES -ge 2390 ];then
 					break;
 				fi
 			fi	
@@ -403,7 +393,7 @@ Install_Deb_Pack(){
 		apt-get install curl -y
 	fi
 
-	debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git qrencode";
+	debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git qrencode sqlite3";
 	apt-get install -y $debPacks --force-yes
 
 	for debPack in ${debPacks}
@@ -581,7 +571,9 @@ Install_Python_Lib(){
 		os_version=""
 		rm -f /www/server/panel/pymake.pl
 	fi	
-
+	echo "==============================================="
+	echo "正在下载面板运行环境，请稍等..............."
+	echo "==============================================="
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
 		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 15
@@ -700,6 +692,9 @@ Install_Bt(){
 
 	wget -O /etc/init.d/bt ${download_Url}/install/src/bt6.init -T 15
 	wget -O /www/server/panel/install/public.sh ${Btapi_Url}/install/public.sh -T 15
+	echo "=============================================="
+	echo "正在下载面板文件,请稍等..................."
+	echo "=============================================="
 	wget -O panel.zip ${Btapi_Url}/install/src/panel6.zip -T 15
 
 	if [ -f "${setup_path}/server/panel/data/default.db" ];then
@@ -812,16 +807,19 @@ Set_Bt_Panel(){
 		echo "/${auth_path}" > ${admin_auth}
 	fi
 	chmod -R 700 $pyenv_path/pyenv/bin
-	btpip install docxtpl==0.16.7
-	/www/server/panel/pyenv/bin/pip3 install pymongo
-	/www/server/panel/pyenv/bin/pip3 install psycopg2-binary
-	/www/server/panel/pyenv/bin/pip3 install flask -U
-	/www/server/panel/pyenv/bin/pip3 install flask-sock
-	/www/server/panel/pyenv/bin/pip3 install -I gevent
-	btpip install simple-websocket==0.10.0
-	btpip install natsort
-	btpip uninstall enum34 -y
-	btpip install geoip2==4.7.0
+	if [ ! -f "/www/server/panel/pyenv/n.pl" ];then
+		btpip install docxtpl==0.16.7
+		/www/server/panel/pyenv/bin/pip3 install pymongo
+		/www/server/panel/pyenv/bin/pip3 install psycopg2-binary
+		/www/server/panel/pyenv/bin/pip3 install flask -U
+		/www/server/panel/pyenv/bin/pip3 install flask-sock
+		/www/server/panel/pyenv/bin/pip3 install -I gevent
+		btpip install simple-websocket==0.10.0
+		btpip install natsort
+		btpip uninstall enum34 -y
+		btpip install geoip2==4.7.0
+		btpip install brotli
+	fi
 	auth_path=$(cat ${admin_auth})
 	cd ${setup_path}/server/panel/
 	/etc/init.d/bt start
@@ -836,8 +834,19 @@ Set_Bt_Panel(){
 	chmod 600 ${setup_path}/server/panel/default.pl
 	sleep 3
 	if [ "$SET_SSL" == true ]; then
-        btpip install -I pyOpenSSl 2>/dev/null
-        btpython /www/server/panel/tools.py ssl
+		if [ ! -f "/www/server/panel/pyenv/n.pl" ];then
+        	btpip install -I pyOpenSSl 2>/dev/null
+    	fi
+    	echo "========================================"
+    	echo "正在开启面板SSL，请稍等............ "
+    	echo "========================================"
+        SSL_STATUS=$(btpython /www/server/panel/tools.py ssl)
+        if [ "${SSL_STATUS}" == "0" ] ;then
+        	echo -n " -4 " > /www/server/panel/data/v4.pl
+        	btpython /www/server/panel/tools.py ssl
+        fi
+    	echo "证书开启成功！"
+    	echo "========================================"
     fi
 	/etc/init.d/bt restart 	
 	sleep 3
@@ -857,6 +866,9 @@ Set_Bt_Panel(){
 		btpython -c 'import tools;tools.set_panel_username("'$PANEL_USER'")'
 		cd ~
 	fi
+	if [ -f "/usr/bin/sqlite3" ] ;then
+	    sqlite3 /www/server/panel/data/db/panel.db "UPDATE config SET status = '1' WHERE id = '1';"  > /dev/null 2>&1
+    fi
 }
 Set_Firewall(){
 	sshPort=$(cat /etc/ssh/sshd_config | grep 'Port '|awk '{print $2}')
@@ -989,6 +1001,7 @@ Install_Main(){
 
 	Get_Ip_Address
 	Setup_Count ${IDC_CODE}
+	Add_lib_Install
 }
 
 echo "
@@ -1075,7 +1088,12 @@ echo -e ""
 echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
-echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+if [ "${outTime}" == "0" ];then
+	((outTime=($endTime-$startTime)))
+	echo -e "Time consumed:\033[32m $outTime \033[0mseconds!"
+else
+	echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+fi
 
 
 
