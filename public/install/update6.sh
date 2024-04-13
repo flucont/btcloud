@@ -110,6 +110,24 @@ if [ -z "$BROTLI_C" ]; then
     btpip install brotli
 fi
 
+PYMYSQL_C=$(btpip list 2> /dev/null |grep PyMySQL)
+if [ -z "$PYMYSQL_C" ]; then
+    btpip install PyMySQL
+fi
+
+
+PY_CRPYT=$(btpip list 2> /dev/null |grep cryptography|awk '{print $2}'|cut -f 1 -d '.')
+if [ "${PY_CRPYT}" -le "10" ];then
+    btpip install pyOpenSSL==24.1.0
+    btpip install cryptography==42.0.5
+fi
+
+PYMYSQL_SSL_CHECK=$(btpython -c "import pymysql" 2>&1|grep "AttributeError: module 'cryptography.hazmat.bindings._rust.openssl'")
+if [ "${PYMYSQL_SSL_CHECK}" ];then
+    btpip uninstall pyopenssl cryptography -y
+    btpip install pyopenssl cryptography
+fi
+
 btpip uninstall enum34 -y
 btpip install geoip2==4.7.0
 btpip install pandas

@@ -20,6 +20,8 @@
 
 - 全局搜索替换 https://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
+- 搜索并删除提交异常报告的代码 bt_error/index.php
+
 - class/ajax.py 文件 \# 是否执行升级程序 下面的 public.get_url() 改成 public.GetConfigValue('home')
 
   class/jobs.py 文件 \#尝试升级到独立环境 下面的 public.get_url() 改成 public.GetConfigValue('home')
@@ -41,6 +43,8 @@
   在 def is_bind(): 这一行下面加上 return True
 
   在 def check_domain_cloud(domain): 这一行下面加上 return
+
+  在 def err_collect 这一行下面加上 return
 
   在 def get_improvement(): 这一行下面加上 return False
 
@@ -65,13 +69,15 @@
 
 - class/config.py 文件，get_nps方法内data['nps'] = False改成True，get_nps_new方法下面加上 return public.returnMsg(False, "获取问卷失败")
 
+  def err_collection(self, get): 这一行下面加上 return public.returnMsg(True, "OK")
+
 - script/flush_plugin.py 文件，删除clear_hosts()一行
 
 - script/reload_check.py 文件，在第2行插入sys.exit()
 
 - script/local_fix.sh 文件，${D_NODE_URL}替换成www.example.com
 
-- tools.py 文件，u_input == 16下面的public.get_url()替换成'http://www.example.com'
+- tools.py 文件，u_input == 16下面的public.get_url()替换成public.GetConfigValue('home')
 
 - install/install_soft.sh 在. 执行之前加入以下代码
 

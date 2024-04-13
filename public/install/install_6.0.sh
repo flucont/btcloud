@@ -709,8 +709,8 @@ Install_Bt(){
 		mv -f ${setup_path}/server/panel/data/port.pl ${setup_path}/server/panel/old_data/port.pl
 		mv -f ${setup_path}/server/panel/data/admin_path.pl ${setup_path}/server/panel/old_data/admin_path.pl
 		
-		if [ -f "${setup_path}/server/panel/data/db/default.db" ];then
-			mv -f ${setup_path}/server/panel/data/db/ ${setup_path}/server/panel/old_data/
+		if [ -d "${setup_path}/server/panel/data/db" ];then
+			\cp -r ${setup_path}/server/panel/data/db ${setup_path}/server/panel/old_data/
 		fi
 		
 	fi
@@ -732,8 +732,8 @@ Install_Bt(){
 		mv -f ${setup_path}/server/panel/old_data/port.pl ${setup_path}/server/panel/data/port.pl
 		mv -f ${setup_path}/server/panel/old_data/admin_path.pl ${setup_path}/server/panel/data/admin_path.pl
 		
-		if [ -f "${setup_path}/server/panel/old_data/db/default.db" ];then
-			mv -f ${setup_path}/server/panel/old_data/db/ ${setup_path}/server/panel/data/db
+		if [ -d "${setup_path}/server/panel/old_data/db" ];then
+			\cp -r ${setup_path}/server/panel/old_data/db ${setup_path}/server/panel/data/
 		fi
 		
 		if [ -d "/${setup_path}/server/panel/old_data" ];then
@@ -819,6 +819,7 @@ Set_Bt_Panel(){
 		btpip uninstall enum34 -y
 		btpip install geoip2==4.7.0
 		btpip install brotli
+		btpip install PyMySQL
 	fi
 	auth_path=$(cat ${admin_auth})
 	cd ${setup_path}/server/panel/
