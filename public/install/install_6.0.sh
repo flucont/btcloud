@@ -425,6 +425,17 @@ Get_Versions(){
 		fi
 	fi
 
+
+	if [ -f "/etc/os-release" ];then
+		. /etc/os-release
+		OS_V=${VERSION_ID%%.*}
+		if [ "${ID}" == "opencloudos" ] && [[ "${OS_V}" =~ ^(9)$ ]];then
+			os_type="opencloudos"
+			os_version="9"
+			return
+		fi
+	fi
+    
 	if [ -f $redhat_version_file ];then
 		os_type='el'
 		is_aliyunos=$(cat $redhat_version_file|grep Aliyun)

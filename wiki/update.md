@@ -65,6 +65,13 @@
   temp_file = temp_file.replace('https://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
   
+  def check_status(self, softInfo): 方法最后一行加上
+  
+  ```python
+  if 'endtime' in softInfo:
+              softInfo['endtime'] = time.time() + 86400 * 3650
+  ```
+  
 - class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - class/config.py 文件，get_nps方法内data['nps'] = False改成True，get_nps_new方法下面加上 return public.returnMsg(False, "获取问卷失败")
@@ -126,9 +133,9 @@
 
 - [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log这一行
 
-- [可选]删除小图标广告：在BTPanel/static/js/site.js，删除“WAF防火墙”对应的span标签
-
 - [可选]上传文件默认选中覆盖，在BTPanel/static/js/upload-drog.js，id="all_operation"加checked属性
+
+- [可选]新版vite页面去除需求反馈、各种广告、计算题等，执行 php think decrypt cleanvitejs <面板BTPanel/static/vite/js路径>
 
 
 解压安装包[panel6.zip](http://download.bt.cn/install/src/panel6.zip)，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（
