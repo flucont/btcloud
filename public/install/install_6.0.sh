@@ -134,8 +134,8 @@ Add_lib_Install(){
 	Get_Versions
 	if [ "${os_type}" == "el" ] && [ "${os_version}" == "7" ];then
 		cd /www/server/panel/class
-		btpython -c "import panelPlugin; plugin = panelPlugin.panelPlugin(); plugin.check_install_lib('1')"
-		echo "True" > /tmp/panelTask.pl
+		#btpython -c "import panelPlugin; plugin = panelPlugin.panelPlugin(); plugin.check_install_lib('1')"
+		#echo "True" > /tmp/panelTask.pl
 	fi
 }
 Get_Pack_Manager(){

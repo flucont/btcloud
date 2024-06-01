@@ -99,8 +99,8 @@ class CleanViteJs extends Command
     
         if(strpos($file, 'window.location.protocol.indexOf("https")>=0')!==false){ //index
             $file = str_replace('(window.location.protocol.indexOf("https")>=0)', '1', $file);
-            $file = preg_replace('!setTimeout\(\(\(\)=>\w+\(\)\),3e3\)!', '', $file);
-            $file = preg_replace('!setTimeout\(\(function\(\)\{return \w+\(\)\}\),3e3\)!', '', $file);
+            $file = preg_replace('!setTimeout\(\(\(\)=>\{\w+\(\)\}\),3e3\)!', '', $file);
+            $file = preg_replace('!setTimeout\(\(function\(\)\{\w+\(\)\}\),3e3\)!', '', $file);
             $file = preg_replace('!recommendShow:\w+,!', 'recommendShow:!1,', $file);
             $code = $this->getExtendCode($file, '"需求反馈"', 2);
             if($code){
@@ -124,14 +124,18 @@ class CleanViteJs extends Command
             $end = strpos($file, $code)+strlen($code);
             $code = substr($file, $start, $end - $start + 1);
             $file = str_replace($code, '', $file);
-            $file = preg_replace('!,isCalc:\w+,isInput:\w+,isCheck:\w+,!', ',isCalc:!1,isInput:!1,isCheck:!1,', $file);
-            $file = preg_replace('!computed\(\(\(\)=>"calc"===\w+\.type\|\|"checkConfirm"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!computed\(\(\(\)=>"input"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!computed\(\(\(\)=>"check"===\w+\.type\|\|"checkConfirm"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!computed\(\(function\(\)\{return"calc"===\w+\.type\|\|"checkConfirm"===\w+\.type\}\)\)!', '!1', $file);
-            $file = preg_replace('!computed\(\(function\(\)\{return"input"===\w+\.type\}\)\)!', '!1', $file);
-            $file = preg_replace('!computed\(\(function\(\)\{return"check"===\w+\.type\|\|"checkConfirm"===\w+\.type\}\)\)!', '!1', $file);
             $file = str_replace('startNegotiate(),', '', $file);
+            $flag = true;
+        }
+
+        if(strpos($file, '"calc"') !== false && strpos($file, '"checkConfirm"') !== false){ //main2
+            $file = preg_replace('!,isCalc:\w+,isInput:\w+,isCheck:\w+,!', ',isCalc:!1,isInput:!1,isCheck:!1,', $file);
+            $file = preg_replace('!\w+\(\(\(\)=>"calc"===\w+\.type\|\|"checkConfirm"===\w+\.type\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(\(\)=>"input"===\w+\.type\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(\(\)=>"check"===\w+\.type\|\|"checkConfirm"===\w+\.type\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(function\(\)\{return"calc"===\w+\.type\|\|"checkConfirm"===\w+\.type\}\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(function\(\)\{return"input"===\w+\.type\}\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(function\(\)\{return"check"===\w+\.type\|\|"checkConfirm"===\w+\.type\}\)\)!', '!1', $file);
             $flag = true;
         }
     
@@ -148,21 +152,21 @@ class CleanViteJs extends Command
             $flag = true;
         }
     
-        if(strpos($file, '"bt-waf-gray"')!==false){ //site.popup
+        /*if(strpos($file, '"bt-waf-gray"')!==false){ //site.popup
             $code = $this->getExtendCode($file, '"bt-waf-gray"', 2);
             $code = $this->getExtendCode($file, $code, 1, '[', ']');
             $code = $this->getExtendFunction($file, $code);
             $file = str_replace($code, '""', $file);
             $flag = true;
-        }
+        }*/
     
         if(strpos($file, '"商用SSL证书"')!==false){ //site-ssl
             $code = $this->getExtendFunction($file, '"商用SSL证书"', '{', '}');
             $file = str_replace($code, '', $file);
             $code = $this->getExtendFunction($file, '"测试证书"', '{', '}');
             $file = str_replace($code, '', $file);
-            $file = preg_replace('!\w+\.value="currentCertInfo":\w+\.value="busSslList"!', 'i.value="currentCertInfo":i.value="currentCertInfo"', $file);
-            $file = preg_replace('!\{\w+\.value="busSslList",\w+\(\)\}!', '{i.value="letsEncryptList"}', $file);
+            $file = str_replace('"currentCertInfo":"busSslList"', '"currentCertInfo":"currentCertInfo"', $file);
+            $file = preg_replace('!\{(\w+)\.value="busSslList",\w+\(\)\}!', '{$1.value="letsEncryptList"}', $file);
             $flag = true;
         }
     
@@ -170,6 +174,20 @@ class CleanViteJs extends Command
             $code = $this->getExtendCode($file, '如果您希望添加其它Docker应用', 1, '[', ']');
             $code = $this->getExtendFunction($file, $code);
             $file = str_replace($code, '', $file);
+            $flag = true;
+        }
+
+        if(strpos($file, '"recom-view"')!==false){ //soft
+            $code = getExtendFunction($file, '"recom-view"');
+            $file = str_replace($code, 'void(0)', $file);
+            $flag = true;
+        }
+
+        if(strpos($file, '"打开插件文件目录"')!==false){ //soft.table
+            $code = getExtendFunction($file, '"(续费)"');
+            $file = str_replace($code, '""', $file);
+            $code = getExtendFunction($file, '"(续费)"');
+            $file = str_replace($code, '""', $file);
             $flag = true;
         }
     

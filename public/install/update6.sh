@@ -47,7 +47,7 @@ download_Url=$NODE_URL
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ "$version" = '' ];then
-	version='8.0.5'
+	version='8.2.0'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
@@ -79,11 +79,16 @@ rm -f /www/server/panel/*.pyc
 rm -f /www/server/panel/class/*.pyc
 #pip install flask_sqlalchemy
 #pip install itsdangerous==0.24
-btpip install natsort
-pip_list=$($mypip list)
+
+pip_list=$($mypip list 2>&1)
 request_v=$(btpip list 2>/dev/null|grep "requests "|awk '{print $2}'|cut -d '.' -f 2)
 if [ "$request_v" = "" ] || [ "${request_v}" -gt "28" ];then
 	$mypip install requests==2.27.1
+fi
+
+NATSORT_C=$(echo $pip_list|grep natsort)
+if [ -z "${NATSORT_C}" ];then
+	btpip install natsort
 fi
 
 openssl_v=$(echo "$pip_list"|grep pyOpenSSL)
@@ -129,8 +134,16 @@ if [ "${PYMYSQL_SSL_CHECK}" ];then
 fi
 
 btpip uninstall enum34 -y
-btpip install geoip2==4.7.0
-btpip install pandas
+
+GEOIP_C=$(echo $pip_list|grep geoip2)
+if [ -z "${GEOIP_C}" ];then
+	btpip install geoip2==4.7.0
+fi
+
+PANDAS_C=$(echo $pip_list|grep pandas)
+if [ -z "${PANDAS_C}" ];then
+	btpip install pandas
+fi
 
 pymysql=$(echo "$pip_list"|grep pycryptodome)
 if [ "$pymysql" = "" ];then
@@ -139,6 +152,11 @@ fi
 
 echo "修复面板依赖完成！"
 echo "==========================================="
+
+RE_UPDATE=$(cat /www/server/panel/data/db/update)
+if [ "$RE_UPDATE" -ge "4" ];then
+    echo "2" > /www/server/panel/data/db/update
+fi
 
 #psutil=$(echo "$pip_list"|grep psutil|awk '{print $2}'|grep '5.7.')
 #if [ "$psutil" = "" ];then
