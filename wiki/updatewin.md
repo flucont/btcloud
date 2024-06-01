@@ -10,11 +10,11 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
 
 - 删除PluginLoader.pyd，将win/PluginLoader.py复制到class文件夹
 
+- 批量解密模块文件：执行 php think decrypt classdir <面板class文件夹路径>
+
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除ipsModel.py）
-
-- 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/
 
 - 全局搜索替换 https://download.bt.cn/win/panel/data/setup.py => http://www.example.com/win/panel/data/setup.py
 
@@ -75,4 +75,6 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
   删除 if not os.path.exists(self.sitePath + '/.htaccess') 这一行
 
 - [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log()这一行
+
+- [可选]上传文件默认选中覆盖，在BTPanel/static/js/upload-drog.js，id="all_operation"加checked属性
 

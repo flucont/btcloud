@@ -14,7 +14,7 @@
 
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
-- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py）
+- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py、js文件）
 
 - 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/（需排除js文件）
 
@@ -54,9 +54,7 @@
 
   在login_send_body方法内，free_login_area(login_ip=server_ip_area的server_ip_area改成login_ip
 
-- class/panelPlugin.py 文件，download_icon方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
-
-  删除public.total_keyword(get.query)这一行
+- class/panelPlugin.py 文件，删除public.total_keyword(get.query)这一行
 
   __set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
 
@@ -71,6 +69,8 @@
   if 'endtime' in softInfo:
               softInfo['endtime'] = time.time() + 86400 * 3650
   ```
+  
+  plugin_bin.pl 改成 plugin_list.json
   
 - class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
@@ -104,10 +104,6 @@
   check_node_status()
 
 - 去除WebRTC连接：BTPanel/static/js/public.js  删除stun.start();这一行
-
-- 去除首页广告：BTPanel/static/js/index.js 文件删除两处index.recommend_paid_version()
-
-- 去除首页自动检测更新，避免频繁请求云端：BTPanel/static/js/index.js 文件注释掉bt.system.check_update这一段代码外的setTimeout
 
 - 去除内页广告：BTPanel/templates/default/layout.html 删除两处getPaymentStatus();
 
