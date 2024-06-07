@@ -178,16 +178,24 @@ class CleanViteJs extends Command
         }
 
         if(strpos($file, '"recom-view"')!==false){ //soft
-            $code = getExtendFunction($file, '"recom-view"');
+            $code = $this->getExtendFunction($file, '"recom-view"');
             $file = str_replace($code, 'void(0)', $file);
             $flag = true;
         }
 
         if(strpos($file, '"打开插件文件目录"')!==false){ //soft.table
-            $code = getExtendFunction($file, '"(续费)"');
+            $code = $this->getExtendFunction($file, '"(续费)"');
             $file = str_replace($code, '""', $file);
-            $code = getExtendFunction($file, '"(续费)"');
+            $code = $this->getExtendFunction($file, '"(续费)"');
             $file = str_replace($code, '""', $file);
+            $flag = true;
+        }
+
+        if(strpos($file, '检测到同名文件')!==false){ //file.
+            $code = $this->getExtendCode($file, '计算结果：', 3, '[', ']');
+            $code = $this->getExtendFunction($file, $code);
+            $file = str_replace($code, '', $file);
+            $file = preg_replace('!\w+\.sum===\w+\.addend1\+\w+\.addend2!', '!0', $file);
             $flag = true;
         }
     
