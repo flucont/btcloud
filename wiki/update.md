@@ -78,6 +78,8 @@
 
   def err_collection(self, get): 这一行下面加上 return public.returnMsg(True, "OK")
 
+- class/push/site_push.py 文件，'https://www.bt.cn' => 'http://www.example.com'
+
 - script/flush_plugin.py 文件，删除clear_hosts()一行
 
 - script/reload_check.py 文件，在第2行插入sys.exit()
@@ -97,7 +99,9 @@
 
 - 去除无用的定时任务：task.py 文件  删除以下几行
 
-  "check_panel_msg": check_panel_msg,
+  "check_panel_msg": self.check_panel_msg,
+
+  "update_software_list": self.update_software_list,
 
   PluginLoader.daemon_panel()
 
@@ -128,8 +132,6 @@
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
 
 - [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log这一行
-
-- [可选]上传文件默认选中覆盖，在BTPanel/static/js/upload-drog.js，id="all_operation"加checked属性
 
 - [可选]新版vite页面去除需求反馈、各种广告、计算题等，执行 php think cleanvitejs <面板BTPanel/static/vite/js路径>
 
