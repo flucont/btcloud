@@ -24,11 +24,6 @@ if [ "${Centos6Check}" ];then
 	exit 1
 fi 
 
-public_file=/www/server/panel/install/public.sh
-if [ ! -f $public_file ];then
-	wget -O Tpublic.sh $Btapi_Url/install/public.sh -T 20;
-fi
-. $public_file
 
 Centos8Check=$(cat /etc/redhat-release | grep ' 8.' | grep -iE 'centos|Red Hat')
 if [ "${Centos8Check}" ];then
@@ -43,11 +38,20 @@ if [ -f $env_path ];then
 	mypip="/www/server/panel/pyenv/bin/pip"
 fi
 
-download_Url=$NODE_URL
+if [ -f "/www/server/panel/data/down_url.pl" ];then
+	D_NODE_URL=$(cat /www/server/panel/data/down_url.pl|grep bt.cn)
+fi
+
+if [ -z "${D_NODE_URL}" ];then
+	D_NODE_URL="download.bt.cn"
+fi
+
+download_Url=$D_NODE_URL
+
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
-if [ "$version" = '' ];then
-	version='8.2.0'
+if [ -z "$VERSION_CHECK" ];then
+	version='9.1.0'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then

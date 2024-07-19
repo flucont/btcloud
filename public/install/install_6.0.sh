@@ -3,6 +3,9 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 LANG=en_US.UTF-8
 
+INSTALL_LOGFILE="/tmp/btpanel-install.log"
+# exec > >(tee -a "$INSTALL_LOGFILE") 2>&1 
+
 Btapi_Url='http://www.example.com'
 Check_Api=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/SetupCount)
 if [ "$Check_Api" != 'ok' ];then
@@ -16,7 +19,8 @@ fi
 
 is64bit=$(getconf LONG_BIT)
 if [ "${is64bit}" != '64' ];then
-	Red_Error "抱歉, 当前面板版本不支持32位系统, 请使用64位系统或安装宝塔5.9!";
+	echo "抱歉, 当前面板版本不支持32位系统, 请使用64位系统或安装宝塔5.9!";
+	exit 1
 fi
 
 Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
@@ -27,12 +31,26 @@ fi
 
 UbuntuCheck=$(cat /etc/issue|grep Ubuntu|awk '{print $2}'|cut -f 1 -d '.')
 if [ "${UbuntuCheck}" ] && [ "${UbuntuCheck}" -lt "16" ];then
-	echo "Ubuntu ${UbuntuCheck}不支持安装宝塔面板，建议更换Ubuntu18/20安装宝塔面板"
+	echo "Ubuntu ${UbuntuCheck}不支持安装宝塔面板，建议更换Ubuntu22/24安装宝塔面板"
 	exit 1
 fi
 HOSTNAME_CHECK=$(cat /etc/hostname)
 if [ -z "${HOSTNAME_CHECK}" ];then
 	echo "当前主机名hostname为空无法安装宝塔面板，请咨询服务器运营商设置好hostname后再重新安装"
+	exit 1
+fi
+
+UBUNTU_NO_LTS=$(cat /etc/issue|grep Ubuntu|grep -E "19|21|23|25")
+if [ "${UBUNTU_NO_LTS}" ];then
+	echo "当前您使用的非Ubuntu-lts版本，无法进行宝塔面板的安装"
+	echo "请使用Ubuntu-20/20/22/24进行安装宝塔面板"
+	exit 1
+fi
+
+DEBIAN_9_C=$(cat /etc/issue|grep Debian|grep -E "8 |9 ")
+if [ "${DEBIAN_9_C}" ];then
+	echo "当前您使用的Debian-8/9，官方已经停止支持、无法进行宝塔面板的安装"
+	echo "请使用Debian-11/12进行安装宝塔面板"
 	exit 1
 fi
 
@@ -61,6 +79,15 @@ GetSysInfo(){
 	echo -e ${SYS_INFO}
 	echo -e "============================================"
 	echo -e "请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+	echo -e "============================================"
+	
+	if [ -f "/etc/redhat-release" ];then
+		Centos7Check=$(cat /etc/redhat-release | grep ' 7.' | grep -iE 'centos')
+		echo -e "============================================"
+		echo -e "Centos7/8官方已经停止支持"
+		echo -e "如是新安装系统服务器建议更换至Debian-12/Ubuntu-22/Centos-9系统安装宝塔面板"
+		echo -e "============================================"
+	fi
 }
 Red_Error(){
 	echo '=================================================';
@@ -104,30 +131,9 @@ System_Check(){
 	fi
 }
 Set_Ssl(){
-    echo -e ""
-    echo -e "----------------------------------------------------------------------"
-    echo -e "为了您的面板使用安全，建议您开启面板SSL，开启后请使用https访问宝塔面板"
-    echo -e "输入y回车即开启面板SSL并进行下一步安装"
-    echo -e "输入n回车跳过面板SSL配置，直接进行安装"
-    echo -e "10秒后将跳过SSL配置，直接进行面板安装"
-    echo -e "----------------------------------------------------------------------"
-    echo -e ""
-    read -t 10 -p "是否确定开启面板SSL ? (y/n): " yes
-
-    if [ $? != 0 ];then
-        SET_SSL=false
-    else
-        case "$yes" in
-            y)
-                SET_SSL=true
-                ;;
-            n)
-                SET_SSL=false
-				rm -f /www/server/panel/data/ssl.pl
-                ;;
-            *)
-                Set_Ssl
-        esac
+    SET_SSL=true
+    if [ "${SSL_PL}" ];then
+    	SET_SSL=""
     fi
 }
 Add_lib_Install(){
@@ -184,7 +190,59 @@ Service_Add(){
 		update-rc.d bt defaults
 	fi 
 }
-Set_Centos_Repo(){
+Set_Centos7_Repo(){
+# 	CN_YUM_URL=$(grep -E "aliyun|163|tencent|tsinghua" /etc/yum.repos.d/CentOS-Base.repo)
+# 	if [ -z "${CN_YUM_URL}" ];then
+# 		if [ -z "${download_Url}" ];then
+# 			download_Url="http://download.bt.cn"
+# 		fi
+# 		curl -Ss --connect-timeout 3 -m 60 ${download_Url}/install/vault-repo.sh|bash
+# 		return
+# 	fi
+	MIRROR_CHECK=$(cat /etc/yum.repos.d/CentOS-Base.repo |grep "[^#]mirror.centos.org")
+	if [ "${MIRROR_CHECK}" ] && [ "${is64bit}" == "64" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+	fi
+
+	TSU_MIRROR_CHECK=$(cat /etc/yum.repos.d/CentOS-Base.repo |grep "tuna.tsinghua.edu.cn")
+	if [ "${TSU_MIRROR_CHECK}" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=https://mirrors.tuna.tsinghua.edu.cn|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=http://mirrors.tuna.tsinghua.edu.cn|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|baseurl=https://mirrors.tuna.tsinghua.edu.cn|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|baseurl=http://mirrors.tuna.tsinghua.edu.cn|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+	fi
+
+	ALI_CLOUD_CHECK=$(grep Alibaba /etc/motd)
+	Tencent_Cloud=$(cat /etc/hostname |grep -E VM-[0-9]+-[0-9]+)
+	if [ "${ALI_CLOUD_CHECK}" ] || [ "${Tencent_Cloud}" ];then
+		return
+	fi
+
+	yum install unzip -y
+	if [ "$?" != "0" ] ;then
+		TAR_CHECK=$(which tar)
+		if [ "$?" == "0" ] ;then
+			\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+			if [ -z "${download_Url}" ];then
+				download_Url="http://download.bt.cn"
+			fi
+			curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/el7repo.tar.gz
+			rm -f /etc/yum.repos.d/*.repo
+			tar -xvzf el7repo.tar.gz -C /etc/yum.repos.d/
+		fi
+	fi
+}
+# Set_Centos7_Repo(){
+# 		if [ -z "${download_Url}" ];then
+# 			download_Url="http://download.bt.cn"
+# 		fi
+# 		curl -Ss --connect-timeout 3 -m 60 ${download_Url}/install/vault-repo.sh|bash
+# }
+Set_Centos8_Repo(){
 	HUAWEI_CHECK=$(cat /etc/motd |grep "Huawei Cloud")
 	if [ "${HUAWEI_CHECK}" ] && [ "${is64bit}" == "64" ];then
 		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
@@ -207,6 +265,21 @@ Set_Centos_Repo(){
 		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
 		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
 	fi
+
+	yum install unzip tar -y
+	if [ "$?" != "0" ] ;then
+		if [ -z "${download_Url}" ];then
+			download_Url="http://download.bt.cn"
+		fi
+		if [ ! -f "/usr/bin/tar" ] ;then
+			curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/tar-1.30-5.el8.x86_64.rpm
+			yum install tar-1.30-5.el8.x86_64.rpm -y
+		fi
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/el8repo.tar.gz
+		rm -f /etc/yum.repos.d/*.repo
+		tar -xvzf el8repo.tar.gz -C /etc/yum.repos.d/
+	fi
 }
 get_node_url(){
 	if [ ! -f /bin/curl ];then
@@ -226,7 +299,15 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com);
+	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com https://download.bt.cn);
+	
+	CURL_CHECK=$(which curl)
+	if [ "$?" == "0" ];then
+		CN_CHECK=$(curl -sS --connect-timeout 10 -m 10 https://api.bt.cn/api/isCN)
+		if [ "${CN_CHECK}" == "True" ];then
+			nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn);
+		fi
+	fi
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -293,10 +374,25 @@ Remove_Package(){
 }
 Install_RPM_Pack(){
 	yumPath=/etc/yum.conf
+
+	CentosStream8Check=$(cat /etc/redhat-release |grep Stream|grep 8)
+	if [ "${CentosStream8Check}" ];then
+		MIRROR_CHECK=$(cat /etc/yum.repos.d/CentOS-Stream-AppStream.repo|grep "[^#]mirror.centos.org")
+		if [ "${MIRROR_CHECK}" ] && [ "${is64bit}" == "64" ];then
+			\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+			sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+			sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+		fi
+	fi
+	
 	Centos8Check=$(cat /etc/redhat-release | grep ' 8.' | grep -iE 'centos|Red Hat')
 	if [ "${Centos8Check}" ];then
-		Set_Centos_Repo
+		Set_Centos8_Repo
 	fi	
+	Centos7Check=$(cat /etc/redhat-release | grep ' 7.' | grep -iE 'centos|Red Hat')
+	if [ "${Centos7Check}" ];then
+		Set_Centos7_Repo
+	fi
 	isExc=$(cat $yumPath|grep httpd)
 	if [ "$isExc" = "" ];then
 		echo "exclude=httpd nginx php mysql mairadb python-psutil python2-psutil" >> $yumPath
@@ -432,6 +528,13 @@ Get_Versions(){
 		if [ "${ID}" == "opencloudos" ] && [[ "${OS_V}" =~ ^(9)$ ]];then
 			os_type="opencloudos"
 			os_version="9"
+			pyenv_tt="true"
+		elif { [ "${ID}" == "almalinux" ] || [ "${ID}" == "centos" ] || [ "${ID}" == "rocky" ]; } && [[ "${OS_V}" =~ ^(9)$ ]]; then
+			os_type="el"
+			os_version="9"
+			pyenv_tt="true"
+		fi
+		if [ "${pyenv_tt}" ];then
 			return
 		fi
 	fi
@@ -860,11 +963,13 @@ Set_Bt_Panel(){
     	echo "证书开启成功！"
     	echo "========================================"
     fi
-	/etc/init.d/bt restart 	
-	sleep 3
+	/etc/init.d/bt stop
+	sleep 5
+	/etc/init.d/bt start 	
+	sleep 5
 	isStart=$(ps aux |grep 'BT-Panel'|grep -v grep|awk '{print $2}')
 	LOCAL_CURL=$(curl 127.0.0.1:${panelPort}/login 2>&1 |grep -i html)
-	if [ -z "${isStart}" ] && [ -z "${LOCAL_CURL}" ];then
+	if [ -z "${isStart}" ];then
 		/etc/init.d/bt 22
 		cd /www/server/panel/pyenv/bin
 		touch t.pl
@@ -1046,6 +1151,9 @@ while [ ${#} -gt 0 ]; do
 			SAFE_PATH=$2
 			shift 1
 			;;
+		--ssl-disable)
+			SSL_PL="disable"
+			;;
 		-y)
 			go="y"
 			;;
@@ -1063,6 +1171,29 @@ done
 
 if [ "$go" == 'n' ];then
 	exit;
+fi
+
+if [ -f "/www/server/panel/BT-Panel" ];then
+	AAPANEL_CHECK=$(grep www.aapanel.com /www/server/panel/BT-Panel)
+	if [ "${AAPANEL_CHECK}" ];then
+		echo -e "----------------------------------------------------"
+		echo -e "检查已安装有aapanel，无法进行覆盖安装宝塔面板"
+		echo -e "如继续执行安装将移去aapanel面板数据（备份至/www/server/aapanel路径） 全新安装宝塔面板"
+		echo -e "aapanel is alreday installed,Can't install panel"
+		echo -e "is install Baota panel,  aapanel data will be removed (backed up to /www/server/aapanel)"
+		echo -e "Beginning new Baota panel installation."
+		echo -e "----------------------------------------------------"
+		echo -e "已知风险/Enter yes to force installation"
+		read -p "输入yes开始安装: " yes;
+		if [ "$yes" != "yes" ];then
+			echo -e "------------"
+			echo "取消安装"
+			exit;
+		fi
+		bt stop
+		sleep 1
+		mv /www/server/panel /www/server/aapanel
+	fi
 fi
 
 ARCH_LINUX=$(cat /etc/os-release |grep "Arch Linux")
