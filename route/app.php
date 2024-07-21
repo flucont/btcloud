@@ -57,8 +57,8 @@ Route::group('api', function () {
     Route::post('/Cert/get_product_list', 'api/return_success');
     Route::get('/Pluginother/get_file', 'api/download_plugin_other');
 
-    Route::post('/Pluginother/create_order', 'api/return_error');
-    Route::post('/Pluginother/renew_order', 'api/return_error');
+    Route::post('/Pluginother/create_order', 'api/return_success');
+    Route::post('/Pluginother/renew_order', 'api/return_success');
     Route::post('/Pluginother/order_stat', 'api/return_empty');
     Route::post('/Pluginother/re_order_stat', 'api/return_empty');
     Route::post('/Pluginother/create_order_okey', 'api/return_empty');
