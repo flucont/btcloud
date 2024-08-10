@@ -66,6 +66,31 @@ if("undefined" != typeof bt && bt.hasOwnProperty("compute_confirm")){
 		});
 	}
 }
+if("undefined" != typeof bt && bt.hasOwnProperty("input_confirm")){
+    bt.input_confirm = function (config, callback) {
+		layer.open({
+			type: 1,
+			title: config.title,
+			area: '430px',
+			closeBtn: 2,
+			shadeClose: true,
+			btn: [lan['public'].ok, lan['public'].cancel],
+			content:
+				'<div class="bt-form hint_confirm pd30">\
+						<div class="hint_title">\
+							<i class="hint-confirm-icon"></i>\
+							<div class="hint_con">' +
+				config.msg +
+				'</div>\
+						</div>\
+				</div>',
+			yes: function (layers, index) {
+                layer.close(layers);
+                if (callback) callback();
+			},
+		});
+	}
+}
 if("undefined" != typeof database && database.hasOwnProperty("del_database")){
     database.del_database = function (wid, dbname,obj, callback) {
         var title = '',

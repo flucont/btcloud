@@ -16,6 +16,8 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
 
 - 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除ipsModel.py）
 
+- 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/
+
 - 全局搜索替换 https://download.bt.cn/win/panel/data/setup.py => http://www.example.com/win/panel/data/setup.py
 
 - class/panel_update.py 文件 public.get_url() =>  'http://www.example.com'
