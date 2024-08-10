@@ -163,7 +163,7 @@ function download_item(){
     $.ajax({
 		type : 'POST',
 		url : '/admin/download_plugin',
-        data: { name:plugin.name, version:plugin.version},
+        data: { name:plugin.name, version:plugin.version, os:'Windows'},
 		dataType : 'json',
 		success : function(data) {
             layer.close(ii)
