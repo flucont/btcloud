@@ -1,0 +1,86 @@
+{extend name="admin/layout" /}
+{block name="title"}自签名SSL证书生成{/block}
+{block name="main"}
+<style>
+.control-label[is-required]:before {
+    content: "*";
+    color: #f56c6c;
+    margin-right: 4px;
+}
+</style>
+<div class="container" style="padding-top:70px;">
+<div class="col-sm-12 col-md-10 col-lg-8 center-block" style="float: none;">
+<div class="panel panel-primary">
+<div class="panel-heading"><h3 class="panel-title">自签名SSL证书生成</h3></div>
+<div class="panel-body">
+    {if $isca}
+    <div class="alert alert-warning" style="word-break:break-all;">下载CA证书并导入，可解决浏览器不安全提醒。<br/>Windows：<a href="/ssl/baota_root.pfx">baota_root.pfx</a>（密码为空），Mac/Linux：<a href="/ssl/baota_root.crt">baota_root.crt</a></div>
+  <form onsubmit="return makeSSL(this)" method="post" class="form" role="form">
+	<div class="form-group">
+      <label is-required="true" class="control-label">域名列表：</label>
+      <textarea class="form-control" name="domain_list" rows="6" placeholder="每行一个域名/IP，支持通配符" required></textarea>
+    </div>
+	<div class="form-group">
+      <label class="control-label">通用名称：</label>
+      <input type="text" name="common_name" value="" placeholder="留空则为域名列表第一个域名" class="form-control"/>
+    </div>
+    <div class="form-group">
+      <label is-required="true" class="control-label">有效天数：</label>
+      <input type="number" name="validity" value="3650" class="form-control" required/>
+    </div>
+	<div class="form-group text-center">
+	  <input type="submit" name="submit" value="生成自签名证书" class="btn btn-success btn-block"/>
+	</div>
+    <div class="form-group row" id="result" style="display:none;">
+        <div class="col-md-6">
+            <label class="control-label">SSL证书：</label>
+            <textarea class="form-control" name="ssl_cert" rows="5" onclick="copy(this)" title="点击复制"></textarea>
+        </div>
+        <div class="col-md-6">
+            <label class="control-label">SSL证书私钥：</label>
+            <textarea class="form-control" name="ssl_key" rows="5" onclick="copy(this)" title="点击复制"></textarea>
+        </div>
+    </div>
+  </form>
+    {else}
+    <div class="alert alert-danger" role="alert">你还没有生成CA证书，无法生成SSL证书！</div>
+    <div class="alert alert-info" style="word-break:break-all;">执行以下命令，生成自签名CA证书。然后，可通过接口或当前页面生成SSL证书，用于面板访问。</div>
+    <div class="list-group-item" style="word-break:break-all;">cd {:app()->getRootPath()}app/script && chmod +x cacert.sh && ./cacert.sh</div><br/>
+    {/if}
+</div>
+</div>
+<script src="{$cdnpublic}layer/3.5.1/layer.js"></script>
+<script>
+function makeSSL(obj){
+    var ii = layer.load(2, {shade:[0.1,'#fff']});
+	$.ajax({
+		type : 'POST',
+		url : '/admin/ssl',
+		data : $(obj).serialize(),
+		dataType : 'json',
+		success : function(data) {
+			layer.close(ii);
+			if(data.code == 0){
+                $("textarea[name='ssl_cert']").val(data.cert);
+                $("textarea[name='ssl_key']").val(data.key);
+                $("#result").show();
+                layer.msg('SSL证书生成成功', {icon:1, time:800});
+			}else{
+				layer.alert(data.msg, {icon: 2})
+			}
+		},
+		error:function(data){
+            layer.close(ii);
+			layer.msg('服务器错误');
+		}
+	});
+    return false;
+}
+function copy(obj){
+    if($(obj).val() == '') return;
+    $(obj).select();
+    document.execCommand("Copy");
+    layer.msg('复制成功', {icon:1, time:500});
+}
+</script>
+{/block}

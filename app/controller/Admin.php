@@ -400,4 +400,37 @@ class Admin extends BaseController
         Cache::clear();
         return json(['code'=>0,'msg'=>'succ']);
     }
+
+    public function ssl(){
+        if(request()->isAjax()){
+            $domain_list = input('post.domain_list', null, 'trim');
+            $common_name = input('post.common_name', null, 'trim');
+            $validity = input('post.validity/d');
+            if(empty($domain_list) || empty($validity)){
+                return json(['code'=>-1, 'msg'=>'参数不能为空']);
+            }
+            $array = explode("\n", $domain_list);
+            $domain_list = [];
+            foreach($array as $domain){
+                $domain = trim($domain);
+                if(empty($domain)) continue;
+                if(!checkDomain($domain)) return json(['code'=>-1, 'msg'=>'域名或IP格式不正确:'.$domain]);
+                $domain_list[] = $domain;
+            }
+            if(empty($domain_list)) return json(['code'=>-1, 'msg'=>'域名列表不能为空']);
+            if(empty($common_name)) $common_name = $domain_list[0];
+            $result = makeSelfSignSSL($common_name, $domain_list, $validity);
+            if(!$result){
+                return json(['code'=>-1, 'msg'=>'生成证书失败']);
+            }
+            return json(['code'=>0, 'msg'=>'生成证书成功', 'cert'=>$result['cert'], 'key'=>$result['key']]);
+        }
+
+        $dir = app()->getBasePath().'script/';
+        $ssl_path = app()->getRootPath().'public/ssl/baota_root.pfx';
+        $ssl_path_mac = app()->getRootPath().'public/ssl/baota_root.crt';
+        $isca = file_exists($dir.'ca.crt') && file_exists($dir.'ca.key') && file_exists($ssl_path) && file_exists($ssl_path_mac);
+        View::assign('isca', $isca);
+        return view();
+    }
 }

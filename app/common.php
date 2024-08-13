@@ -180,6 +180,11 @@ function checkIfActive($string) {
 		return null;
 }
 
+function checkDomain($domain){
+	if(empty($domain) || !preg_match('/^[-$a-z0-9_*.]{2,512}$/i', $domain) || (stripos($domain, '.') === false) || substr($domain, -1) == '.' || substr($domain, 0 ,1) == '.' || substr($domain, 0 ,1) == '*' && substr($domain, 1 ,1) != '.' || substr_count($domain, '*')>1 || strpos($domain, '*')>0 || strlen($domain)<4) return false;
+	return true;
+}
+
 function errorlog($msg){
 	$handle = fopen(app()->getRootPath()."record.txt", 'a');
 	fwrite($handle, date('Y-m-d H:i:s')."\t".$msg."\r\n");
@@ -224,4 +229,69 @@ function pemToBase64($pem){
         }
     }
     return $encoded;
+}
+
+function makeSelfSignSSL(string $commonName, array $domainList, $validity = 3650){
+	// 加载 CA 证书和私钥
+	$dir = app()->getBasePath().'script/';
+	$caCert = file_get_contents($dir.'ca.crt');
+	$caPrivateKey = file_get_contents($dir.'ca.key');
+
+	$opensslConfigFile = sys_get_temp_dir().'/openssl'.time().mt_rand(1000, 9999).'.cnf';
+	$opensslConfigContent = <<<EOF
+[req]
+req_extensions = extension_section
+x509_extensions	= extension_section
+distinguished_name = dn
+
+[dn]
+
+[extension_section]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+EOF;
+	$ip_index = 1;
+	$dns_index = 1;
+	foreach ($domainList as $value) {
+		if(empty($value)) continue;
+		if(filter_var($value, FILTER_VALIDATE_IP)){
+			$opensslConfigContent .= sprintf("\nIP.%d = %s", $ip_index, $value);
+			$ip_index++;
+		}else{
+			$opensslConfigContent .= sprintf("\nDNS.%d = %s", $dns_index, $value);
+			$dns_index++;
+		}
+	}
+
+	if(!file_put_contents($opensslConfigFile, $opensslConfigContent)) return false;
+
+	// 生成域名证书的私钥和 CSR
+	$domainPrivateKey = openssl_pkey_new([
+		'private_key_bits' => 2048,
+		'private_key_type' => OPENSSL_KEYTYPE_RSA,
+	]);
+	if(!$domainPrivateKey) return false;
+
+	$csrConfig = ['digest_alg' => 'sha256', 'config' => $opensslConfigFile];
+
+	$domainCsr = openssl_csr_new([
+		'commonName' => $commonName
+	], $domainPrivateKey, $csrConfig);
+	if(!$domainCsr) return false;
+
+	// 生成域名证书
+	$domainCertificate = openssl_csr_sign($domainCsr, $caCert, $caPrivateKey, $validity, $csrConfig);
+	if(!$domainCertificate) return false;
+
+	// 导出域名证书
+	openssl_x509_export($domainCertificate, $certificate);
+	openssl_pkey_export($domainPrivateKey, $privateKey);
+	$certificate .= $caCert;
+
+	unlink($opensslConfigFile);
+
+	return ['cert' => $certificate, 'key' => $privateKey];
 }

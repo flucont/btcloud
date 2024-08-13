@@ -464,4 +464,31 @@ class Api extends BaseController
         fclose($handle);
         return json(['status'=>false, 'msg'=>'不支持当前操作']);
     }
+
+    //生成自签名SSL证书
+    public function bt_cert(){
+        $data = input('post.data');
+        $param = json_decode($data, true);
+        if(!$param || !isset($param['domain'])) return json(['status'=>false, 'msg'=>'参数错误']);
+
+        $dir = app()->getBasePath().'script/';
+        $ssl_path = app()->getRootPath().'public/ssl/baota_root.pfx';
+        $isca = file_exists($dir.'ca.crt') && file_exists($dir.'ca.key') && file_exists($ssl_path);
+        if(!$isca) return json(['status'=>false, 'msg'=>'CA证书不存在']);
+
+        $domain = $param['domain'];
+        if(empty($domain)) return json(['status'=>false, 'msg'=>'域名不能为空']);
+        $domain_list = explode(',', $domain);
+        foreach($domain_list as $d){
+            if(!checkDomain($d)) return json(['status'=>false, 'msg'=>'域名或IP格式不正确:'.$d]);
+        }
+        $common_name = $domain_list[0];
+        $validity = 3650;
+        $result = makeSelfSignSSL($common_name, $domain_list, $validity);
+        if(!$result){
+            return json(['status'=>false, 'msg'=>'生成证书失败']);
+        }
+        $ca_pfx = base64_encode(file_get_contents($ssl_path));
+        return json(['status'=>true, 'msg'=>'生成证书成功', 'cert'=>$result['cert'], 'key'=>$result['key'], 'pfx'=>$ca_pfx, 'password'=>'']);
+    }
 }

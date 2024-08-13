@@ -5,15 +5,15 @@
   <meta name="renderer" content="webkit">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>{block name="title"}标题{/block}</title>
-  <link href="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+  <link href="{$cdnpublic}twitter-bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="{$cdnpublic}font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
   <link href="/static/css/bootstrap-table.css" rel="stylesheet" />
-  <script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/modernizr/2.8.3/modernizr.min.js"></script>
-  <script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/jquery/2.1.4/jquery.min.js"></script>
-  <script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="{$cdnpublic}modernizr/2.8.3/modernizr.min.js"></script>
+  <script src="{$cdnpublic}jquery/2.1.4/jquery.min.js"></script>
+  <script src="{$cdnpublic}twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
   <!--[if lt IE 9]>
-    <script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/html5shiv/3.7.3/html5shiv.min.js"></script>
-    <script src="//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/respond.js/1.4.2/respond.min.js"></script>
+    <script src="{$cdnpublic}html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="{$cdnpublic}respond.js/1.4.2/respond.min.js"></script>
   <![endif]-->
 </head>
 <body>
@@ -50,6 +50,9 @@
           </li>
           <li class="{:checkIfActive('log')}">
             <a href="/admin/log"><i class="fa fa-calendar"></i> 操作日志</a>
+          </li>
+          <li class="{:checkIfActive('ssl')}">
+            <a href="/admin/ssl"><i class="fa fa-expeditedssl"></i> 自签SSL</a>
           </li>
           <li class="{:checkIfActive('set')}">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> 系统设置<b
