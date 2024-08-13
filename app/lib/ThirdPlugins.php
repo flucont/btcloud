@@ -65,7 +65,6 @@ class ThirdPlugins
                 $zip = new ZipArchive;
                 if ($zip->open($filepath) === true)
                 {
-                    $zip->extractTo(get_data_dir($this->os).'plugins/folder/'.$plugin_name.'-'.$version);
                     $zip->close();
                     return true;
                 }else{

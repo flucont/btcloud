@@ -119,6 +119,10 @@ Route::group('api', function () {
     Route::post('/bt_waf/reportInterceptFail', 'api/return_empty');
     Route::any('/panel/get_spider', 'api/get_spider');
 
+    Route::post('/Auth/GetSocre', 'api/get_ssl_list');
+    Route::post('/Auth/SetSocre', 'api/get_ssl_list');
+    Route::post('/Auth/SubmitScore', 'api/get_ssl_list');
+
     Route::miss('api/return_error');
 });
 

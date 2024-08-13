@@ -295,3 +295,29 @@ EOF;
 
 	return ['cert' => $certificate, 'key' => $privateKey];
 }
+
+function deleteDir($dir){
+	$rd = opendir($dir);
+	if (!$rd) {
+		return false;
+	}
+
+	while (($file = readdir($rd)) !== false) {
+		if ($file == '.' || $file == '..') {
+			continue;
+		}
+
+		$file = $dir . '/' . $file;
+
+		if (is_dir($file)) {
+			deleteDir($file);
+		}
+		else {
+			unlink($file);
+		}
+	}
+
+	closedir($rd);
+	rmdir($dir);
+	return true;
+}

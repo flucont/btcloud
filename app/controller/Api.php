@@ -48,7 +48,7 @@ class Api extends BaseController
         if(!preg_match('/^[a-zA-Z0-9_]+$/', $plugin_name) || !preg_match('/^[0-9.]+$/', $version)){
             return '参数不正确';
         }
-        if(!$this->checklist()) '你的服务器被禁止使用此云端';
+        if(!$this->checklist()) return '你的服务器被禁止使用此云端';
         $filepath = get_data_dir($os).'plugins/package/'.$plugin_name.'-'.$version.'.zip';
         if(file_exists($filepath)){
             $filename = $plugin_name.'.zip';
@@ -70,19 +70,21 @@ class Api extends BaseController
         if(!preg_match('/^[a-zA-Z0-9_]+$/', $plugin_name) || !preg_match('/^[0-9.]+$/', $version)){
             return '参数不正确';
         }
-        if(!$this->checklist()) '你的服务器被禁止使用此云端';
-        $filepath = get_data_dir($os).'plugins/main/'.$plugin_name.'-'.$version.'.dat';
-        if(file_exists($filepath)){
+        if(!$this->checklist()) return '你的服务器被禁止使用此云端';
+        $filepath = get_data_dir($os).'plugins/package/'.$plugin_name.'-'.$version.'.zip';
+        $mainfilepath = get_data_dir($os).'plugins/folder/'.$plugin_name.'-'.$version.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
+        if(file_exists($mainfilepath)){
             $filename = $plugin_name.'_main.py';
-            $this->output_file($filepath, $filename);
-        }else{
-            $filepath = get_data_dir($os).'plugins/folder/'.$plugin_name.'-'.$version.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
-            if(file_exists($filepath)){
-                $filename = $plugin_name.'_main.py';
-                $this->output_file($filepath, $filename);
+            $this->output_file($mainfilepath, $filename);
+        }elseif(file_exists($filepath)){
+            $zip = new \ZipArchive;
+            if ($zip->open($filepath) === true){
+                echo $zip->getFromName($plugin_name.'/'.$plugin_name.'_main.py');
             }else{
-                return '云端不存在该插件主文件';
+                return '插件包解压缩失败';
             }
+        }else{
+            return '云端不存在该插件主文件';
         }
     }
 
@@ -469,26 +471,31 @@ class Api extends BaseController
     public function bt_cert(){
         $data = input('post.data');
         $param = json_decode($data, true);
-        if(!$param || !isset($param['domain'])) return json(['status'=>false, 'msg'=>'参数错误']);
+        if(!$param || !isset($param['action']) || !isset($param['domain'])) return json(['status'=>false, 'msg'=>'参数错误']);
 
         $dir = app()->getBasePath().'script/';
         $ssl_path = app()->getRootPath().'public/ssl/baota_root.pfx';
         $isca = file_exists($dir.'ca.crt') && file_exists($dir.'ca.key') && file_exists($ssl_path);
         if(!$isca) return json(['status'=>false, 'msg'=>'CA证书不存在']);
 
-        $domain = $param['domain'];
-        if(empty($domain)) return json(['status'=>false, 'msg'=>'域名不能为空']);
-        $domain_list = explode(',', $domain);
-        foreach($domain_list as $d){
-            if(!checkDomain($d)) return json(['status'=>false, 'msg'=>'域名或IP格式不正确:'.$d]);
+        if($param['action'] == 'get_domain_cert'){
+            if(!$this->checklist()) return json(['status'=>false, 'msg'=>'你的服务器被禁止使用此云端']);
+            $domain = $param['domain'];
+            if(empty($domain)) return json(['status'=>false, 'msg'=>'域名不能为空']);
+            $domain_list = explode(',', $domain);
+            foreach($domain_list as $d){
+                if(!checkDomain($d)) return json(['status'=>false, 'msg'=>'域名或IP格式不正确:'.$d]);
+            }
+            $common_name = $domain_list[0];
+            $validity = 3650;
+            $result = makeSelfSignSSL($common_name, $domain_list, $validity);
+            if(!$result){
+                return json(['status'=>false, 'msg'=>'生成证书失败']);
+            }
+            $ca_pfx = base64_encode(file_get_contents($ssl_path));
+            return json(['status'=>true, 'msg'=>'生成证书成功', 'cert'=>$result['cert'], 'key'=>$result['key'], 'pfx'=>$ca_pfx, 'password'=>'']);
+        }else{
+            return json(['status'=>false, 'msg'=>'不支持当前操作']);
         }
-        $common_name = $domain_list[0];
-        $validity = 3650;
-        $result = makeSelfSignSSL($common_name, $domain_list, $validity);
-        if(!$result){
-            return json(['status'=>false, 'msg'=>'生成证书失败']);
-        }
-        $ca_pfx = base64_encode(file_get_contents($ssl_path));
-        return json(['status'=>true, 'msg'=>'生成证书成功', 'cert'=>$result['cert'], 'key'=>$result['key'], 'pfx'=>$ca_pfx, 'password'=>'']);
     }
 }

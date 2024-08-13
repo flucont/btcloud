@@ -11,7 +11,7 @@ class BtPlugins
     private $os;
     
     //需屏蔽的插件名称列表
-    private static $block_plugins = ['dns'];
+    private static $block_plugins = ['dns','bt_boce','ssl_verify'];
 
     public function __construct($os){
         $this->os = $os;
@@ -72,9 +72,10 @@ class BtPlugins
                     $zip = new ZipArchive;
                     if ($zip->open($filepath) === true)
                     {
-                        $zip->extractTo(get_data_dir($this->os).'plugins/folder/'.$plugin_name.'-'.$version);
+                        $plugins_dir = get_data_dir($this->os).'plugins/folder/'.$plugin_name.'-'.$version;
+                        $zip->extractTo($plugins_dir, $plugin_name.'/'.$plugin_name.'_main.py');
                         $zip->close();
-                        $main_filepath = get_data_dir($this->os).'plugins/folder/'.$plugin_name.'-'.$version.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
+                        $main_filepath = $plugins_dir.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
                         if(file_exists($main_filepath) && filesize($main_filepath)>10){
                             if(!strpos(file_get_contents($main_filepath), 'import ')){ //加密py文件，需要解密
                                 $this->decode_plugin_main($plugin_name, $version, $main_filepath);
@@ -84,6 +85,7 @@ class BtPlugins
                                 $zip->close();
                             }
                         }
+                        deleteDir($plugins_dir);
                     }else{
                         unlink($filepath);
                         throw new Exception('插件包解压缩失败');
@@ -197,6 +199,8 @@ class BtPlugins
         $data = str_replace('\'https://www.bt.cn/api/bt_waf/reportInterceptFail', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/reportInterceptFail', $data);
         $data = str_replace('\'https://www.bt.cn/api/v2/contact/nps/questions', 'public.GetConfigValue(\'home\')+\'/panel/notpro', $data);
         $data = str_replace('\'https://www.bt.cn/api/v2/contact/nps/submit', 'public.GetConfigValue(\'home\')+\'/panel/notpro', $data);
+        $data = str_replace('\'http://www.bt.cn/api/Auth', 'public.GetConfigValue(\'home\')+\'/api/Auth', $data);
+        $data = str_replace('\'https://www.bt.cn/api/Auth', 'public.GetConfigValue(\'home\')+\'/api/Auth', $data);
 
         file_put_contents($main_filepath, $data);
     }

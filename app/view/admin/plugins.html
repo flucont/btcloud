@@ -157,8 +157,13 @@ function download_item(){
         layer.alert('成功下载'+$.downloadCount+'个插件包！', {icon:1}, function(){layer.closeAll();searchSubmit();});
         return;
     }
-    $.downloadCount++;
     var plugin = $.preDownload[0];
+    if(plugin.name == 'firewall'){
+        $.preDownload.shift();
+		download_item();
+        return;
+    }
+    $.downloadCount++;
     var ii = layer.msg('['+$.downloadCount+'/'+$.preDownloadCount+']正在下载'+plugin.name+'-'+plugin.version, {icon: 16, shade:0.1, time: 0});
     $.ajax({
 		type : 'POST',
