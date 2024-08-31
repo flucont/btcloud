@@ -50,6 +50,8 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
 
   删除 p = threading.Thread(target=update_software_list) 以及下面2行
 
+- tools.py，删除#尝试删除本地hosts文件中的宝塔域名解析
+
 - 去除面板日志上报：script/site_task.py 文件
 
   - 删除最下面 logs_analysis() 这1行

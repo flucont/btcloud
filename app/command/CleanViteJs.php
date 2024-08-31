@@ -129,13 +129,11 @@ class CleanViteJs extends Command
         }
 
         if(strpos($file, '"calc"') !== false && strpos($file, '"checkConfirm"') !== false){ //main2
-            $file = preg_replace('!,isCalc:\w+,isInput:\w+,isCheck:\w+,!', ',isCalc:!1,isInput:!1,isCheck:!1,', $file);
-            $file = preg_replace('!\w+\(\(\(\)=>"calc"===\w+\.type\|\|"checkConfirm"===\w+\.type\)\)!', '!1', $file);
+            $file = preg_replace('!,isCalc:\w+,isInput:\w+,!', ',isCalc:!1,isInput:!1,', $file);
+            $file = preg_replace('!"calc"===\w+\.type!', '!1', $file);
             $file = preg_replace('!\w+\(\(\(\)=>"input"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!\w+\(\(\(\)=>"check"===\w+\.type\|\|"checkConfirm"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!\w+\(\(function\(\)\{return"calc"===\w+\.type\|\|"checkConfirm"===\w+\.type\}\)\)!', '!1', $file);
+            $file = preg_replace('!"calc"===\w+\.type!', '!1', $file);
             $file = preg_replace('!\w+\(\(function\(\)\{return"input"===\w+\.type\}\)\)!', '!1', $file);
-            $file = preg_replace('!\w+\(\(function\(\)\{return"check"===\w+\.type\|\|"checkConfirm"===\w+\.type\}\)\)!', '!1', $file);
             $flag = true;
         }
     
@@ -152,13 +150,13 @@ class CleanViteJs extends Command
             $flag = true;
         }
     
-        /*if(strpos($file, '"bt-waf-gray"')!==false){ //site.popup
-            $code = $this->getExtendCode($file, '"bt-waf-gray"', 2);
+        if(strpos($file, 'svgtofont-left-waf')!==false){ //site.table
+            $code = $this->getExtendCode($file, 'svgtofont-left-waf');
             $code = $this->getExtendCode($file, $code, 1, '[', ']');
             $code = $this->getExtendFunction($file, $code);
             $file = str_replace($code, '""', $file);
             $flag = true;
-        }*/
+        }
     
         if(strpos($file, '"商用SSL证书"')!==false){ //site-ssl
             $code = $this->getExtendFunction($file, '"商用SSL证书"', '{', '}');

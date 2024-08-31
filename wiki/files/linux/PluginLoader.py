@@ -40,50 +40,43 @@ def plugin_run(plugin_name,def_name,args):
     # 添加插件目录到系统路径
     public.sys_path_append(plugin_path)
 
-    try:
-        if not is_php:
-            # 引用插件入口文件
-            _name = "{}_main".format(plugin_name)
-            plugin_main = __import__(_name)
+    if not is_php:
+        # 引用插件入口文件
+        _name = "{}_main".format(plugin_name)
+        plugin_main = __import__(_name)
 
-            # 检查类名是否符合规范
-            if not hasattr(plugin_main,_name):
-                return public.returnMsg(False,'指定插件入口文件不符合规范')
-            
-            try:
-                if sys.version_info[0] == 2:
-                    reload(plugin_main)
-                else:
-                    from imp import reload
-                    reload(plugin_main)
-            except:
-                pass
-            
-            # 实例化插件类
-            plugin_obj = getattr(plugin_main,_name)()
+        # 检查类名是否符合规范
+        if not hasattr(plugin_main,_name):
+            return public.returnMsg(False,'指定插件入口文件不符合规范')
+        
+        try:
+            if sys.version_info[0] == 2:
+                reload(plugin_main)
+            else:
+                from imp import reload
+                reload(plugin_main)
+        except:
+            pass
+        
+        # 实例化插件类
+        plugin_obj = getattr(plugin_main,_name)()
 
-            # 检查方法是否存在
-            if not hasattr(plugin_obj,def_name):
-                return public.returnMsg(False,'在[%s]插件中找不到[%s]方法' % (plugin_name,def_name))
-            
-            if 'plugin_get_object' in args and args.plugin_get_object == 1:
-                return getattr(plugin_obj, def_name)
-            
-            # 执行方法
-            return getattr(plugin_obj,def_name)(args)
-        else:
-            if 'plugin_get_object' in args and args.plugin_get_object == 1:
-                return None
-            import panelPHP
-            args.s = def_name
-            args.name = plugin_name
-            return panelPHP.panelPHP(plugin_name).exec_php_script(args)
-
-    except SyntaxError as ex:
-        return public.returnMsg(False,'指定插件不兼容当前操作系统')
-    except Exception as ex:
-        public.print_error()
-        return public.returnMsg(False,'指定插件不存在')
+        # 检查方法是否存在
+        if not hasattr(plugin_obj,def_name):
+            return public.returnMsg(False,'在[%s]插件中找不到[%s]方法' % (plugin_name,def_name))
+        
+        if 'plugin_get_object' in args and args.plugin_get_object == 1:
+            return getattr(plugin_obj, def_name)
+        
+        # 执行方法
+        return getattr(plugin_obj,def_name)(args)
+    else:
+        if 'plugin_get_object' in args and args.plugin_get_object == 1:
+            return None
+        import panelPHP
+        args.s = def_name
+        args.name = plugin_name
+        return panelPHP.panelPHP(plugin_name).exec_php_script(args)
     
 
 def get_module_list():
@@ -117,7 +110,7 @@ def module_run(module_name,def_name,args):
     if model_index:
         # 新模块目录
         if model_index in ['mod']:
-            _name = "{}Mod".format(module_name)
+            _name = "{}Mod".format(module_name.split('/')[1])
             module_file = os.path.join(panel_path,'mod','project',module_name + 'Mod.py')
         elif model_index:
             # 旧模块目录
@@ -144,31 +137,25 @@ def module_run(module_name,def_name,args):
         return public.returnMsg(False,'模块路径不合法')
     
     public.sys_path_append(os.path.dirname(module_file))
-    try:
-        # 引用模块入口文件
-        module_main = __import__(_name)
+    # 引用模块入口文件
+    module_main = __import__(_name)
 
-        # 检查模块是否符合规范
-        if not hasattr(module_main,'main'):
-            return public.returnMsg(False,'指定模块入口文件不符合规范')
+    # 检查模块是否符合规范
+    if not hasattr(module_main,'main'):
+        return public.returnMsg(False,'指定模块入口文件不符合规范')
 
-        # 实例化模块类
-        module_obj = getattr(module_main,'main')()
+    # 实例化模块类
+    module_obj = getattr(module_main,'main')()
 
-        # 检查方法是否存在
-        if not hasattr(module_obj,def_name):
-            return public.returnMsg(False,'在[%s]模块中找不到[%s]方法' % (module_name,def_name))
-        
-        if 'module_get_object' in args and args.module_get_object == 1:
-            return getattr(module_obj,def_name)
+    # 检查方法是否存在
+    if not hasattr(module_obj,def_name):
+        return public.returnMsg(False,'在[%s]模块中找不到[%s]方法' % (module_name,def_name))
+    
+    if 'module_get_object' in args and args.module_get_object == 1:
+        return getattr(module_obj,def_name)
 
-        # 执行方法
-        return getattr(module_obj,def_name)(args)
-    except SyntaxError as ex:
-        return public.returnMsg(False,'指定模块不兼容当前操作系统')
-    except Exception as ex:
-        public.print_error()
-        return public.returnMsg(False,'指定模块不存在')
+    # 执行方法
+    return getattr(module_obj,def_name)(args)
     
 
 def get_plugin_list(upgrade_force = False):

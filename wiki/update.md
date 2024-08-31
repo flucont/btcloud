@@ -119,6 +119,8 @@
   <script src="/static/bt.js"></script>
   ```
 
+  在 BTPanel/templates/default/software.html 的 <script>window.vite_public_request_token 前面加入
+
 - [可选]去除创建网站自动创建的垃圾文件：在class/panelSite.py，分别删除
 
   htaccess = self.sitePath + '/.htaccess'
