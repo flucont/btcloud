@@ -107,26 +107,21 @@ def module_run(module_name,def_name,args):
     panel_path = public.get_panel_path()
     
     module_file = None
-    if model_index:
+    if 'model_index' in args:
         # 新模块目录
         if model_index in ['mod']:
-            _name = "{}Mod".format(module_name.split('/')[1])
             module_file = os.path.join(panel_path,'mod','project',module_name + 'Mod.py')
         elif model_index:
             # 旧模块目录
-            _name = "{}Model".format(module_name)
             module_file = os.path.join(class_path,model_index+"Model",module_name + 'Model.py')
         else:
-            _name = "{}Model".format(module_name)
             module_file = os.path.join(class_path,"projectModel",module_name + 'Model.py')
     else:
         # 如果没指定模块名称，则遍历所有模块目录
         module_list = get_module_list()
         for name in module_list:
             module_file = os.path.join(class_path,name,module_name + 'Model.py')
-            if os.path.exists(module_file):
-                _name = "{}Model".format(module_name)
-                break
+            if os.path.exists(module_file): break
     
     # 判断模块入口文件是否存在
     if not os.path.exists(module_file):
@@ -136,26 +131,22 @@ def module_run(module_name,def_name,args):
     if not public.path_safe_check(module_file):
         return public.returnMsg(False,'模块路径不合法')
     
-    public.sys_path_append(os.path.dirname(module_file))
-    # 引用模块入口文件
-    module_main = __import__(_name)
+    def_object = public.get_script_object(module_file)
+    if not def_object: return public.returnMsg(False,'模块[%s]不存在' % module_file)
 
-    # 检查模块是否符合规范
-    if not hasattr(module_main,'main'):
-        return public.returnMsg(False,'指定模块入口文件不符合规范')
+    # 模块实例化并返回方法对象
+    try:
+        run_object = getattr(def_object.main(),def_name,None)
+    except:
+        return public.returnMsg(False,'模块[%s]入口实例化失败' % module_file)
+    if not run_object: return public.returnMsg(False,'在[%s]模块中找不到[%s]方法' % (module_file,def_name))
 
-    # 实例化模块类
-    module_obj = getattr(module_main,'main')()
-
-    # 检查方法是否存在
-    if not hasattr(module_obj,def_name):
-        return public.returnMsg(False,'在[%s]模块中找不到[%s]方法' % (module_name,def_name))
-    
     if 'module_get_object' in args and args.module_get_object == 1:
-        return getattr(module_obj,def_name)
-
+        return run_object
+    
     # 执行方法
-    return getattr(module_obj,def_name)(args)
+    result = run_object(args)
+    return result
     
 
 def get_plugin_list(upgrade_force = False):
