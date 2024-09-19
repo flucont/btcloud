@@ -73,6 +73,7 @@ class CleanViteJs extends Command
             }
         }
         if(substr($content,$start-1,1) == ',') $start--;
+        else if(substr($content,$end+1,1) == ',') $end++;
         return substr($content, $start, $end - $start + 1);
     }
     
@@ -89,6 +90,14 @@ class CleanViteJs extends Command
             }
             closedir($dh);
         }
+    }
+
+    private function str_replace_once($needle, $replace, $haystack) {
+        $pos = strpos($haystack, $needle);
+        if ($pos === false) {
+            return $haystack;
+        }
+        return substr_replace($haystack, $replace, $pos, strlen($needle));
     }
     
     private function handlefile($filepath){
@@ -132,7 +141,6 @@ class CleanViteJs extends Command
             $file = preg_replace('!,isCalc:\w+,isInput:\w+,!', ',isCalc:!1,isInput:!1,', $file);
             $file = preg_replace('!"calc"===\w+\.type!', '!1', $file);
             $file = preg_replace('!\w+\(\(\(\)=>"input"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!"calc"===\w+\.type!', '!1', $file);
             $file = preg_replace('!\w+\(\(function\(\)\{return"input"===\w+\.type\}\)\)!', '!1', $file);
             $flag = true;
         }
@@ -165,6 +173,7 @@ class CleanViteJs extends Command
             $file = str_replace($code, '', $file);
             $file = str_replace('"currentCertInfo":"busSslList"', '"currentCertInfo":"currentCertInfo"', $file);
             $file = preg_replace('!\{(\w+)\.value="busSslList",\w+\(\)\}!', '{$1.value="letsEncryptList"}', $file);
+            $file = preg_replace('!defaultActive:(\w+)\("sslCertificate"\)!', 'defaultActive:$1("EncryptCertificate")', $file);
             $flag = true;
         }
     
@@ -203,9 +212,9 @@ class CleanViteJs extends Command
                 $code = $this->getExtendFunction($file, $code);
                 $start = strpos($file, $code);
                 if(substr($file,$start-1,1) == ':'){
-                    $file = str_replace($code, '{}', $file);
+                    $file = $this->str_replace_once($code, '{}', $file);
                 }else{
-                    $file = str_replace($code, '', $file);
+                    $file = $this->str_replace_once($code, '', $file);
                 }
                 $flag = true;
             }

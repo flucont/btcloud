@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Linux_Version="9.1.0"
+Linux_Version="9.2.0"
 Windows_Version="8.2.0"
 Btm_Version="2.3.0"
 

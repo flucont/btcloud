@@ -139,6 +139,18 @@ class Api extends BaseController
         return $version;
     }
 
+    public function get_panel_version(){
+        $version = config_get('new_version');
+        $file = app()->getRootPath().'public/install/update/LinuxPanel-'.$version.'.zip';
+        $hash = hash_file('sha256', $file);
+        $data = [
+            'version' => $version,
+            'hash' => $hash,
+            'update_time' => filemtime($file),
+        ];
+        return json($data);
+    }
+
     //安装统计
     public function setup_count(){
         return 'ok';

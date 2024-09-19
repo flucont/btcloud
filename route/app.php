@@ -39,6 +39,7 @@ Route::group('api', function () {
     Route::get('/getUpdateLogs', 'api/get_update_logs');
     Route::get('/panel/get_version', 'api/get_version');
     Route::get('/wpanel/get_version', 'api/get_version_win');
+    Route::get('/panel/get_panel_version', 'api/get_panel_version');
     Route::get('/SetupCount', 'api/setup_count');
     Route::any('/panel/updateLinux', 'api/check_update');
     Route::any('/wpanel/updateWindows', 'api/check_update_win');
@@ -122,6 +123,9 @@ Route::group('api', function () {
     Route::post('/Auth/GetSocre', 'api/get_ssl_list');
     Route::post('/Auth/SetSocre', 'api/get_ssl_list');
     Route::post('/Auth/SubmitScore', 'api/get_ssl_list');
+
+    Route::post('/Cert_cloud_deploy/get_cert_list', 'api/return_success');
+    Route::post('/Cert_cloud_deploy/del_cert', 'api/return_success');
 
     Route::miss('api/return_error');
 });

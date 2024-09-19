@@ -18,17 +18,18 @@ if [ ! -f "/www/server/panel/pyenv/bin/python3" ];then
 	echo "请截图发帖至论坛www.bt.cn/bbs求助"
 	exit 0;
 fi
-Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
-if [ "${Centos6Check}" ];then
-	echo "Centos6不支持升级宝塔面板，建议备份数据重装更换Centos7/8安装宝塔面板"
-	exit 1
-fi 
 
-
-Centos8Check=$(cat /etc/redhat-release | grep ' 8.' | grep -iE 'centos|Red Hat')
-if [ "${Centos8Check}" ];then
-	if [ ! -f "/usr/bin/python" ] && [ -f "/usr/bin/python3" ] && [ ! -d "/www/server/panel/pyenv" ]; then
-		ln -sf /usr/bin/python3 /usr/bin/python
+if [ -f "/etc/redhat-release" ];then
+	Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
+	if [ "${Centos6Check}" ];then
+		echo "Centos6不支持升级宝塔面板，建议备份数据重装更换Centos7/8安装宝塔面板"
+		exit 1
+	fi 
+	Centos8Check=$(cat /etc/redhat-release | grep ' 8.' | grep -iE 'centos|Red Hat')
+	if [ "${Centos8Check}" ];then
+		if [ ! -f "/usr/bin/python" ] && [ -f "/usr/bin/python3" ] && [ ! -d "/www/server/panel/pyenv" ]; then
+			ln -sf /usr/bin/python3 /usr/bin/python
+		fi
 	fi
 fi
 
@@ -48,10 +49,61 @@ fi
 
 download_Url=$D_NODE_URL
 
+
+Set_Centos7_Repo(){
+    if [ -f "/etc/yum.repos.d/docker-ce.repo" ];then
+        mv /etc/yum.repos.d/docker-ce.repo /etc/yum.repos.d/docker-ce.repo_backup
+    fi
+	MIRROR_CHECK=$(cat /etc/yum.repos.d/CentOS-Base.repo |grep "[^#]mirror.centos.org")
+	if [ "${MIRROR_CHECK}" ] && [ "${is64bit}" == "64" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+	fi
+
+	TSU_MIRROR_CHECK=$(cat /etc/yum.repos.d/CentOS-Base.repo |grep "tuna.tsinghua.edu.cn")
+	if [ "${TSU_MIRROR_CHECK}" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=https://mirrors.tuna.tsinghua.edu.cn|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=http://mirrors.tuna.tsinghua.edu.cn|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
+	fi
+	
+	ALI_CLOUD_CHECK=$(grep Alibaba /etc/motd)
+	Tencent_Cloud=$(cat /etc/hostname |grep -E VM-[0-9]+-[0-9]+)
+	if [ "${ALI_CLOUD_CHECK}" ] || [ "${Tencent_Cloud}" ];then
+		return
+	fi
+	
+	yum install tree -y
+	if [ "$?" != "0" ] ;then
+		TAR_CHECK=$(which tree)
+		if [ "$?" == "0" ] ;then
+			\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+			if [ -z "${download_Url}" ];then
+				download_Url="http://download.bt.cn"
+			fi
+			curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/el7repo.tar.gz
+			rm -f /etc/yum.repos.d/*.repo
+			tar -xvzf el7repo.tar.gz -C /etc/yum.repos.d/
+		fi
+	fi
+
+	yum install tree -y
+	if [ "$?" != "0" ] ;then
+		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
+	fi
+}
+if [ -f "/etc/redhat-release" ];then
+	Centos7Check=$(cat /etc/redhat-release | grep ' 7.' | grep -iE 'centos|Red Hat')
+	if [ "${Centos7Check}" ];then
+		Set_Centos7_Repo
+	fi
+fi
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ -z "$VERSION_CHECK" ];then
-	version='9.1.0'
+	version='9.2.0'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
@@ -144,10 +196,10 @@ if [ -z "${GEOIP_C}" ];then
 	btpip install geoip2==4.7.0
 fi
 
-PANDAS_C=$(echo $pip_list|grep pandas)
-if [ -z "${PANDAS_C}" ];then
-	btpip install pandas
-fi
+# PANDAS_C=$(echo $pip_list|grep pandas)
+# if [ -z "${PANDAS_C}" ];then
+# 	btpip install pandas
+# fi
 
 pymysql=$(echo "$pip_list"|grep pycryptodome)
 if [ "$pymysql" = "" ];then

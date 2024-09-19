@@ -132,14 +132,14 @@ def module_run(module_name,def_name,args):
         return public.returnMsg(False,'模块路径不合法')
     
     def_object = public.get_script_object(module_file)
-    if not def_object: return public.returnMsg(False,'模块[%s]不存在' % module_file)
+    if not def_object: return public.returnMsg(False,'模块[%s]不存在' % module_name)
 
     # 模块实例化并返回方法对象
     try:
         run_object = getattr(def_object.main(),def_name,None)
     except:
-        return public.returnMsg(False,'模块[%s]入口实例化失败' % module_file)
-    if not run_object: return public.returnMsg(False,'在[%s]模块中找不到[%s]方法' % (module_file,def_name))
+        return public.returnMsg(False,'模块[%s]入口实例化失败' % module_name)
+    if not run_object: return public.returnMsg(False,'在[%s]模块中找不到[%s]方法' % (module_name,def_name))
 
     if 'module_get_object' in args and args.module_get_object == 1:
         return run_object

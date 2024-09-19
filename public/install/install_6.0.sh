@@ -235,6 +235,12 @@ Set_Centos7_Repo(){
 			tar -xvzf el7repo.tar.gz -C /etc/yum.repos.d/
 		fi
 	fi
+
+	yum install unzip -y
+	if [ "$?" != "0" ] ;then
+		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
+	fi
+
 }
 # Set_Centos7_Repo(){
 # 		if [ -z "${download_Url}" ];then
@@ -279,6 +285,10 @@ Set_Centos8_Repo(){
 		curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/el8repo.tar.gz
 		rm -f /etc/yum.repos.d/*.repo
 		tar -xvzf el8repo.tar.gz -C /etc/yum.repos.d/
+	fi
+	yum install unzip -y
+	if [ "$?" != "0" ] ;then
+		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
 	fi
 }
 get_node_url(){

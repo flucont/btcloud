@@ -20,6 +20,10 @@
 
 - 全局搜索替换 https://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
+  http://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
+
+  http://download.bt.cn/install/update/ => http://www.example.com/install/update/
+
 - 搜索并删除提交异常报告的代码 bt_error/index.php
 
 - class/ajax.py 文件 \# 是否执行升级程序 下面的 public.get_url() 改成 public.GetConfigValue('home')
@@ -72,7 +76,7 @@
   
   plugin_bin.pl 改成 plugin_list.json
   
-- class/plugin_deployment.py 文件，SetupPackage方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
+- class/plugin_deployment.py 文件，__setup_php_environment方法和GetJarPath方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - class/config.py 文件，get_nps方法内data['nps'] = False改成True，get_nps_new方法下面加上 return public.returnMsg(False, "获取问卷失败")
 
@@ -119,7 +123,7 @@
   <script src="/static/bt.js"></script>
   ```
 
-  在 BTPanel/templates/default/software.html 的 <script>window.vite_public_request_token 前面加入
+  在 BTPanel/templates/default/software.html 的 \<script\>window.vite_public_request_token 前面加入
 
 - [可选]去除创建网站自动创建的垃圾文件：在class/panelSite.py，分别删除
 
