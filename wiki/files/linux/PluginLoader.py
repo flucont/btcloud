@@ -65,13 +65,13 @@ def plugin_run(plugin_name,def_name,args):
         if not hasattr(plugin_obj,def_name):
             return public.returnMsg(False,'在[%s]插件中找不到[%s]方法' % (plugin_name,def_name))
         
-        if 'plugin_get_object' in args and args.plugin_get_object == 1:
+        if args is not None and 'plugin_get_object' in args and args.plugin_get_object == 1:
             return getattr(plugin_obj, def_name)
         
         # 执行方法
         return getattr(plugin_obj,def_name)(args)
     else:
-        if 'plugin_get_object' in args and args.plugin_get_object == 1:
+        if args is not None and 'plugin_get_object' in args and args.plugin_get_object == 1:
             return None
         import panelPHP
         args.s = def_name
