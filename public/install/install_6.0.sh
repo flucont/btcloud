@@ -23,6 +23,44 @@ if [ "${is64bit}" != '64' ];then
 	exit 1
 fi
 
+Ready_Check(){
+    WWW_DISK_SPACE=$(df |grep /www|awk '{print $4}')
+    ROOT_DISK_SPACE=$(df |grep /$|awk '{print $4}')
+ 
+   if [ "${ROOT_DISK_SPACE}" -le 412000 ];then
+	df -h
+        echo -e "系统盘剩余空间不足400M 无法继续安装宝塔面板！"
+        echo -e "请尝试清理磁盘空间后再重新进行安装"
+        exit 1
+    fi
+    if [ "${WWW_DISK_SPACE}" ] && [ "${WWW_DISK_SPACE}" -le 412000 ] ;then
+        echo -e "/www盘剩余空间不足400M 无法继续安装宝塔面板！"
+        echo -e "请尝试清理磁盘空间后再重新进行安装"
+        exit 1
+    fi
+
+    ROOT_DISK_INODE=$(df -i|grep /$|awk '{print $2}')
+	if [ "${ROOT_DISK_INODE}" != "0" ];then
+		ROOT_DISK_INODE_FREE=$(df -i|grep /$|awk '{print $4}')
+		if [ "${ROOT_DISK_INODE_FREE}" -le 1000 ];then
+			echo -e "系统盘剩余inodes空间不足1000,无法继续安装！"
+			echo -e "请尝试清理磁盘空间后再重新进行安装"
+			exit 1
+		fi
+	fi
+
+	WWW_DISK_INODE==$(df -i|grep /www|awk '{print $2}')
+	if [ "${WWW_DISK_INODE}" ] && [ "${WWW_DISK_INODE}" != "0" ] ;then
+		WWW_DISK_INODE_FREE=$(df -i|grep /www|awk '{print $4}')
+		if [ "${WWW_DISK_INODE_FREE}" ] && [ "${WWW_DISK_INODE_FREE}" -le 1000 ] ;then
+			echo -e "/www盘剩余inodes空间不足1000, 无法继续安装！"
+			echo -e "请尝试清理磁盘空间后再重新进行安装"
+			exit 1
+		fi
+	fi
+}
+
+
 Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
 if [ "${Centos6Check}" ];then
 	echo "Centos6不支持安装宝塔面板，请更换Centos7/8安装宝塔面板"
@@ -1100,6 +1138,7 @@ Setup_Count(){
 	echo /www > /var/bt_setupPath.conf
 }
 Install_Main(){
+	Ready_Check
 	#Set_Ssl
 	startTime=`date +%s`
 	Lock_Clear
