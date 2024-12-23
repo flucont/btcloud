@@ -1,7 +1,7 @@
 #!/bin/bash
 
-Linux_Version="9.2.0"
-Windows_Version="8.2.0"
+Linux_Version="9.3.0"
+Windows_Version="8.2.1"
 Btm_Version="2.3.0"
 
 FILES=(

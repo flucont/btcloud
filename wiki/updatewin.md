@@ -42,6 +42,8 @@ Windows版宝塔由于加密文件太多，无法全部解密，因此无法做�
 
 - class/plugin_deployment.py 文件 get_icon 和 SetupPackage 方法内，替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
+- script/reload_check.py 文件，在第2行插入sys.exit()
+
 - 去除无用的定时任务：task.py 文件
 
   删除 p = threading.Thread(target=check_files_panel) 以及下面2行

@@ -67,7 +67,7 @@ class CleanViteJs extends Command
         $end = $start + strlen($code);
         for($i=$start;$i>=0;$i--){
             $char = substr($content,$i,1);
-            if(!ctype_alpha($char)){
+            if(!ctype_alpha($char)&&$char!='_'){
                 $start = $i+1;
                 break;
             }
@@ -108,18 +108,20 @@ class CleanViteJs extends Command
     
         if(strpos($file, 'window.location.protocol.indexOf("https")>=0')!==false){ //index
             $file = str_replace('(window.location.protocol.indexOf("https")>=0)', '1', $file);
-            $file = preg_replace('!setTimeout\(\(\(\)=>\{\w+\(\)\}\),3e3\)!', '', $file);
-            $file = preg_replace('!setTimeout\(\(function\(\)\{\w+\(\)\}\),3e3\)!', '', $file);
-            $file = preg_replace('!recommendShow:\w+,!', 'recommendShow:!1,', $file);
-            $code = $this->getExtendCode($file, '"需求反馈"', 2);
+            $code = $this->getExtendCode($file, 'isGetCoupon:', 2);
             if($code){
                 $file = str_replace($code, '{}', $file);
+            }
+            $file = preg_replace('!recommendShow:\w+,!', 'recommendShow:!1,', $file, 1);
+            $code = $this->getExtendCode($file, '"需求反馈"', 1, '[', ']');
+            if($code){
+                $file = str_replace($code, '[]', $file);
             }
             $flag = true;
         }
     
-        if(strpos($file, '"WechatOfficial"')!==false){ //main
-            $code = $this->getExtendCode($file, '"WechatOfficial"', 5);
+        if(strpos($file, '售后QQ群：')!==false){ //main
+            $code = $this->getExtendCode($file, '"微信公众号"', 1);
             $code = $this->getExtendFunction($file, $code);
             $start = strpos($file, $code) - 1;
             for($i=$start;$i>=0;$i--){
@@ -129,36 +131,43 @@ class CleanViteJs extends Command
                 }
             }
             $code = $this->getExtendCode($file, '"/other/customer-service.png"', 2);
-            $code = $this->getExtendCode($file, $code, 2, '[', ']');
+            $code = $this->getExtendFunction($file, $code);
             $end = strpos($file, $code)+strlen($code);
-            $code = substr($file, $start, $end - $start + 1);
+            $code = substr($file, $start, $end - $start);
             $file = str_replace($code, '', $file);
-            $file = str_replace('startNegotiate(),', '', $file);
             $flag = true;
         }
-
-        if(strpos($file, '"calc"') !== false && strpos($file, '"checkConfirm"') !== false){ //main2
-            $file = preg_replace('!,isCalc:\w+,isInput:\w+,!', ',isCalc:!1,isInput:!1,', $file);
-            $file = preg_replace('!"calc"===\w+\.type!', '!1', $file);
-            $file = preg_replace('!\w+\(\(\(\)=>"input"===\w+\.type\)\)!', '!1', $file);
-            $file = preg_replace('!\w+\(\(function\(\)\{return"input"===\w+\.type\}\)\)!', '!1', $file);
+    
+        if(strpos($file, 'useNegotiate')!==false){ //utils
+            $code = $this->getExtendCode($file, 'createPeerConnection()', 1);
+            if($code){
+                $file = str_replace($code, '{}', $file);
+            }
+            $file = preg_replace('!\w+\(\(\(\)=>"calc"===\w+\.\w+\.type\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(\(\)=>"input"===\w+\.\w+\.type\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(function\(\)\{return"calc"===\w+\.\w+\.type\}\)\)!', '!1', $file);
+            $file = preg_replace('!\w+\(\(function\(\)\{return"input"===\w+\.\w+\.type\}\)\)!', '!1', $file);
             $flag = true;
         }
     
         if(strpos($file, '请冷静几秒钟，确认以下要删除的数据')!==false && strpos($file, '"计算结果："')!==false){ //site
-            $code = $this->getExtendCode($file, '"计算结果："', 2, '[', ']');
+            $code = $this->getExtendCode($file, '"计算结果："', 1, '[', ']');
             $code = $this->getExtendFunction($file, $code);
             $file = str_replace($code, '', $file);
             $file = preg_replace('!\w+\.sum===\w+\.addend1\+\w+\.addend2!', '!0', $file);
-            $file = preg_replace('!\w+\.sum\!==\w+\.addend1\+\w+\.addend2!', '!1', $file);
-            $file = preg_replace('!,disableDeleteButton:\w+,countdown:\w+,!', ',disableDeleteButton:!1,countdown:!1,', $file);
-            if(preg_match('/startCountdown:(\w+),/', $file, $matchs)){
-                $file = str_replace([';'.$matchs[1].'()', $matchs[1].'(),'], '', $file);
-            }
+            $file = preg_replace('!value=\!0,(\w+)\.value=5;!', 'value=!1,$1.value=0;', $file);
             $flag = true;
         }
     
-        if(strpos($file, 'svgtofont-left-waf')!==false){ //site.table
+        if(strpos($file, '"left-waf"')!==false && strpos($file, '"iconWaf"')!==false){ //site.table
+            $code = $this->getExtendCode($file, '"left-waf"');
+            $code = $this->getExtendCode($file, $code, 1, '[', ']');
+            $code = $this->getExtendFunction($file, $code);
+            $file = str_replace($code, '""', $file);
+            $flag = true;
+        }
+    
+        if(strpos($file, 'svgtofont-left-waf')!==false && strpos($file, '"iconWaf"')!==false){ //site.table
             $code = $this->getExtendCode($file, 'svgtofont-left-waf');
             $code = $this->getExtendCode($file, $code, 1, '[', ']');
             $code = $this->getExtendFunction($file, $code);
@@ -169,11 +178,19 @@ class CleanViteJs extends Command
         if(strpos($file, '"商用SSL证书"')!==false){ //site-ssl
             $code = $this->getExtendFunction($file, '"商用SSL证书"', '{', '}');
             $file = str_replace($code, '', $file);
-            $code = $this->getExtendFunction($file, '"测试证书"', '{', '}');
+            $code = $this->getExtendFunction($file, '"宝塔证书"', '{', '}');
             $file = str_replace($code, '', $file);
-            $file = str_replace('"currentCertInfo":"busSslList"', '"currentCertInfo":"currentCertInfo"', $file);
-            $file = preg_replace('!\{(\w+)\.value="busSslList",\w+\(\)\}!', '{$1.value="letsEncryptList"}', $file);
-            $file = preg_replace('!defaultActive:(\w+)\("sslCertificate"\)!', 'defaultActive:$1("EncryptCertificate")', $file);
+            $code = $this->getExtendCode($file, '"购买商业证书"', 2);
+            if($code){
+                $code2 = str_replace('"busSslList"', '"letsEncryptList"', $code);
+                $code2 = str_replace($this->getExtendFunction($code, '"购买商业证书"'), '', $code2);
+                $file = str_replace($code, $code2, $file);
+            }
+            $file = preg_replace('!(\w+)\("sslCertificate"\)!', '$1("EncryptCertificate")', $file);
+            $flag = true;
+        }
+        if(strpos($file, '"busSslList"')!==false && strpos($filepath, '/useStore')){ //site-ssl
+            $file = str_replace('"busSslList"', '"currentCertInfo"', $file);
             $flag = true;
         }
     
@@ -185,50 +202,36 @@ class CleanViteJs extends Command
         }
 
         if(strpos($file, '"recom-view"')!==false){ //soft
-            $code = $this->getExtendFunction($file, '"recom-view"');
-            $file = str_replace($code, 'void(0)', $file);
+            $code = $this->getExtendCode($file, '"recom-view"');
+            $code = $this->getExtendFunction($file, $code);
+            $file = str_replace($code, '', $file);
             $flag = true;
         }
 
         if(strpos($file, '"打开插件文件目录"')!==false){ //soft.table
             $code = $this->getExtendFunction($file, '"(续费)"');
             $file = str_replace($code, '""', $file);
-            $code = $this->getExtendFunction($file, '"(续费)"');
-            $file = str_replace($code, '""', $file);
             $flag = true;
         }
 
-        if(strpos($file, '检测到同名文件')!==false){ //file.
-            $code = $this->getExtendCode($file, '计算结果：', 3, '[', ']');
-            $code = $this->getExtendFunction($file, $code);
-            $file = str_replace($code, '', $file);
-            $file = preg_replace('!\w+\.sum===\w+\.addend1\+\w+\.addend2!', '!0', $file);
-            $flag = true;
-        }
-    
         for($i=0;$i<5;$i++){
-            $code = $this->getExtendCode($file, 'content:"需求反馈"', 2);
+            $code = $this->getExtendCode($file, ',"需求反馈"', 1, '[', ']');
             if($code){
-                $code = $this->getExtendFunction($file, $code);
-                $start = strpos($file, $code);
-                if(substr($file,$start-1,1) == ':'){
-                    $file = $this->str_replace_once($code, '{}', $file);
-                }else{
-                    $file = $this->str_replace_once($code, '', $file);
-                }
+                $file = str_replace($code, '[]', $file);
                 $flag = true;
             }
         }
-        $code = $this->getExtendFunction($file, '("需求反馈")');
+        $code = $this->getExtendCode($file, '("需求反馈")', 1, '[', ']');
         if($code){
-            $file = str_replace($code, '', $file);
+            $file = str_replace($code, '[]', $file);
             $flag = true;
         }
-        $code = $this->getExtendFunction($file, '(" 需求反馈 ")');
-        if($code){
-            $file = str_replace($code, '', $file);
+        $code = $this->getExtendCode($file, '(" 需求反馈 ")', 1, '[', ']');
+        if($code && strpos($filepath, 'vue_vue_type_') === false){
+            $file = str_replace($code, '[]', $file);
             $flag = true;
         }
+
         if(strpos('暂无搜索结果，<span class="text-primary cursor-pointer NpsDialog">提交需求反馈</span>', $file)!==false){
             $file = str_replace('暂无搜索结果，<span class="text-primary cursor-pointer NpsDialog">提交需求反馈</span>', '暂无搜索结果', $file);
             $flag = true;

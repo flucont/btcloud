@@ -76,6 +76,8 @@
   
   plugin_bin.pl 改成 plugin_list.json
   
+  删除 public.run_thread(self.is_verify_unbinding, args=(get,))
+  
 - class/plugin_deployment.py 文件，__setup_php_environment方法和GetJarPath方法内替换 public.GetConfigValue('home') => 'https://www.bt.cn'
 
 - class/config.py 文件，get_nps方法内data['nps'] = False改成True，get_nps_new方法下面加上 return public.returnMsg(False, "获取问卷失败")
@@ -111,11 +113,7 @@
 
   check_node_status()
 
-- 去除WebRTC连接：BTPanel/static/js/public.js  删除stun.start();这一行
-
-- 去除内页广告：BTPanel/templates/default/layout.html 删除两处getPaymentStatus();
-
-- 删除问卷调查：BTPanel/templates/default/layout.html 删除if(window.localStorage.getItem('panelNPS') == null)以及下面的行
+- script/site_task.py 删除flush_ssh_log()
 
 - [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/layout.html 的\</body\>前面加入
 
@@ -139,7 +137,7 @@
 
 - [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log这一行
 
-- [可选]新版vite页面去除需求反馈、各种广告、计算题等，执行 php think cleanvitejs <面板BTPanel/static/vite/js路径>
+- [可选]新版vite页面去除需求反馈、各种广告、计算题等，执行 php think cleanvitejs <面板BTPanel/static/js路径>
 
 
 解压安装包[panel6.zip](http://download.bt.cn/install/src/panel6.zip)，将更新包改好的文件覆盖到里面，然后重新打包，即可更新安装包。（

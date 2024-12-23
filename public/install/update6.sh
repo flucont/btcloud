@@ -103,7 +103,7 @@ fi
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ -z "$VERSION_CHECK" ];then
-	version='9.2.0'
+	version='9.3.0'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then
@@ -135,6 +135,33 @@ rm -f /www/server/panel/*.pyc
 rm -f /www/server/panel/class/*.pyc
 #pip install flask_sqlalchemy
 #pip install itsdangerous==0.24
+
+if [ -f "/www/server/panel/pyenv/bin/pip3" ];then
+	btpip_path="/www/server/panel/pyenv/bin/pip3"
+	FlaskV=$($btpip_path list 2>/dev/null|grep "Flask " |awk '{print $2}'|cut -f 1 -d .)
+	piplist_count=$($btpip_path list 2>/dev/null|wc -l)
+	if [ "${FlaskV}" -le "2" ] && [ "${piplist_count}" -le "118" ];then
+		echo "检测到面板运行环境过老，正常尝试修复面板依赖"
+		pyenv_path="/www/server/panel"
+		wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.16.txt -T 5
+		$pyenv_path/pyenv/bin/pip install -U pip
+		$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
+		$pyenv_path/pyenv/bin/pip install -U wheel==0.34.2 
+		$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
+		echo "依赖修复完成，如面板仍无法正常访问，请联系宝塔官方人员进行求助"
+	fi
+
+	#wget -O pip-packs.txt $download_Url/install/pyenv/pip-packs.txt
+	#PIP_PACKS=$(cat pip-packs.txt)
+	#for P_PACK in ${PIP_PACKS};
+	#do
+	#	btpip show ${P_PACK} > /dev/null 2>&1
+	#	if [ "$?" == "1" ];then
+	#		btpip install ${P_PACK}
+	#	fi 
+	#done
+fi
+
 
 pip_list=$($mypip list 2>&1)
 request_v=$(btpip list 2>/dev/null|grep "requests "|awk '{print $2}'|cut -d '.' -f 2)
