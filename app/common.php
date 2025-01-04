@@ -3,7 +3,13 @@
 use think\facade\Db;
 
 function get_data_dir($os = 'Linux'){
-	return app()->getRootPath().'data/'.($os == 'Windows' ? 'win/' : '');
+	if($os == 'en'){
+		return app()->getRootPath().'data/en/';
+	}elseif($os == 'Windows'){
+		return app()->getRootPath().'data/win/';
+	}else{
+		return app()->getRootPath().'data/';
+	}
 }
 
 

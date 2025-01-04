@@ -236,6 +236,58 @@ class CleanViteJs extends Command
             $file = str_replace('暂无搜索结果，<span class="text-primary cursor-pointer NpsDialog">提交需求反馈</span>', '暂无搜索结果', $file);
             $flag = true;
         }
+
+        if(strpos($file, 'getReceiveCoupon()')!==false){ //aapanel-优惠券
+            $code = $this->getExtendCode($file, 'getReceiveCoupon()');
+            $file = str_replace($code, '{}', $file);
+            $flag = true;
+        }
+    
+        if(strpos($file, '"Site.DelSite.index_1"')!==false){ //aapanel-site
+            $code = $this->getExtendCode($file, '"Site.DelSite.index_10"', 3, '(', ')');
+            if($code){
+                $code = $this->getExtendFunction($file, $code);
+                $file = str_replace($code, '', $file);
+                $file = preg_replace('@\w+\.value!==\w+\.value\+\w+\.value@', '!1', $file);
+                $file = preg_replace('@null==\w+\.value\|\|null==\w+\.value@', '!1', $file);
+                $file = str_replace('disabled:!0', 'disabled:!1', $file);
+                $flag = true;
+            }
+        }
+    
+        if(strpos($file, '"Component.Confirm.index_4"')!==false){ //aapanel-public
+            $code = $this->getExtendCode($file, '"Component.Confirm.index_4"', 2, '(', ')');
+            if($code){
+                $code = $this->getExtendFunction($file, $code);
+                $file = str_replace($code, '', $file);
+                $file = preg_replace('@\w+\.value===\w+\.value\+\w+\.value@', '!0', $file);
+                $flag = true;
+            }
+            $code = $this->getExtendCode($file, '"Component.Confirm.index_1"', 1, '(', ')');
+            if($code){
+                $code = $this->getExtendFunction($file, $code);
+                $file = str_replace($code, '', $file);
+                $file = preg_replace('@\w+\.value===\w+\.value\?@', '!0?', $file);
+                $flag = true;
+            }
+        }
+        
+        if(strpos($file, '"Component.Feedback.index_7"')!==false){ //aapanel-需求反馈
+            $code = $this->getExtendCode($file, '"Component.Feedback.index_7"', 2);
+            if($code){
+                $code = $this->getExtendFunction($file, $code);
+                $file = str_replace($code, '', $file);
+                $flag = true;
+            }
+        }
+    
+        if(strpos($file, '"Soft.index_16"')!==false){ //aapanel-soft
+            $code = $this->getExtendCode($file, '"Soft.index_16"', 2);
+            if($code){
+                $file = str_replace($code, '{}', $file);
+                $flag = true;
+            }
+        }
     
         if(!$flag) return;
         if(file_put_contents($filepath, $file)){

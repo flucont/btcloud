@@ -15,7 +15,10 @@ class BtPlugins
 
     public function __construct($os){
         $this->os = $os;
-        if($os == 'Windows'){
+        if($os == 'en'){
+            $bt_url = config_get('enbt_url');
+            $bt_key = config_get('enbt_key');
+        }elseif($os == 'Windows'){
             $bt_url = config_get('wbt_url');
             $bt_key = config_get('wbt_key');
         }else{
@@ -157,9 +160,9 @@ class BtPlugins
             $de_text = '';
             foreach($data_arr as $data){
                 $data = trim($data);
-                if(!empty($data) && strlen($data)!=24){
+                if(!empty($data)){
                     $tmp = openssl_decrypt($data, 'aes-128-cbc', $key, 0, $iv);
-                    if($tmp) $de_text .= $tmp;
+                    if($tmp !== false) $de_text .= $tmp;
                 }
             }
             if(!empty($de_text) && strpos($de_text, 'import ')!==false){
@@ -201,6 +204,8 @@ class BtPlugins
         $data = str_replace('\'https://www.bt.cn/api/v2/contact/nps/submit', 'public.GetConfigValue(\'home\')+\'/panel/notpro', $data);
         $data = str_replace('\'http://www.bt.cn/api/Auth', 'public.GetConfigValue(\'home\')+\'/api/Auth', $data);
         $data = str_replace('\'https://www.bt.cn/api/Auth', 'public.GetConfigValue(\'home\')+\'/api/Auth', $data);
+
+        $data = str_replace('\'https://brandnew.aapanel.com/api/panel/getSoftList', 'public.OfficialApiBase()+\'/api/panel/getSoftList', $data);
 
         file_put_contents($main_filepath, $data);
     }

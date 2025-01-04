@@ -13,7 +13,13 @@ class ThirdPlugins
     public function __construct($os)
     {
         $this->os = $os;
-        $url = $os == 'Windows' ? config_get('wbt_surl') : config_get('bt_surl');
+        if($os == 'en'){
+            $url = config_get('enbt_surl');
+        }elseif($os == 'Windows'){
+            $url = config_get('wbt_surl');
+        }else{
+            $url = config_get('bt_surl');
+        }
         if(!$url) throw new Exception('请先配置好第三方云端首页URL');
         $this->url = $url;
     }
@@ -21,7 +27,13 @@ class ThirdPlugins
     //获取插件列表
     public function get_plugin_list()
     {
-        $url = $this->os == 'Windows' ? $this->url . 'api/wpanel/get_soft_list' : $this->url . 'api/panel/get_soft_list';
+        if($this->os == 'en'){
+            $url = $this->url . 'api/panel/get_plugin_list_en';
+        }elseif($this->os == 'Windows'){
+            $url = $this->url . 'api/wpanel/get_plugin_list';
+        }else{
+            $url = $this->url . 'api/panel/get_plugin_list';
+        }
         $res = $this->curl($url);
         $result = json_decode($res, true);
         if($result && isset($result['list']) && isset($result['type'])){

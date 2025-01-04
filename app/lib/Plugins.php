@@ -17,7 +17,13 @@ class Plugins
     }
 
     private static function is_third($os){
-        $type = $os == 'Windows' ? config_get('wbt_type') : config_get('bt_type');
+        if($os == 'en'){
+            $type = config_get('enbt_type');
+        }elseif($os == 'Windows'){
+            $type = config_get('wbt_type');
+        }else{
+            $type = config_get('bt_type');
+        }
         return $type == 1;
     }
 
@@ -31,21 +37,42 @@ class Plugins
     //保存插件列表
     private static function save_plugin_list($data, $os){
         $data['ip'] = '127.0.0.1';
-        $data['serverid'] = '';
-        $data['beta'] = 0;
-        $data['uid'] = 1;
-        $data['skey'] = '';
-        $list = [];
-        foreach($data['list'] as $plugin){
-            if(isset($plugin['endtime'])) $plugin['endtime'] = 0;
-            $list[] = $plugin;
+        if($os == 'en'){
+            $data['serverId'] = '';
+            $data['aln'] = self::get_aln();
+            $data['pro'] = 0;
+            $data['pro_authorization_sn'] = '0';
+            if(!empty($data['authorization_map'])){
+                foreach($data['authorization_map'] as $code => &$plugin){
+                    if($code != '0' && isset($plugin['end_time'])) $plugin['end_time'] = 0;
+                }
+            }
+            if(isset($data['expansions']['mail'])){
+                $data['expansions']['mail']['total'] = 2000000;
+                $data['expansions']['mail']['available'] = 2000000;
+            }
+        }else{
+            $data['serverid'] = '';
+            $data['aln'] = self::get_aln();
+            $data['beta'] = 0;
+            $data['uid'] = 1;
+            $data['skey'] = '';
+            $data['ltd'] = strtotime('+10 year');
         }
-        $data['list'] = $list;
-        $data['ltd'] = strtotime('+10 year');
+        foreach($data['list'] as &$plugin){
+            if(isset($plugin['endtime'])) $plugin['endtime'] = 0;
+        }
         $json_file = get_data_dir($os).'config/plugin_list.json';
         if(!file_put_contents($json_file, json_encode($data))){
             throw new Exception('保存插件列表失败，文件无写入权限');
         }
+    }
+
+    //多账号数量
+    private static function get_aln($count = '9999'){
+        $key = 'FB8upo8XMgP5by54';
+        $iv = 'lOrrq3lNEURZNdK7';
+        return openssl_encrypt($count, 'aes-128-cbc', $key, 0, $iv);
     }
 
     //获取插件列表
@@ -106,7 +133,7 @@ class Plugins
             $data = trim($data);
             if(!empty($data)){
                 $tmp = openssl_decrypt($data, 'aes-128-cbc', $key, 0, $iv);
-                if($tmp) $de_text .= $tmp;
+                if($tmp !== false) $de_text .= $tmp;
             }
         }
         if(!empty($de_text) && strpos($de_text, 'import ')!==false){

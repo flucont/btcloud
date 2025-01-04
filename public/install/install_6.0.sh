@@ -931,7 +931,7 @@ Install_Bt(){
 		echo "True" > /www/server/panel/data/not_workorder.pl
 	fi
 	if [ ! -f /www/server/panel/data/userInfo.json ]; then
-		echo "{\"uid\":1,\"username\":\"Administrator\",\"address\":\"127.0.0.1\",\"serverid\":\"1\",\"access_key\":\"test\",\"secret_key\":\"123456\",\"ukey\":\"123456\",\"state\":1}" > /www/server/panel/data/userInfo.json
+		echo "{\"uid\":1,\"username\":\"Administrator\",\"address\":\"127.0.0.1\",\"access_key\":\"test\",\"secret_key\":\"123456\",\"ukey\":\"123456\",\"state\":1}" > /www/server/panel/data/userInfo.json
 	fi
 	if [ ! -f /www/server/panel/data/panel_nps.pl ]; then
 		echo "" > /www/server/panel/data/panel_nps.pl

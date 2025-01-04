@@ -36,6 +36,20 @@ class Api extends BaseController
         return json($json_arr);
     }
 
+    //获取插件列表(aapanel)
+    public function get_plugin_list_en(){
+        if(!$this->checklist()) return json('你的服务器被禁止使用此云端');
+        $record = Db::name('record')->where('ip',$this->clientip)->find();
+        if($record){
+            Db::name('record')->where('id',$record['id'])->update(['usetime'=>date("Y-m-d H:i:s")]);
+        }else{
+            Db::name('record')->insert(['ip'=>$this->clientip, 'addtime'=>date("Y-m-d H:i:s"), 'usetime'=>date("Y-m-d H:i:s")]);
+        }
+        $json_arr = Plugins::get_plugin_list('en');
+        if(!$json_arr) return json((object)[]);
+        return json($json_arr);
+    }
+
     //下载插件包
     public function download_plugin(){
         $plugin_name = input('post.name');
@@ -50,6 +64,26 @@ class Api extends BaseController
         }
         if(!$this->checklist()) return '你的服务器被禁止使用此云端';
         $filepath = get_data_dir($os).'plugins/package/'.$plugin_name.'-'.$version.'.zip';
+        if(file_exists($filepath)){
+            $filename = $plugin_name.'.zip';
+            $this->output_file($filepath, $filename);
+        }else{
+            return '云端不存在该插件包';
+        }
+    }
+
+    //下载插件包aapanel
+    public function download_plugin_en(){
+        $plugin_name = input('post.name');
+        $version = input('post.version');
+        if(!$plugin_name || !$version){
+            return '参数不能为空';
+        }
+        if(!preg_match('/^[a-zA-Z0-9_]+$/', $plugin_name) || !preg_match('/^[0-9.]+$/', $version)){
+            return '参数不正确';
+        }
+        if(!$this->checklist()) return '你的服务器被禁止使用此云端';
+        $filepath = get_data_dir('en').'plugins/package/'.$plugin_name.'-'.$version.'.zip';
         if(file_exists($filepath)){
             $filename = $plugin_name.'.zip';
             $this->output_file($filepath, $filename);
@@ -92,7 +126,10 @@ class Api extends BaseController
     public function download_plugin_other(){
         $fname = input('get.fname');
         if(!$fname){
-            return json(['status'=>false, 'msg'=>'参数不能为空']);
+            $fname = input('get.filename');
+            if(!$fname){
+                return json(['status'=>false, 'msg'=>'参数不能为空']);
+            }
         }
         if(strpos(dirname($fname),'.')!==false)return json(['status'=>false, 'msg'=>'参数不正确']);
         if(!$this->checklist()) return json(['status'=>false, 'msg'=>'你的服务器被禁止使用此云端']);
@@ -136,6 +173,11 @@ class Api extends BaseController
 
     public function get_version_win(){
         $version = config_get('new_version_win');
+        return $version;
+    }
+
+    public function get_version_en(){
+        $version = config_get('new_version_en');
         return $version;
     }
 
@@ -200,6 +242,28 @@ class Api extends BaseController
                 'downUrl' => $down_url,
                 'updateMsg' => config_get('update_msg_win'),
                 'uptime' => config_get('update_date_win'),
+            ]
+        ];
+        return json($data);
+    }
+
+    //检测更新(aapanel)
+    public function check_update_en(){
+        $version = config_get('new_version_en');
+        $down_url = request()->root(true).'/install/update/LinuxPanel_EN-'.$version.'.zip';
+        $data = [
+            'force' => false,
+            'version' => $version,
+            'downUrl' => $down_url,
+            'updateMsg' => config_get('update_msg_en'),
+            'uptime' => config_get('update_date_en'),
+            'is_beta' => 0,
+            'btb' => '',
+            'beta' => [
+                'version' => $version,
+                'downUrl' => $down_url,
+                'updateMsg' => config_get('update_msg_en'),
+                'uptime' => config_get('update_date_en'),
             ]
         ];
         return json($data);
@@ -408,6 +472,18 @@ class Api extends BaseController
 
     public function return_page_data(){
         return json(['page'=>"<div><span class='Pcurrent'>1</span><span class='Pnumber'>1/0</span><span class='Pline'>从1-1000条</span><span class='Pcount'>共计0条数据</span></div>", 'data'=>[]]);
+    }
+
+    public function nps_check(){
+        return json(['err_no'=>0, 'success'=>true, 'res'=>true, 'nonce'=>time()]);
+    }
+
+    public function nps_questions(){
+        return json(['err_no'=>0, 'success'=>true, 'res'=>[], 'nonce'=>time()]);
+    }
+
+    public function nps_submit(){
+        return json(['err_no'=>0, 'success'=>true, 'res'=>'Success', 'nonce'=>time()]);
     }
 
     //获取所有蜘蛛IP列表

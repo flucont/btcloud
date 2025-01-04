@@ -43,7 +43,7 @@
 							</div>
 						</div>
 					</div>
-					<div class="install-box windows">
+					{if config_get('new_version_win')}<div class="install-box windows">
 						<div class="img">
 							<img src="/static/images/prd_2_03.png">
 						</div>
@@ -60,10 +60,10 @@
 								<a class="btn" href="javascript:;" id="goInstallWindows">查看安装方法</a>
 							</div>
 						</div>
-					</div>
+					</div>{/if}
 				</div>
-				{if config_get('new_version_btm')}<div class="disflex flex_lrcenter mt_30 install-list">
-					<div class="install-box monitor">
+				{if config_get('new_version_btm') || config_get('new_version_en')}<div class="disflex flex_lrcenter mt_30 install-list">
+					{if config_get('new_version_win')}<div class="install-box monitor">
 						<div class="img">
 							<img src="/static/images/bt_monitor.png" style="height: 96px;"/>
 						</div>
@@ -76,7 +76,21 @@
 								<a class="btn" href="javascript:;" id="goInstallMonitor">查看安装脚本</a>
 							</div>
 						</div>
-					</div>
+					</div>{/if}
+					{if config_get('new_version_en')}<div class="install-box monitor">
+						<div class="img">
+							<img src="/static/images/aapanel.png" style="height: 96px;"/>
+						</div>
+						<div class="cont">
+							<div class="top">
+								<div class="title">aaPanel {:config_get('new_version_en')}</div>
+								<div class="desc">宝塔面板国际版</div>
+							</div>
+							<div class="bottom">
+								<a class="btn" href="javascript:;" id="goInstallAaPanel">查看安装脚本</a>
+							</div>
+						</div>
+					</div>{/if}
 				</div>{/if}
 			</div>
 		</div>
@@ -121,6 +135,7 @@
 			</div>
 		</div>
 	</div>
+	{if config_get('new_version_win')}
 	<div class="d4" id="instal-windows" style="background-color: #edf6ef;">
 		<div class="wrap">
 			<div class="wrap-title">
@@ -140,7 +155,7 @@
 				<p>注意：仅支持Windows Server 2008 R2/2012/2016/2019/2022，64位系统（中文简体），且未安装其它环境</p>
 			</div>
 		</div>
-	</div>
+	</div>{/if}
 	{if config_get('new_version_btm')}
 	<div class="d4" id="instal-monitor">
 		<div class="wrap">
@@ -168,6 +183,31 @@
 			</div>
 			<div class="tips" style="color: orangered; font-weight: 700">
 				<p>注意：安装完成后推荐使用Chrome、火狐、edge浏览器，国产浏览器（极速模式）访问登录系统</p>
+			</div>
+		</div>
+	</div>{/if}
+	{if config_get('new_version_en')}
+	<div class="d4" id="instal-aapanel" style="background-color: #edf6ef;">
+		<div class="wrap">
+			<div class="wrap-title">
+				<div class="text">aaPanel {:config_get('new_version_en')} install script</div>
+			</div>
+			<div class="desc">
+				<p>It is recommended that you use Ubuntu22.04 to install aaPanel</p>
+			</div>
+			<div class="install-code">
+				<span class="osname">Instarll script</span>
+				<div class="code-cont">
+					<div class="command" title="Copy successfully, please paste it to the server installation">URL={$siteurl}/script/install_pro_en.sh && if [ -f /usr/bin/curl ];then curl -ksSO $URL ;else wget -O install_pro_en.sh $URL;fi;bash install_pro_en.sh</div>
+					<span class="ico-copy" title="Copy successfully, please paste it to the server installation" data-clipboard-text="URL={$siteurl}/script/install_pro_en.sh && if [ -f /usr/bin/curl ];then curl -ksSO $URL ;else wget -O install_pro_en.sh $URL;fi;bash install_pro_en.sh">复制</span>
+				</div>
+			</div>
+			<div class="install-code">
+				<span class="osname">Upgrade script</span>
+				<div class="code-cont">
+					<div class="command" title="Copy successfully, please paste it to the server installation">curl {$siteurl}/install/update_7.x_en.sh|bash</div>
+					<span class="ico-copy" title="Copy successfully, please paste it to the server installation" data-clipboard-text="curl {$siteurl}/install/update_7.x_en.sh|bash">复制</span>
+				</div>
 			</div>
 		</div>
 	</div>{/if}
@@ -234,6 +274,10 @@
 
 		$('#goInstallMonitor').click(function () {
 			scrollTop('#instal-monitor');
+		});
+
+		$('#goInstallAaPanel').click(function () {
+			scrollTop('#instal-aapanel');
 		});
 
 		function GetRequest() {

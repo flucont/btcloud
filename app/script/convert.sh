@@ -2,6 +2,7 @@
 
 Linux_Version="9.3.0"
 Windows_Version="8.2.1"
+Aapanel_Version="7.0.13"
 Btm_Version="2.3.0"
 
 FILES=(
@@ -17,6 +18,11 @@ public/win/panel/data/setup.py
 public/install/src/bt-monitor-${Btm_Version}.zip
 public/install/install_btmonitor.sh
 public/install/update_btmonitor.sh
+public/install/src/panel_7_en.zip
+public/install/update/LinuxPanel_EN-${Aapanel_Version}.zip
+public/install/install_7.0_en.sh
+public/install/install_pro_en.sh
+public/install/update_7.x_en.sh
 )
 
 DIR=$1

@@ -127,6 +127,22 @@ Route::group('api', function () {
     Route::post('/Cert_cloud_deploy/get_cert_list', 'api/return_success');
     Route::post('/Cert_cloud_deploy/del_cert', 'api/return_success');
 
+    Route::any('/panel/getSoftList', 'api/get_plugin_list_en');
+    Route::any('/panel/getSoftListEn', 'api/get_plugin_list_en');
+    Route::post('/panel/download_plugin', 'api/download_plugin_en');
+    Route::get('/plugin/download', 'api/download_plugin_other');
+    Route::get('/common/getClientIP', 'api/get_ip_address');
+    Route::post('/panel/checkDomain', 'api/check_domain');
+    Route::get('/panel/getBetaVersionLogs', 'api/get_beta_logs');
+    Route::any('/panel/updateLinuxEn', 'api/check_update_en');
+    Route::post('/user/verifyToken', 'api/return_success');
+    Route::post('/panel/nps/check', 'api/nps_check');
+    Route::post('/panel/nps/questions', 'api/nps_questions');
+    Route::post('/panel/nps/submit', 'api/nps_submit');
+    Route::post('/panel/submit_feature_invoked_bulk', 'api/return_success');
+    Route::post('/panel/submit_expand_pack_used', 'api/return_success');
+    Route::get('/panel/getLatestOfficialVersion', 'api/get_version_en');
+
     Route::miss('api/return_error');
 });
 
@@ -141,6 +157,7 @@ Route::group('admin', function () {
     Route::post('/testbturl', 'admin/testbturl');
     Route::get('/plugins', 'admin/plugins');
     Route::get('/pluginswin', 'admin/pluginswin');
+    Route::get('/pluginsen', 'admin/pluginsen');
     Route::post('/plugins_data', 'admin/plugins_data');
     Route::post('/download_plugin', 'admin/download_plugin');
     Route::get('/refresh_plugins', 'admin/refresh_plugins');

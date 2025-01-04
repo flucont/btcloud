@@ -45,37 +45,34 @@ class DecryptFile extends Command
                 $output->writeln($e->getMessage());
             }
         }elseif($type == 'module'){
-            try{
-                $res = Plugins::decode_module_file($file);
-                if($res == 2){
-                    $output->writeln('文件解密失败！');
-                }elseif($res == 1){
-                    $output->writeln('文件解密成功！');
-                }
-            }catch(\Exception $e){
-                $output->writeln($e->getMessage());
-            }
+            $this->decode_module_file($output, $file);
         }elseif($type == 'classdir'){
             $file = rtrim($file, '/');
-            if(!file_exists($file.'/common.py')){
+            if(file_exists($file.'/common.py')){
+                $class_v = 1;
+            }elseif(file_exists($file.'/common_v2.py')){
+                $class_v = 2;
+            }else{
                 $output->writeln('当前路径非宝塔面板class目录');
                 return;
             }
-            $dirs = glob($file.'/*Model');
+            $dirs = glob($file.'/*Model'.($class_v == 2 ? 'V2' : ''));
             foreach($dirs as $dir){
                 if(!is_dir($dir))continue;
                 $files = glob($dir.'/*Model.py');
-                foreach($files as $file){
-                    try{
-                        $res = Plugins::decode_module_file($file);
-                        if($res == 2){
-                            $output->writeln('文件解密失败：'.$file);
-                        }elseif($res == 1){
-                            $output->writeln('文件解密成功：'.$file);
-                        }
-                    }catch(\Exception $e){
-                        $output->writeln($e->getMessage().'：'.$file);
-                    }
+                foreach($files as $filepath){
+                    $this->decode_module_file($output, $filepath);
+                }
+            }
+            if($class_v == 2){
+                $filepath = $file.'/wp_toolkit/core.py';
+                if(file_exists($filepath)){
+                    $this->decode_module_file($output, $filepath);
+                }
+            }else{
+                $filepath = $file.'/public/authorization.py';
+                if(file_exists($filepath)){
+                    $this->decode_module_file($output, $filepath);
                 }
             }
         }elseif($type == 'all'){
@@ -95,21 +92,24 @@ class DecryptFile extends Command
                     $this->scan_all_file($input, $output, $filepath);
                 }
                 elseif(substr($filepath, -3) == '.py') {
-                    try{
-                        $res = Plugins::decode_module_file($filepath);
-                        if($res == 2){
-                            $output->writeln('文件解密失败：'.$filepath);
-                        }elseif($res == 1){
-                            $output->writeln('文件解密成功：'.$filepath);
-                        }
-                    }catch(\Exception $e){
-                        $output->writeln($e->getMessage().'：'.$filepath);
-                    }
+                    $this->decode_module_file($output, $filepath);
                 }
             }
         }
         closedir($dir);
     }
 
+    private function decode_module_file(Output $output, $filepath){
+        try{
+            $res = Plugins::decode_module_file($filepath);
+            if($res == 2){
+                $output->writeln('文件解密失败：'.$filepath);
+            }elseif($res == 1){
+                $output->writeln('文件解密成功：'.$filepath);
+            }
+        }catch(\Exception $e){
+            $output->writeln($e->getMessage().'：'.$filepath);
+        }
+    }
     
 }

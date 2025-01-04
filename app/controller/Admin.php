@@ -151,7 +151,7 @@ class Admin extends BaseController
                 if($result && isset($result['username'])){
                     return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
                 }else{
-                    return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件']);
+                    return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件/未登录账号']);
                 }
             }else{
                 return json(['code'=>-1, 'msg'=>isset($result['msg'])?$result['msg']:'面板地址无法连接']);
@@ -175,6 +175,19 @@ class Admin extends BaseController
     public function pluginswin(){
         $typelist = [];
         $json_arr = Plugins::get_plugin_list('Windows');
+        if($json_arr){
+            foreach($json_arr['type'] as $type){
+                if($type['title'] == '一键部署') continue;
+                $typelist[$type['id']] = $type['title'];
+            }
+        }
+        View::assign('typelist', $typelist);
+        return view();
+    }
+
+    public function pluginsen(){
+        $typelist = [];
+        $json_arr = Plugins::get_plugin_list('en');
         if($json_arr){
             foreach($json_arr['type'] as $type){
                 if($type['title'] == '一键部署') continue;
@@ -226,7 +239,7 @@ class Admin extends BaseController
                 'name' => $plugin['name'],
                 'title' => $plugin['title'],
                 'type' => $plugin['type'],
-                'typename' => $typelist[$plugin['type']],
+                'typename' => isset($typelist[$plugin['type']]) ? $typelist[$plugin['type']] : '未知',
                 'desc' => str_replace('target="_blank"','target="_blank" rel="noopener noreferrer"',$plugin['ps']),
                 'price' => $plugin['price'],
                 'author' => isset($plugin['author']) ? $plugin['author'] : '官方',
