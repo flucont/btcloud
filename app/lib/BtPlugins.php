@@ -36,9 +36,11 @@ class BtPlugins
             if(empty($result['list']) || empty($result['type'])){
                 throw new Exception('获取插件列表失败：插件列表为空');
             }
-            foreach($result['list'] as $k=>$v){
-                if(in_array($v['name'], self::$block_plugins)) unset($result['list'][$k]);
+            $newlist = [];
+            foreach($result['list'] as $item){
+                if(!in_array($item['name'], self::$block_plugins)) $newlist[] = $item;
             }
+            $result['list'] = $newlist;
             return $result;
         }else{
             throw new Exception('获取插件列表失败：'.(isset($result['msg'])?$result['msg']:'面板连接失败'));
