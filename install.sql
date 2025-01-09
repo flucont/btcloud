@@ -31,7 +31,7 @@ INSERT INTO `cloud_config` (`key`, `value`) VALUES
 DROP TABLE IF EXISTS `cloud_black`;
 CREATE TABLE `cloud_black` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ip` varchar(20) NOT NULL,
+  `ip` varchar(50) NOT NULL,
   `enable` tinyint(1) NOT NULL DEFAULT '1',
   `addtime` datetime NOT NULL,
   PRIMARY KEY (`id`),
@@ -41,7 +41,7 @@ CREATE TABLE `cloud_black` (
 DROP TABLE IF EXISTS `cloud_white`;
 CREATE TABLE `cloud_white` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ip` varchar(20) NOT NULL,
+  `ip` varchar(50) NOT NULL,
   `enable` tinyint(1) NOT NULL DEFAULT '1',
   `addtime` datetime NOT NULL,
   PRIMARY KEY (`id`),
@@ -51,7 +51,7 @@ CREATE TABLE `cloud_white` (
 DROP TABLE IF EXISTS `cloud_record`;
 CREATE TABLE `cloud_record` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `ip` varchar(20) NOT NULL,
+  `ip` varchar(50) NOT NULL,
   `addtime` datetime NOT NULL,
   `usetime` datetime NOT NULL,
   PRIMARY KEY (`id`),
