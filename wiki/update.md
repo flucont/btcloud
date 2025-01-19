@@ -58,7 +58,7 @@
 
   在login_send_body方法内，free_login_area(login_ip=server_ip_area的server_ip_area改成login_ip
 
-- class/panelPlugin.py 文件，删除public.total_keyword(get.query)这一行
+- class/panelPlugin.py 文件
 
   __set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
 
@@ -75,6 +75,10 @@
   ```
   
   plugin_bin.pl 改成 plugin_list.json
+  
+  删除 public.total_keyword(get.query)
+  
+  删除 public.run_thread(self.get_cloud_list_status, args=(get,))
   
   删除 public.run_thread(self.is_verify_unbinding, args=(get,))
   
@@ -97,8 +101,8 @@
 - install/install_soft.sh 在. 执行之前加入以下代码
 
   ```shell
-  sed -i "s/http:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" lib.sh
-  sed -i "s/https:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" lib.sh
+  sed -i "s/http:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" $name.sh
+  sed -i "s/https:\/\/download.bt.cn\/install\/public.sh/http:\/\/www.example.com\/install\/public.sh/" $name.sh
   ```
   
 - install/public.sh 用官网最新版的[public.sh](http://download.bt.cn/install/public.sh)替换，并去除最下面bt_check一行
@@ -112,6 +116,8 @@
   PluginLoader.daemon_panel()
 
   check_node_status()
+
+  self.upload_send_num()
 
 - script/site_task.py 删除flush_ssh_log()
 

@@ -15,6 +15,7 @@ Route::post('/panel/get_unbinding', 'api/return_success');
 Route::post('/bt_cert', 'api/bt_cert');
 Route::post('/Auth/GetAuthToken', 'api/get_auth_token');
 Route::post('/Auth/GetBindCode', 'api/return_error');
+Route::post('/auth/GetUserGiveAway', 'api/get_user_give_away');
 Route::any('/bt_monitor/update_history', 'api/btm_update_history');
 Route::any('/bt_monitor/latest_version', 'api/btm_latest_version');
 Route::any('/bt_waf/get_malicious_ip', 'api/get_ssl_list');
@@ -40,6 +41,7 @@ Route::group('api', function () {
     Route::get('/panel/get_version', 'api/get_version');
     Route::get('/wpanel/get_version', 'api/get_version_win');
     Route::get('/panel/get_panel_version', 'api/get_panel_version');
+    Route::any('/panel/get_panel_version_v2', 'api/get_panel_version_v2');
     Route::get('/SetupCount', 'api/setup_count');
     Route::any('/panel/updateLinux', 'api/check_update');
     Route::any('/wpanel/updateWindows', 'api/check_update_win');
@@ -57,6 +59,7 @@ Route::group('api', function () {
     Route::post('/Cert/get_order_list', 'api/return_empty_array');
     Route::post('/Cert/get_product_list', 'api/return_success');
     Route::get('/Pluginother/get_file', 'api/download_plugin_other');
+    Route::get('/isCN', 'api/check_cnip');
 
     Route::post('/Pluginother/create_order', 'api/return_success');
     Route::post('/Pluginother/renew_order', 'api/return_success');
@@ -113,6 +116,9 @@ Route::group('api', function () {
 
     Route::post('/v2/common_v1_authorization/get_pricing', 'api/return_error2');
     Route::post('/v2/common_v2_authorization/get_pricing', 'api/return_error2');
+    Route::post('/v2/synchron', 'api/return_error2');
+    Route::post('/v2/product/email/user_surplus', 'api/email_user_surplus');
+    Route::post('/v2/product/email', 'api/return_error2');
 
     Route::any('/bt_waf/getSpiders', 'api/btwaf_getspiders');
     Route::post('/bt_waf/addSpider', 'api/return_empty');

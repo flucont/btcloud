@@ -31,6 +31,9 @@ class UpdateAll extends Command
         if(!config_get('wbt_type') && config_get('wbt_url') || config_get('wbt_type')==1 && config_get('wbt_surl')){
             $this->process_plugins($input, $output, 'Windows');
         }
+        if(!config_get('enbt_type') && config_get('enbt_url') || config_get('enbt_type')==1 && config_get('enbt_surl')){
+            $this->process_plugins($input, $output, 'en');
+        }
 
         config_set('runtime', date('Y-m-d H:i:s'));
     }
@@ -43,7 +46,13 @@ class UpdateAll extends Command
 
         $count = 0;
 
-        $type = intval(config_get($os=='Windows'?'updateall_type_win':'updateall_type'));
+        if($os=='Windows'){
+            $type = intval(config_get('updateall_type_win'));
+        }elseif($os=='en'){
+            $type = intval(config_get('updateall_type_en'));
+        }else{
+            $type = intval(config_get('updateall_type'));
+        }
 
         $json_arr = Plugins::get_plugin_list($os);
         //循环下载缺少的插件

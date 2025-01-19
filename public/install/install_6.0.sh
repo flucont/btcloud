@@ -4,7 +4,10 @@ export PATH
 LANG=en_US.UTF-8
 
 INSTALL_LOGFILE="/tmp/btpanel-install.log"
-# exec > >(tee -a "$INSTALL_LOGFILE") 2>&1 
+if [ -f "$INSTALL_LOGFILE" ];then
+    rm -f $INSTALL_LOGFILE
+fi
+exec > >(tee -a "$INSTALL_LOGFILE") 2>&1 
 
 Btapi_Url='http://www.example.com'
 Check_Api=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/SetupCount)
@@ -22,6 +25,46 @@ if [ "${is64bit}" != '64' ];then
 	echo "抱歉, 当前面板版本不支持32位系统, 请使用64位系统或安装宝塔5.9!";
 	exit 1
 fi
+
+Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
+if [ "${Centos6Check}" ];then
+	echo "Centos6不支持安装宝塔面板，请更换Centos7/8安装宝塔面板"
+	exit 1
+fi 
+
+UbuntuCheck=$(cat /etc/issue|grep Ubuntu|awk '{print $2}'|cut -f 1 -d '.')
+if [ "${UbuntuCheck}" ] && [ "${UbuntuCheck}" -lt "16" ];then
+	echo "Ubuntu ${UbuntuCheck}不支持安装宝塔面板，建议更换Ubuntu18/20安装宝塔面板"
+	exit 1
+fi
+HOSTNAME_CHECK=$(cat /etc/hostname)
+if [ -z "${HOSTNAME_CHECK}" ];then
+	echo "当前主机名hostname为空无法安装宝塔面板，请咨询服务器运营商设置好hostname后再重新安装"
+	exit 1
+fi
+
+UBUNTU_NO_LTS=$(cat /etc/issue|grep Ubuntu|grep -E "19|21|23|25")
+if [ "${UBUNTU_NO_LTS}" ];then
+	echo "当前您使用的非Ubuntu-lts版本，无法进行宝塔面板的安装"
+	echo "请使用Ubuntu-20/20/22/24进行安装宝塔面板"
+	exit 1
+fi
+
+DEBIAN_9_C=$(cat /etc/issue|grep Debian|grep -E "8 |9 ")
+if [ "${DEBIAN_9_C}" ];then
+	echo "当前您使用的Debian-8/9，官方已经停止支持、无法进行宝塔面板的安装"
+	echo "请使用Debian-11/12进行安装宝塔面板"
+	exit 1
+fi
+
+cd ~
+setup_path="/www"
+python_bin=$setup_path/server/panel/pyenv/bin/python
+cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
+panelPort=$(expr $RANDOM % 55535 + 10000)
+# if [ "$1" ];then
+# 	IDC_CODE=$1
+# fi
 
 Ready_Check(){
     WWW_DISK_SPACE=$(df |grep /www|awk '{print $4}')
@@ -60,47 +103,6 @@ Ready_Check(){
 	fi
 }
 
-
-Centos6Check=$(cat /etc/redhat-release | grep ' 6.' | grep -iE 'centos|Red Hat')
-if [ "${Centos6Check}" ];then
-	echo "Centos6不支持安装宝塔面板，请更换Centos7/8安装宝塔面板"
-	exit 1
-fi 
-
-UbuntuCheck=$(cat /etc/issue|grep Ubuntu|awk '{print $2}'|cut -f 1 -d '.')
-if [ "${UbuntuCheck}" ] && [ "${UbuntuCheck}" -lt "16" ];then
-	echo "Ubuntu ${UbuntuCheck}不支持安装宝塔面板，建议更换Ubuntu22/24安装宝塔面板"
-	exit 1
-fi
-HOSTNAME_CHECK=$(cat /etc/hostname)
-if [ -z "${HOSTNAME_CHECK}" ];then
-	echo "当前主机名hostname为空无法安装宝塔面板，请咨询服务器运营商设置好hostname后再重新安装"
-	exit 1
-fi
-
-UBUNTU_NO_LTS=$(cat /etc/issue|grep Ubuntu|grep -E "19|21|23|25")
-if [ "${UBUNTU_NO_LTS}" ];then
-	echo "当前您使用的非Ubuntu-lts版本，无法进行宝塔面板的安装"
-	echo "请使用Ubuntu-20/20/22/24进行安装宝塔面板"
-	exit 1
-fi
-
-DEBIAN_9_C=$(cat /etc/issue|grep Debian|grep -E "8 |9 ")
-if [ "${DEBIAN_9_C}" ];then
-	echo "当前您使用的Debian-8/9，官方已经停止支持、无法进行宝塔面板的安装"
-	echo "请使用Debian-11/12进行安装宝塔面板"
-	exit 1
-fi
-
-cd ~
-setup_path="/www"
-python_bin=$setup_path/server/panel/pyenv/bin/python
-cpu_cpunt=$(cat /proc/cpuinfo|grep processor|wc -l)
-panelPort=$(expr $RANDOM % 55535 + 10000)
-# if [ "$1" ];then
-# 	IDC_CODE=$1
-# fi
-
 GetSysInfo(){
 	if [ -s "/etc/redhat-release" ];then
 		SYS_VERSION=$(cat /etc/redhat-release)
@@ -125,6 +127,28 @@ GetSysInfo(){
 		echo -e "Centos7/8官方已经停止支持"
 		echo -e "如是新安装系统服务器建议更换至Debian-12/Ubuntu-22/Centos-9系统安装宝塔面板"
 		echo -e "============================================"
+	fi
+
+	
+	if [ -f "/usr/sbin/setstatus" ] || [ -f "/usr/sbin/setstatus" ];then
+		echo -e "=================================================="
+		echo -e "  检测到为麒麟系统，可能默认开启安全功能导致安装失败"
+		echo -e "  请执行以下命令关闭安全加固后，再重新安装宝塔面板看是否正常"
+		echo -e "  命令：sudo setstatus softmode -p"
+		echo -e "=================================================="
+	fi  
+
+	SYS_SSL_LIBS=$(pkg-config --list-all | grep -q libssl)
+	if [ -z "$SYS_SSL_LIBS" ];then
+		echo "检测到缺少系统ssl相关依赖，可执行下面命令安装依赖后再重新安装宝塔看是否正常"
+		echo "执行前请确保系统源正常"
+		if [ -f "/usr/bin/yum" ];then
+			echo "安装依赖命令: yum install openssl-devel -y"
+		elif [ -f "/usr/bin/apt-get" ];then
+			echo "安装依赖命令: apt-get install libssl-dev -y"
+		fi
+		rm -rf /www/server/panel/pyenv 
+		echo -e "=================================================="
 	fi
 }
 Red_Error(){
@@ -175,11 +199,38 @@ Set_Ssl(){
     fi
 }
 Add_lib_Install(){
-	Get_Versions
-	if [ "${os_type}" == "el" ] && [ "${os_version}" == "7" ];then
+	if [ -f "/etc/os-release" ];then
+		. /etc/os-release
+		OS_V=${VERSION_ID%%.*}
+		if [ "${ID}" == "debian" ] && [[ "${OS_V}" =~ ^(11|12)$ ]];then
+			OS_NAME=${ID}
+		elif [ "${ID}" == "ubuntu" ] && [[ "${OS_V}" =~ ^(22|24)$ ]];then
+			OS_NAME=${ID}
+		elif [ "${ID}" == "centos" ] && [[ "${OS_V}" =~ ^(7)$ ]];then
+			OS_NAME="el"
+		elif [ "${ID}" == "opencloudos" ] && [[ "${OS_V}" =~ ^(9)$ ]];then
+			OS_NAME=${ID}
+		elif [ "${ID}" == "tencentos" ] && [[ "${OS_V}" =~ ^(4)$ ]];then
+			OS_NAME=${ID}
+		elif [ "${ID}" == "hce" ] && [[ "${OS_V}" =~ ^(2)$ ]];then
+		    OS_NAME=${ID}
+        elif { [ "${ID}" == "almalinux" ] || [ "${ID}" == "centos" ] || [ "${ID}" == "rocky" ]; } && [[ "${OS_V}" =~ ^(9)$ ]]; then
+            OS_NAME="el"
+		fi
+	fi
+
+	X86_CHECK=$(uname -m|grep x86_64)
+
+	if [ "${OS_NAME}" ] && [ "${X86_CHECK}" ];then
+		if [ "${PM}" = "yum" ]; then
+			mtype="1"
+		elif [ "${PM}" = "apt-get" ]; then
+			mtype="4"
+		fi
 		cd /www/server/panel/class
-		#btpython -c "import panelPlugin; plugin = panelPlugin.panelPlugin(); plugin.check_install_lib('1')"
-		#echo "True" > /tmp/panelTask.pl
+		btpython -c "import panelPlugin; plugin = panelPlugin.panelPlugin(); plugin.check_install_lib('${mtype}')"
+		echo "True" > /tmp/panelTask.pl
+		echo "True" > /www/server/panel/install/ins_lib.pl
 	fi
 }
 Get_Pack_Manager(){
@@ -187,6 +238,67 @@ Get_Pack_Manager(){
 		PM="yum"
 	elif [ -f "/usr/bin/apt-get" ] && [ -f "/usr/bin/dpkg" ]; then
 		PM="apt-get"		
+	fi
+}
+Set_Repo_Url(){
+	if [ "${PM}"="apt-get" ];then
+		ALI_CLOUD_CHECK=$(grep Alibaba /etc/motd)
+		Tencent_Cloud=$(cat /etc/hostname |grep -E VM-[0-9]+-[0-9]+)
+		if [ "${ALI_CLOUD_CHECK}" ] || [ "${Tencent_Cloud}" ];then
+			return
+		fi
+
+		CN_CHECK=$(curl -sS --connect-timeout 10 -m 10 https://api.bt.cn/api/isCN)
+		if [ "${CN_CHECK}" == "True" ];then
+			SOURCE_URL_CHECK=$(grep -E 'security.ubuntu.com|archive.ubuntu.com|security.debian.org|deb.debian.org' /etc/apt/sources.list)
+			# if [ -f "/etc/apt/sources.list.d/ubuntu.sources" ];then
+			# 	SOURCE_URL_CHECK=$(grep -E 'security.ubuntu.com|archive.ubuntu.com|security.debian.org|deb.debian.org' /etc/apt/sources.list.d/ubuntu.sources)
+			# fi
+		fi
+
+		#GET_SOURCES_URL=$(cat /etc/apt/sources.list|grep ^deb|head -n 1|awk -F[/:] '{print $4}')
+		GET_SOURCES_URL=$(cat /etc/apt/sources.list|grep ^deb|head -n 1|sed -E 's|^[^ ]+ https?://([^/]+).*|\1|')
+		# if [ -f "/etc/apt/sources.list.d/ubuntu.sources" ];then
+		# 	GET_SOURCES_URL=$(cat /etc/apt/sources.list.d/ubuntu.sources|grep URIs:|head -n 1|sed -E 's|^[^ ]+ https?://([^/]+).*|\1|')
+		# fi
+		NODE_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${GET_SOURCES_URL} -o /dev/null)
+		NODE_STATUS=$(echo ${NODE_CHECK}|awk '{print $1}')
+		TIME_TOTAL=$(echo ${NODE_CHECK}|awk '{print $2 * 1000}'|cut -d '.' -f 1)
+
+		if { [ "${NODE_STATUS}" != "200" ] && [ "${NODE_STATUS}" != "301" ]; } || [ "${TIME_TOTAL}" -ge "150" ] || [ "${SOURCE_URL_CHECK}" ]; then
+			\cp -rpa /etc/apt/sources.list /etc/apt/sources.list.btbackup
+			apt_lists=(mirrors.cloud.tencent.com  mirrors.163.com repo.huaweicloud.com mirrors.tuna.tsinghua.edu.cn mirrors.aliyun.com mirrors.ustc.edu.cn )
+			for list in ${apt_lists[@]};
+			do
+				NODE_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${list} -o /dev/null)
+				NODE_STATUS=$(echo ${NODE_CHECK}|awk '{print $1}')
+				TIME_TOTAL=$(echo ${NODE_CHECK}|awk '{print $2 * 1000}'|cut -d '.' -f 1)
+				if [ "${NODE_STATUS}" == "200" ] || [ "${NODE_STATUS}" == "301" ];then
+					if [ "${TIME_TOTAL}" -le "150" ];then
+						if [ -f "/etc/apt/sources.list" ];then
+							sed -i "s/${GET_SOURCES_URL}/${list}/g" /etc/apt/sources.list
+							sed -i "s/cn.security.ubuntu.com/${list}/g" /etc/apt/sources.list
+							sed -i "s/cn.archive.ubuntu.com/${list}/g" /etc/apt/sources.list
+							sed -i "s/security.ubuntu.com/${list}/g" /etc/apt/sources.list
+							sed -i "s/archive.ubuntu.com/${list}/g" /etc/apt/sources.list
+							sed -i "s/security.debian.org/${list}/g" /etc/apt/sources.list
+							sed -i "s/deb.debian.org/${list}/g" /etc/apt/sources.list
+						fi
+						# if [ -f "/etc/apt/sources.list.d/ubuntu.sources" ];then
+						# 	\cp -rpa /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak
+						# 	sed -i "s/${GET_SOURCES_URL}/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# 	sed -i "s/cn.security.ubuntu.com/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# 	sed -i "s/cn.archive.ubuntu.com/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# 	sed -i "s/security.ubuntu.com/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# 	sed -i "s/archive.ubuntu.com/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# 	sed -i "s/security.debian.org/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# 	sed -i "s/deb.debian.org/${list}/g" /etc/apt/sources.list.d/ubuntu.sources
+						# fi
+						break;
+					fi
+				fi
+			done
+		fi
 	fi
 }
 Auto_Swap()
@@ -278,14 +390,7 @@ Set_Centos7_Repo(){
 	if [ "$?" != "0" ] ;then
 		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
 	fi
-
 }
-# Set_Centos7_Repo(){
-# 		if [ -z "${download_Url}" ];then
-# 			download_Url="http://download.bt.cn"
-# 		fi
-# 		curl -Ss --connect-timeout 3 -m 60 ${download_Url}/install/vault-repo.sh|bash
-# }
 Set_Centos8_Repo(){
 	HUAWEI_CHECK=$(cat /etc/motd |grep "Huawei Cloud")
 	if [ "${HUAWEI_CHECK}" ] && [ "${is64bit}" == "64" ];then
@@ -324,12 +429,16 @@ Set_Centos8_Repo(){
 		rm -f /etc/yum.repos.d/*.repo
 		tar -xvzf el8repo.tar.gz -C /etc/yum.repos.d/
 	fi
-	yum install unzip -y
+
+	yum install unzip tar -y
 	if [ "$?" != "0" ] ;then
 		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
 	fi
 }
 get_node_url(){
+    if [ "${PM}" = "yum" ]; then
+        yum install wget -y
+    fi
 	if [ ! -f /bin/curl ];then
 		if [ "${PM}" = "yum" ]; then
 			yum install curl -y
@@ -432,7 +541,7 @@ Install_RPM_Pack(){
 			sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.epel.cloud|g' /etc/yum.repos.d/CentOS-*.repo
 		fi
 	fi
-	
+
 	Centos8Check=$(cat /etc/redhat-release | grep ' 8.' | grep -iE 'centos|Red Hat')
 	if [ "${Centos8Check}" ];then
 		Set_Centos8_Repo
@@ -506,7 +615,8 @@ Install_RPM_Pack(){
 Install_Deb_Pack(){
 	ln -sf bash /bin/sh
 	UBUNTU_22=$(cat /etc/issue|grep "Ubuntu 22")
-	if [ "${UBUNTU_22}" ];then
+	UBUNTU_24=$(cat /etc/issue|grep "Ubuntu 24")
+	if [ "${UBUNTU_22}" ] || [ "${UBUNTU_24}" ];then
 		apt-get remove needrestart -y
 	fi
 	ALIYUN_CHECK=$(cat /etc/motd|grep "Alibaba Cloud ")
@@ -514,6 +624,13 @@ Install_Deb_Pack(){
 		apt-get remove libicu70 -y
 	fi
 	apt-get update -y
+
+	FNOS_CHECK=$(cat /etc/issue|grep fnOS)
+	if [ "${FNOS_CHECK}" ];then
+		apt-get install libc6 --allow-change-held-packages -y
+		apt-get install libc6-dev --allow-change-held-packages -y
+	fi
+
 	apt-get install bash -y
 	if [ -f "/usr/bin/bash" ];then
 		ln -sf /usr/bin/bash /bin/sh
@@ -738,10 +855,10 @@ Install_Python_Lib(){
 	echo "==============================================="
 	if [ "${os_version}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
-		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 15
+		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 20
 		if [ "$?" != "0" ];then
 			get_node_url $download_Url
-			wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 15
+			wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 20
 		fi
 		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
 		if [ $tmp_size -lt 703460 ];then
@@ -803,6 +920,7 @@ Install_Python_Lib(){
 	$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
 
 	wget -O pip-packs.txt $download_Url/install/pyenv/pip-packs.txt
+	echo "正在后台安装pip依赖请稍等.........."
 	PIP_PACKS=$(cat pip-packs.txt)
 	for P_PACK in ${PIP_PACKS};
 	do
@@ -882,7 +1000,27 @@ Install_Bt(){
 			yum install unzip -y
 		elif [ "${PM}" = "apt-get" ]; then
 			apt-get update
-			apt-get install unzip -y
+			apt-get install unzip -y 2>&1|tee /tmp/apt_install_log.log
+			UNZIP_CHECK=$(which unzip)
+			if [ "$?" != "0" ];then
+				RECONFIGURE_CHECK=$(grep "dpkg --configure -a" /tmp/apt_install_log.log)
+				if [ "${RECONFIGURE_CHECK}" ];then
+					dpkg --configure -a
+				fi
+				APT_LOCK_CHECH=$(grep "/var/lib/dpkg/lock" /tmp/apt_install_log.log)
+				if [ "${APT_LOCK_CHECH}" ];then
+					pkill dpkg
+					pkill apt-get
+					pkill apt
+					[ -e /var/lib/dpkg/lock-frontend ] && rm -f /var/lib/dpkg/lock-frontend
+					[ -e /var/lib/dpkg/lock ] && rm -f /var/lib/dpkg/lock
+					[ -e /var/lib/apt/lists/lock ] && rm -f /var/lib/apt/lists/lock
+					[ -e /var/cache/apt/archives/lock ] && rm -f /var/cache/apt/archives/lock
+					dpkg --configure -a
+				fi
+				sleep 5
+				apt-get install unzip -y
+			fi
 		fi
 	fi
 
@@ -1023,6 +1161,7 @@ Set_Bt_Panel(){
 		touch t.pl
 		ls -al python3.7 python
 		lsattr python3.7 python
+		btpython /www/server/panel/BT-Panel
 		Red_Error "ERROR: The BT-Panel service startup failed." "ERROR: 宝塔启动失败"
 	fi
 
@@ -1109,6 +1248,13 @@ Get_Ip_Address(){
 			fi
 		fi
 	fi
+	
+	CN_CHECK=$(curl -sS --connect-timeout 10 -m 10 http://www.example.com/api/isCN)
+	if [ "${CN_CHECK}" == "True" ];then
+        	echo "True" > /www/server/panel/data/domestic_ip.pl
+	else
+		echo "True" > /www/server/panel/data/foreign_ip.pl
+	fi
 
 	ipv4Check=$($python_bin -c "import re; print(re.match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$','${getIpAddress}'))")
 	if [ "${ipv4Check}" == "None" ];then
@@ -1144,6 +1290,7 @@ Install_Main(){
 	Lock_Clear
 	System_Check
 	Get_Pack_Manager
+	Set_Repo_Url
 	get_node_url
 
 	MEM_TOTAL=$(free -g|grep Mem|awk '{print $2}')
@@ -1181,6 +1328,7 @@ echo "
 | 为了您的正常使用，请确保使用全新或纯净的系统安装宝塔面板，不支持已部署项目/环境的系统安装
 +----------------------------------------------------------------------
 "
+
 
 while [ ${#} -gt 0 ]; do
 	case $1 in
@@ -1245,6 +1393,7 @@ if [ -f "/www/server/panel/BT-Panel" ];then
 	fi
 fi
 
+
 ARCH_LINUX=$(cat /etc/os-release |grep "Arch Linux")
 if [ "${ARCH_LINUX}" ] && [ -f "/usr/bin/pacman" ];then
 	pacman -Sy 
@@ -1265,21 +1414,18 @@ echo -e "=================================================================="
 echo -e "\033[32mCongratulations! Installed successfully!\033[0m"
 echo -e "========================面板账户登录信息=========================="
 echo -e ""
+echo -e " 【云服务器】请在安全组放行 $panelPort 端口"
 echo -e " 外网面板地址: ${HTTP_S}://${getIpAddress}:${panelPort}${auth_path}"
 echo -e " 内网面板地址: ${HTTP_S}://${LOCAL_IP}:${panelPort}${auth_path}"
 echo -e " username: $username"
 echo -e " password: $password"
-echo -e " "
-echo -e "=========================打开面板前请看==========================="
 echo -e ""
-echo -e " 【云服务器】请在安全组放行 $panelPort 端口"
-echo -e " 因默认启用自签证书https加密访问，浏览器将提示不安全"
-echo -e " 点击【高级】-【继续访问】或【接受风险并继续】访问"
-echo -e " 教程：https://www.bt.cn/bbs/thread-117246-1-1.html"
-echo -e "" 
 echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
+if [ "${outTime}" -le "5" ];then
+    echo ${download_Url} > /www/server/panel/install/d_node.pl
+fi
 if [ "${outTime}" == "0" ];then
 	((outTime=($endTime-$startTime)))
 	echo -e "Time consumed:\033[32m $outTime \033[0mseconds!"

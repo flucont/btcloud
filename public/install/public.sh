@@ -14,8 +14,30 @@ if [ "${NODE_FILE_CHECK}" ];then
 	rm -f /www/server/panel/data/node.json
 fi
 
+if [ -f "/www/server/panel/install/d_node.pl" ];then
+	LOCAL_DATE=$(date +%Y-%m-%d)
+	FILE_DATE=$(stat /www/server/panel/install/d_node.pl|grep Change|awk '{print $2}')
+	if [ "${LOCAL_DATE}" != "${FILE_DATE}" ];then
+		rm -f /www/server/panel/install/d_node.pl
+	else
+		test_url=$(cat /www/server/panel/install/d_node.pl)
+		HTTP_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${test_url}/net_test|xargs|awk '{print $2}')
+		if [ "${HTTP_CHECK}" == "200" ];then
+			NODE_URL=$test_url
+		fi
+	fi
+fi
+
 get_node_url(){
 	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com);
+
+	if [ -f "/www/server/panel/data/domestic_ip.pl" ];then
+		nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn);
+	fi
+
+	if [ -f "/www/server/panel/data/foreign_ip.pl" ];then
+		nodes=(https://cf1-node.aapanel.com https://dg2.bt.cn https://na1-node.bt.cn  https://jp1-node.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn  https://ctcc2-node.bt.cn https://hk1-node.bt.cn);
+	fi
 
 	if [ "$1" ];then
 		nodes=($(echo ${nodes[*]}|sed "s#${1}##"))
@@ -29,7 +51,11 @@ get_node_url(){
 	touch $tmp_file2
 	for node in ${nodes[@]};
 	do
-		NODE_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${node}/net_test|xargs)
+		if [ "${node}" == "https://cf1-node.aapanel.com" ];then
+			NODE_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${node}/1net_test|xargs)
+		else
+			NODE_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${node}/net_test|xargs)
+		fi
 		RES=$(echo ${NODE_CHECK}|awk '{print $1}')
 		NODE_STATUS=$(echo ${NODE_CHECK}|awk '{print $2}')
 		TIME_TOTAL=$(echo ${NODE_CHECK}|awk '{print $3 * 1000 - 500 }'|cut -d '.' -f 1)
@@ -113,7 +139,7 @@ send_check(){
 	chmod +x /etc/init.d/bt
 	p_path2=/www/server/panel/class/common.py
 	p_version=$(cat $p_path2|grep "version = "|awk '{print $3}'|tr -cd [0-9.])
-	curl -sS --connect-timeout 3 -m 60 https://www.bt.cn/api/panel/notpro?version=$p_version
+	curl -sS --connect-timeout 3 -m 60 http://www.example.com/api/panel/notpro?version=$p_version
 	NODE_URL=""
 	exit 0;
 }

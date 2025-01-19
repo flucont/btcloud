@@ -147,6 +147,10 @@ class CleanViteJs extends Command
             $file = preg_replace('!\w+\(\(\(\)=>"input"===\w+\.\w+\.type\)\)!', '!1', $file);
             $file = preg_replace('!\w+\(\(function\(\)\{return"calc"===\w+\.\w+\.type\}\)\)!', '!1', $file);
             $file = preg_replace('!\w+\(\(function\(\)\{return"input"===\w+\.\w+\.type\}\)\)!', '!1', $file);
+            $code = $this->getExtendCode($file, '"自动部署"', 2);
+            if($code){
+                $file = str_replace($code, '', $file);
+            }
             $flag = true;
         }
     
@@ -193,6 +197,25 @@ class CleanViteJs extends Command
             $file = str_replace('"busSslList"', '"currentCertInfo"', $file);
             $flag = true;
         }
+
+        if(strpos($file, '"商用SSL"')!==false){ //ssl
+            $code = $this->getExtendFunction($file, '"商用SSL"', '{', '}');
+            $file = str_replace($code, '', $file);
+            $code = $this->getExtendFunction($file, '"宝塔证书"', '{', '}');
+            $file = str_replace($code, '', $file);
+            $code = $this->getExtendCode($file, ',"联系客服"', 2, '[', ']');
+            if($code){
+                $file = str_replace($code, '[]', $file);
+            }
+            $code = $this->getExtendCode($file, ',"联系客服"', 2, '[', ']');
+            if($code){
+                $file = str_replace($code, '[]', $file);
+            }
+        }
+        if(strpos($file, '"SSL-CERTIFICATE-STORE"')!==false){ //ssl
+            $file = str_replace('("ssl")', '("encrypt")', $file);
+            $flag = true;
+        }
     
         if(strpos($file, '如果您希望添加其它Docker应用')!==false){
             $code = $this->getExtendCode($file, '如果您希望添加其它Docker应用', 1, '[', ']');
@@ -217,7 +240,12 @@ class CleanViteJs extends Command
         for($i=0;$i<5;$i++){
             $code = $this->getExtendCode($file, ',"需求反馈"', 1, '[', ']');
             if($code){
-                $file = str_replace($code, '[]', $file);
+                if(strpos($code, 'svgtofont-desired')){
+                    $file = str_replace($code, '[]', $file);
+                }else{
+                    $code = $this->getExtendFunction($code, ',"需求反馈"');
+                    $file = str_replace($code, '', $file);
+                }
                 $flag = true;
             }
         }
@@ -229,6 +257,11 @@ class CleanViteJs extends Command
         $code = $this->getExtendCode($file, '(" 需求反馈 ")', 1, '[', ']');
         if($code && strpos($filepath, 'vue_vue_type_') === false){
             $file = str_replace($code, '[]', $file);
+            $flag = true;
+        }
+        $code = $this->getExtendFunction($file, '," 需求反馈 "');
+        if($code){
+            $file = str_replace($code, '', $file);
             $flag = true;
         }
 

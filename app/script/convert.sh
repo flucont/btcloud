@@ -1,7 +1,7 @@
 #!/bin/bash
 
-Linux_Version="9.3.0"
-Windows_Version="8.2.1"
+Linux_Version="9.4.0"
+Windows_Version="8.2.2"
 Aapanel_Version="7.0.13"
 Btm_Version="2.3.0"
 

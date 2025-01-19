@@ -193,6 +193,22 @@ class Api extends BaseController
         return json($data);
     }
 
+    public function get_panel_version_v2(){
+        $version = config_get('new_version');
+        $down_url = request()->root(true).'/install/update/LinuxPanel-'.$version.'.zip';
+        $data = [
+            'OfficialVersion' => [
+                'version' => $version,
+                'downUrl' => $down_url,
+                'updateMsg' => config_get('update_msg'),
+                'uptime' => config_get('update_date'),
+            ],
+            'OfficialVersionLatest' => [],
+            'AccountVersion' => [],
+        ];
+        return json($data);
+    }
+
     //安装统计
     public function setup_count(){
         return 'ok';
@@ -486,6 +502,10 @@ class Api extends BaseController
         return json(['err_no'=>0, 'success'=>true, 'res'=>'Success', 'nonce'=>time()]);
     }
 
+    public function get_user_give_away(){
+        return json(['no_exceed_limit'=>false, 'user_give'=>true]);
+    }
+
     //获取所有蜘蛛IP列表
     public function btwaf_getspiders(){
         try{
@@ -502,6 +522,29 @@ class Api extends BaseController
         if(!$type) return json([]);
         $result = Plugins::get_spider($type);
         return json($result);
+    }
+
+    //检查是否国内IP
+    public function check_cnip(){
+        $clientip = bindec(decbin(ip2long($this->clientip)));
+        $json_file = app()->getBasePath().'lib/cn.json';
+        $arr = json_decode(file_get_contents($json_file), true);
+        if(!$arr) return 'False';
+        foreach($arr as $ip_arr){
+            if($clientip >= $ip_arr[0] && $clientip <= $ip_arr[1]){
+                return 'True';
+            }
+        }
+        return 'False';
+    }
+
+    //邮件配额
+    public function email_user_surplus(){
+        $data = [
+            'free' => ['surplus' => '120000', 'total' => '120000', 'used' => '0'],
+            'period' => ['surplus' => '2000000', 'total' => '2000000', 'used' => '0'],
+        ];
+        return json(['success'=>true, 'msg'=>'获取成功', 'res'=>$data]);
     }
 
     //检查黑白名单

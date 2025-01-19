@@ -103,7 +103,7 @@ fi
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
 if [ -z "$VERSION_CHECK" ];then
-	version='9.3.0'
+	version='9.4.0'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then

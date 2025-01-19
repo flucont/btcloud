@@ -11,7 +11,7 @@
 #|   插件和模块加载器
 #+--------------------------------------------------------------------
 
-import public,os,sys,json
+import public,os,sys,json,hashlib
 
 def plugin_run(plugin_name,def_name,args):
     '''
@@ -186,10 +186,37 @@ def get_plugin_list(upgrade_force = False):
                 raise Exception(plugin_list)
             else:
                 raise Exception('云端插件列表获取失败')
-        public.writeFile(plugin_list_file,json.dumps(plugin_list))
+        content = json.dumps(plugin_list)
+        public.writeFile(plugin_list_file,content)
+
+        plugin_bin_file = os.path.join(data_path,'plugin_bin.pl')
+        encode_content = __encode_plugin_list(content)
+        if encode_content:
+            public.writeFile(plugin_bin_file,encode_content)
         
     return plugin_list
 
+def __encode_plugin_list(content):
+    try:
+        userInfo = public.get_user_info()
+        if not userInfo or 'serverid' not in userInfo: return None
+        block_size = 51200
+        uid = str(userInfo['uid'])
+        server_id = userInfo['serverid']
+        key = server_id[10:26] + uid + server_id
+        key = hashlib.md5(key.encode()).hexdigest()
+        iv = key + server_id
+        iv = hashlib.md5(iv.encode()).hexdigest()
+        key = key[8:24]
+        iv = iv[8:24]
+        blocks = [content[i:i + block_size] for i in range(0, len(content), block_size)]
+        encrypted_content = ''
+        for block in blocks:
+            encrypted_content += __aes_encrypt(block, key, iv) + '\n'
+        return encrypted_content
+    except:
+        pass
+    return None
 
 def start_total():
     '''
