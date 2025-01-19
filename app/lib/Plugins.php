@@ -57,6 +57,7 @@ class Plugins
             $data['beta'] = 0;
             $data['uid'] = 1;
             $data['skey'] = '';
+            $data['pro'] = -1;
             $data['ltd'] = strtotime('+10 year');
         }
         foreach($data['list'] as &$plugin){
