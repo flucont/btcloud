@@ -193,4 +193,11 @@ class Plugins
         return $result;
     }
 
+    //获取堡塔恶意情报IP库
+    public static function btwaf_getmalicious(){
+        $btapi = self::get_btapi('Linux');
+        $result = $btapi->btwaf_getmalicious();
+        return $result;
+    }
+
 }

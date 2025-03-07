@@ -28,11 +28,11 @@ class ThirdPlugins
     public function get_plugin_list()
     {
         if($this->os == 'en'){
-            $url = $this->url . 'api/panel/get_plugin_list_en';
+            $url = $this->url . 'api/panel/getSoftListEn';
         }elseif($this->os == 'Windows'){
-            $url = $this->url . 'api/wpanel/get_plugin_list';
+            $url = $this->url . 'api/wpanel/get_soft_list';
         }else{
-            $url = $this->url . 'api/panel/get_plugin_list';
+            $url = $this->url . 'api/panel/get_soft_list';
         }
         $res = $this->curl($url);
         $result = json_decode($res, true);
@@ -171,6 +171,18 @@ class ThirdPlugins
             throw new Exception(isset($result['msg'])?$result['msg']:'获取失败');
         }else{
             return $result;
+        }
+    }
+
+    //获取堡塔恶意情报IP库
+    public function btwaf_getmalicious(){
+        $url = $this->url . 'api/bt_waf/get_malicious';
+        $res = $this->curl($url);
+        $result = json_decode($res, true);
+        if(isset($result['success'])){
+            return $result;
+        }else{
+            throw new Exception(isset($result['res'])?$result['res']:'获取失败');
         }
     }
 

@@ -169,6 +169,18 @@ class Btapi
 		$data = json_decode($result,true);
       	return $data;
 	}
+
+	//BTWAF-获取堡塔恶意情报IP库
+	public function btwaf_getmalicious(){
+		$url = $this->BT_PANEL.'/plugin?action=a&name=kaixin&s=btwaf_getmalicious';
+		
+		$p_data = $this->GetKeyData();
+		
+		$result = $this->curl($url,$p_data);
+		
+		$data = json_decode($result,true);
+      	return $data;
+	}
 	
 
   	private function GetKeyData(){

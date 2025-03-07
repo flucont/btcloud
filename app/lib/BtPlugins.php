@@ -196,12 +196,14 @@ class BtPlugins
         $data = str_replace('\'http://www.bt.cn/api/wpanel/notpro', 'public.GetConfigValue(\'home\')+\'/api/wpanel/notpro', $data);
         $data = str_replace('\'https://www.bt.cn/api/wpanel/notpro', 'public.GetConfigValue(\'home\')+\'/api/wpanel/notpro', $data);
 
+        $data = str_replace('"https://www.bt.cn/api/bt_waf/get_malicious', 'public.GetConfigValue(\'home\')+"/api/bt_waf/get_malicious', $data);
         $data = str_replace('\'http://www.bt.cn/api/bt_waf/getSpiders', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/getSpiders', $data);
         $data = str_replace('\'https://www.bt.cn/api/bt_waf/getSpiders', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/getSpiders', $data);
         $data = str_replace('\'http://www.bt.cn/api/bt_waf/addSpider', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/addSpider', $data);
         $data = str_replace('\'https://www.bt.cn/api/bt_waf/addSpider', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/addSpider', $data);
         $data = str_replace('\'https://www.bt.cn/api/bt_waf/getVulScanInfoList', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/getVulScanInfoList', $data);
         $data = str_replace('\'https://www.bt.cn/api/bt_waf/reportInterceptFail', 'public.GetConfigValue(\'home\')+\'/api/bt_waf/reportInterceptFail', $data);
+        $data = str_replace('"https://www.bt.cn/api/bt_waf/reportInterceptFail', 'public.GetConfigValue(\'home\')+"/api/bt_waf/reportInterceptFail', $data);
         $data = str_replace('\'https://www.bt.cn/api/v2/contact/nps/questions', 'public.GetConfigValue(\'home\')+\'/panel/notpro', $data);
         $data = str_replace('\'https://www.bt.cn/api/v2/contact/nps/submit', 'public.GetConfigValue(\'home\')+\'/panel/notpro', $data);
         $data = str_replace('\'http://www.bt.cn/api/Auth', 'public.GetConfigValue(\'home\')+\'/api/Auth', $data);
@@ -287,6 +289,18 @@ class BtPlugins
             return $result['data'];
         }else{
             throw new Exception(isset($result['msg'])?$result['msg']:'获取失败');
+        }
+    }
+
+    //获取堡塔恶意情报IP库
+    public function btwaf_getmalicious(){
+        $result = $this->btapi->btwaf_getmalicious();
+        if(isset($result['success'])){
+            return $result;
+        }elseif(isset($result['msg'])){
+            throw new Exception($result['msg']);
+        }else{
+            throw new Exception(isset($result['res'])?$result['res']:'获取失败');
         }
     }
 

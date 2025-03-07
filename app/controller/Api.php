@@ -523,6 +523,16 @@ class Api extends BaseController
         $result = Plugins::get_spider($type);
         return json($result);
     }
+    
+    //获取堡塔恶意情报IP库
+    public function btwaf_getmalicious(){
+        try{
+            $result = Plugins::btwaf_getmalicious();
+            return json($result);
+        }catch(\Exception $e){
+            return json(['success'=>false, 'res'=>$e->getMessage()]);
+        }
+    }
 
     //检查是否国内IP
     public function check_cnip(){

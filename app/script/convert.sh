@@ -21,7 +21,6 @@ public/install/update_btmonitor.sh
 public/install/src/panel_7_en.zip
 public/install/update/LinuxPanel_EN-${Aapanel_Version}.zip
 public/install/install_7.0_en.sh
-public/install/install_pro_en.sh
 public/install/update_7.x_en.sh
 )
 

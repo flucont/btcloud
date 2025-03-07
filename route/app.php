@@ -121,6 +121,7 @@ Route::group('api', function () {
     Route::post('/v2/product/email', 'api/return_error2');
 
     Route::any('/bt_waf/getSpiders', 'api/btwaf_getspiders');
+    Route::any('/bt_waf/get_malicious', 'api/btwaf_getmalicious');
     Route::post('/bt_waf/addSpider', 'api/return_empty');
     Route::post('/bt_waf/getVulScanInfoList', 'api/return_empty');
     Route::post('/bt_waf/reportInterceptFail', 'api/return_empty');
