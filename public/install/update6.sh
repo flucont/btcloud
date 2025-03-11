@@ -102,8 +102,8 @@ if [ -f "/etc/redhat-release" ];then
 fi
 setup_path=/www
 version=$(curl -Ss --connect-timeout 5 -m 2 $Btapi_Url/api/panel/get_version)
-if [ -z "$VERSION_CHECK" ];then
-	version='9.4.0'
+if [ -z "$version" ];then
+	version='9.5.0'
 fi
 armCheck=$(uname -m|grep arm)
 if [ "${armCheck}" ];then

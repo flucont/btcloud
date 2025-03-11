@@ -125,6 +125,7 @@ Route::group('api', function () {
     Route::post('/bt_waf/addSpider', 'api/return_empty');
     Route::post('/bt_waf/getVulScanInfoList', 'api/return_empty');
     Route::post('/bt_waf/reportInterceptFail', 'api/return_empty');
+    Route::any('/bt_waf/get_system_malicious', 'api/return_error2');
     Route::any('/panel/get_spider', 'api/get_spider');
 
     Route::post('/Auth/GetSocre', 'api/get_ssl_list');

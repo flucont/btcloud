@@ -121,13 +121,11 @@
 
 - script/site_task.py 删除flush_ssh_log()
 
-- [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/layout.html 的\</body\>前面加入
+- [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/software.html 的 \<script\>window.vite_public_request_token 前面加入
 
   ```javascript
   <script src="/static/bt.js"></script>
   ```
-
-  在 BTPanel/templates/default/software.html 的 \<script\>window.vite_public_request_token 前面加入
 
 - [可选]去除创建网站自动创建的垃圾文件：在class/panelSite.py，分别删除
 

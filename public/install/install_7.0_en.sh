@@ -63,7 +63,7 @@ GetSysInfo() {
     echo -e ${SYS_VERSION}
     echo -e Bit:${SYS_BIT} Mem:${MEM_TOTAL}M Core:${CPU_INFO}
     echo -e ${SYS_INFO}
-    echo -e "Please screenshot above error message and post forum forum.aapanel.com or send email: kern@aapanel.com for help"
+    echo -e "Please screenshot above error message and post forum forum.aapanel.com or send email: support@aapanel.com for help"
 }
 
 
@@ -557,7 +557,7 @@ Install_RPM_Pack() {
         yum config-manager --set-enabled PowerTools
     fi
 
-    if [ -f "/etc/redhat-release" ] && [ $(cat /etc/os-release|grep PLATFORM_ID|grep -oE "el9") ];then
+    if [ -f "/etc/redhat-release" ] && [ $(cat /etc/os-release|grep PLATFORM_ID|grep -oE "el9|el10") ];then
         dnf config-manager --set-enabled crb -y
     fi
 
@@ -648,7 +648,7 @@ Install_Deb_Pack() {
         apt-get install curl -y
     fi
 
-    debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev libxslt-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git ufw ipset sqlite3 uuid-dev libpq-dev liblzma-dev ca-certificates sudo autoconf at mariadb-client rsyslog xfsprogs quota"
+    debPacks="wget curl libcurl4-openssl-dev gcc make zip unzip tar openssl libssl-dev gcc libxml2 libxml2-dev libxslt-dev zlib1g zlib1g-dev libjpeg-dev libpng-dev lsof libpcre3 libpcre3-dev cron net-tools swig build-essential libffi-dev libbz2-dev libncurses-dev libsqlite3-dev libreadline-dev tk-dev libgdbm-dev libdb-dev libdb++-dev libpcap-dev xz-utils git ufw ipset sqlite3 uuid-dev libpq-dev liblzma-dev ca-certificates sudo autoconf at mariadb-client rsyslog xfsprogs quota libssh2-1-dev"
 
     DEBIAN_FRONTEND=noninteractive apt-get install -y $debPacks --allow-downgrades --allow-remove-essential --allow-change-held-packages
 
@@ -1130,7 +1130,7 @@ Get_Versions() {
             os_version=""
         fi
         if [ -z "${os_version}" ]; then
-            os_version=$(cat /etc/redhat-release | grep Stream | grep -oE "8|9")
+            os_version=$(cat /etc/redhat-release | grep Stream | grep -oE "8|9|10")
         fi
     else
         os_type='ubuntu'

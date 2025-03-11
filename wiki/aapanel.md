@@ -59,13 +59,6 @@
   temp_file = temp_file.replace('https://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')
   ```
   
-  def check_status(self, softInfo): 方法最后一行加上
-  
-  ```python
-  if 'endtime' in softInfo:
-              softInfo['endtime'] = time.time() + 86400 * 3650
-  ```
-  
 - class_v2/btdockerModelV2/flush_plugin.py 文件，删除clear_hosts()一行
 
 - install/install_soft.sh 在. 执行之前加入以下代码

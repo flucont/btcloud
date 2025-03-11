@@ -120,7 +120,7 @@ class CleanViteJs extends Command
             $flag = true;
         }
     
-        if(strpos($file, '售后QQ群：')!==false){ //main
+        if(strpos($file, '论坛求助')!==false){ //main
             $code = $this->getExtendCode($file, '"微信公众号"', 1);
             $code = $this->getExtendFunction($file, $code);
             $start = strpos($file, $code) - 1;
@@ -130,7 +130,7 @@ class CleanViteJs extends Command
                     break;
                 }
             }
-            $code = $this->getExtendCode($file, '"/other/customer-service.png"', 2);
+            $code = $this->getExtendCode($file, '"/other/customer-qrcode.png"', 2);
             $code = $this->getExtendFunction($file, $code);
             $end = strpos($file, $code)+strlen($code);
             $code = substr($file, $start, $end - $start);
@@ -182,7 +182,7 @@ class CleanViteJs extends Command
         if(strpos($file, '"商用SSL证书"')!==false){ //site-ssl
             $code = $this->getExtendFunction($file, '"商用SSL证书"', '{', '}');
             $file = str_replace($code, '', $file);
-            $code = $this->getExtendFunction($file, '"宝塔证书"', '{', '}');
+            $code = $this->getExtendFunction($file, '"测试证书"', '{', '}');
             $file = str_replace($code, '', $file);
             $code = $this->getExtendCode($file, '"购买商业证书"', 2);
             if($code){
@@ -201,7 +201,7 @@ class CleanViteJs extends Command
         if(strpos($file, '"商用SSL"')!==false){ //ssl
             $code = $this->getExtendFunction($file, '"商用SSL"', '{', '}');
             $file = str_replace($code, '', $file);
-            $code = $this->getExtendFunction($file, '"宝塔证书"', '{', '}');
+            $code = $this->getExtendFunction($file, '"测试证书"', '{', '}');
             $file = str_replace($code, '', $file);
             $code = $this->getExtendCode($file, ',"联系客服"', 2, '[', ']');
             if($code){
@@ -259,7 +259,7 @@ class CleanViteJs extends Command
             $file = str_replace($code, '[]', $file);
             $flag = true;
         }
-        $code = $this->getExtendFunction($file, '," 需求反馈 "');
+        $code = $this->getExtendFunction($file, 'label:"需求反馈",', '{', '}');
         if($code){
             $file = str_replace($code, '', $file);
             $flag = true;
