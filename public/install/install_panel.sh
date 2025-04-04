@@ -1232,7 +1232,40 @@ Set_Firewall(){
 }
 Get_Ip_Address(){
 	getIpAddress=""
-	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
+	#getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
+
+	ipv4_address=""
+	ipv6_address=""
+
+	ipv4_address=$(curl -4 -sS --connect-timeout 4 -m 5 https://api.bt.cn/Api/getIpAddress 2>&1)
+	if [ -z "${ipv4_address}" ];then
+			ipv4_address=$(curl -4 -sS --connect-timeout 4 -m 5 https://www.bt.cn/Api/getIpAddress 2>&1)
+			if [ -z "${ipv4_address}" ];then
+					ipv4_address=$(curl -4 -sS --connect-timeout 4 -m 5 https://www.aapanel.com/api/common/getClientIP 2>&1)
+			fi
+	fi
+	IPV4_REGEX="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+	if ! [[ $ipv4_address =~ $IPV4_REGEX ]]; then
+			ipv4_address=""
+	fi
+
+	ipv6_address=$(curl -6 -sS --connect-timeout 4 -m 5 https://www.bt.cn/Api/getIpAddress 2>&1)
+	IPV6_REGEX="^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
+	if ! [[ $ipv6_address =~ $IPV6_REGEX ]]; then
+			ipv6_address=""
+	else
+			if [[ ! $ipv6_address =~ ^\[ ]]; then
+					ipv6_address="[$ipv6_address]"
+			fi
+	fi
+
+	if [ "${ipv4_address}" ];then
+		getIpAddress=$ipv4_address
+	elif [ "${ipv6_address}" ];then
+		getIpAddress=$ipv6_address
+	fi
+
+
 	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
 		if [ -z "${isHosts}" ];then
@@ -1411,8 +1444,16 @@ echo -e "\033[32mCongratulations! Installed successfully!\033[0m"
 echo -e "========================面板账户登录信息=========================="
 echo -e ""
 echo -e " 【云服务器】请在安全组放行 $panelPort 端口"
-echo -e " 外网面板地址: ${HTTP_S}://${getIpAddress}:${panelPort}${auth_path}"
-echo -e " 内网面板地址: ${HTTP_S}://${LOCAL_IP}:${panelPort}${auth_path}"
+if [ -z "${ipv4_address}" ] && [ -z "${ipv6_address}" ];then
+    echo -e " 外网面板地址:      ${HTTP_S}://SERVER_IP:${panelPort}${auth_path}"
+fi
+if [ "${ipv4_address}" ];then
+    echo -e " 外网ipv4面板地址: ${HTTP_S}://${ipv4_address}:${panelPort}${auth_path}"
+fi
+if [ "${ipv6_address}" ];then
+    echo -e " 外网ipv6面板地址: ${HTTP_S}://${ipv6_address}:${panelPort}${auth_path}"
+fi
+echo -e " 内网面板地址:     ${HTTP_S}://${LOCAL_IP}:${panelPort}${auth_path}"
 echo -e " username: $username"
 echo -e " password: $password"
 echo -e ""
