@@ -18,7 +18,7 @@ Route::post('/Auth/GetBindCode', 'api/return_error');
 Route::post('/auth/GetUserGiveAway', 'api/get_user_give_away');
 Route::any('/bt_monitor/update_history', 'api/btm_update_history');
 Route::any('/bt_monitor/latest_version', 'api/btm_latest_version');
-Route::any('/bt_waf/get_malicious_ip', 'api/get_malicious_ip_list');
+Route::any('/bt_waf/get_malicious_ip', 'api/get_ssl_list');
 Route::any('/bt_waf/daily_count_v2', 'api/get_ssl_list');
 Route::any('/bt_waf/latest_version', 'api/btwaf_latest_version');
 

@@ -2,7 +2,6 @@
 namespace app\controller;
 
 use think\facade\Db;
-use think\facade\Cache;
 use app\BaseController;
 use app\lib\Plugins;
 
@@ -465,40 +464,6 @@ class Api extends BaseController
     public function get_ssl_list(){
         $data = bin2hex('[]');
         return json(['status'=>true, 'msg'=>'', 'data'=>$data]);
-    }
-
-    //获取堡塔云WAF恶意IP库
-    public function get_malicious_ip_list()
-    {
-        $cacheKey = 'malicious_ip_list';
-    
-        // 尝试从缓存获取
-        if (Cache::has($cacheKey)) {
-            return json(json_decode(Cache::get($cacheKey), true));
-        }
-        $url = 'https://api.bt.cn/bt_waf/get_malicious_ip';
-        $postData = json_encode([
-            'x_bt_token' => 'MzI3YjAzOGQ3Yjk3NjUxYjVlMDkyMGFm'
-        ]);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($postData)
-        ]);
-
-        $response = curl_exec($ch);
-        if (curl_errno($ch)) {
-            return json(['status'=>true, 'msg'=>'', 'data'=>$data]);
-        }
-        curl_close($ch);
-        Cache::set($cacheKey, $response, 86400); //缓存一天
-
-        return json(json_decode($response, true));
     }
 
     public function return_success(){
