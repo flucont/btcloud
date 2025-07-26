@@ -148,6 +148,27 @@ def module_run(module_name,def_name,args):
     result = run_object(args)
     return result
     
+def get_module(filename: str):
+    '''
+        @name 获取模块对象
+        @param filename<string> 模块文件名
+        @return object
+    '''
+    if not filename: return None
+    
+    if filename[0:2] == './':
+        return public.returnMsg(False,'不能是相对路径')
+    
+    if not public.path_safe_check(filename):
+        return public.returnMsg(False,'模块路径不合法')
+
+    if not os.path.exists(filename):
+        return public.returnMsg(False,'模块文件不存在' % filename)
+    
+    def_object = public.get_script_object(filename)
+    if not def_object: return public.returnMsg(False,'模块[%s]不存在' % filename)
+
+    return def_object.main()
 
 def get_plugin_list(upgrade_force = False):
     '''

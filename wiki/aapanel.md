@@ -74,17 +74,23 @@
 
   "update_software_list": update_software_list,
 
+  "malicious_file_scanning": malicious_file_scanning,
+
   "check_panel_msg": check_panel_msg,
 
   "check_panel_auth": check_panel_auth,
 
   "count_ssh_logs": count_ssh_logs,
 
+  "update_vulnerabilities": update_vulnerabilities,
+
+  "refresh_dockerapps": refresh_dockerapps,
+
   "submit_email_statistics": submit_email_statistics,
 
   "submit_module_call_statistics": submit_module_call_statistics,
 
-  "mailsys_domain_restrictions": mailsys_domain_restrictions,
+  "mailsys_domain_blecklisted_alarm": mailsys_domain_blecklisted_alarm,
 
 - [可选]去除各种计算题：将bt.js里面的内容复制到 BTPanel/static/vite/oldjs/public_backup.js 末尾
 
