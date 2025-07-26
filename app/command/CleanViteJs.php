@@ -107,13 +107,13 @@ class CleanViteJs extends Command
         $flag = false;
     
         if(strpos($file, 'window.location.protocol.indexOf("https")>=0')!==false){ //index
-            $file = str_replace('(window.location.protocol.indexOf("https")>=0)', '1', $file);
+            $file = str_replace('window.location.protocol.indexOf("https")>=0', '!0', $file);
             $code = $this->getExtendCode($file, 'isGetCoupon:', 2);
             if($code){
                 $file = str_replace($code, '{}', $file);
             }
             $file = preg_replace('!recommendShow:\w+,!', 'recommendShow:!1,', $file, 1);
-            $code = $this->getExtendCode($file, '"需求反馈"', 1, '[', ']');
+            $code = $this->getExtendCode($file, '"打开需求反馈"', 1, '[', ']');
             if($code){
                 $file = str_replace($code, '[]', $file);
             }

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Linux_Version="9.6.0"
+Linux_Version="11.0.0"
 Windows_Version="8.2.2"
 Aapanel_Version="7.0.16"
 Btm_Version="2.3.0"
@@ -23,6 +23,7 @@ public/install/update/LinuxPanel_EN-${Aapanel_Version}.zip
 public/install/install_7.0_en.sh
 public/install/update_7.x_en.sh
 )
+PL_FILE="public/install/update/LinuxPanel-${Linux_Version}.pl"
 
 DIR=$1
 SITEURL=$2
@@ -79,6 +80,10 @@ do
 		echo -e "文件不存在：\033[33m${Filename}\033[0m"
 	fi
 done
+
+HASH=$(sha256sum "${DIR}public/install/update/LinuxPanel-${Linux_Version}.zip" | awk '{print $1}')
+TIMESTAMP=$(date +%s)
+printf '{"hash": "%s", "update_time": "%s"}' "$HASH" "$TIMESTAMP" > "${DIR}${PL_FILE}"
 
 echo "=========================="
 echo "处理完成"

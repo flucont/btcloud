@@ -104,17 +104,17 @@
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
     <div class="form-group">
-      <label>宝塔Linux面板最新版本号：</label>
+      <label>aaPanel面板最新版本号：</label>
       <input type="text" name="new_version_en" value="{:config_get('new_version_en')}" class="form-control"/>
       <font color="green">用于一键更新脚本获取最新版本号，以及检测更新接口。并确保已在/public/install/update/放置对应版本更新包</font>
     </div>
 	<div class="form-group">
-      <label>宝塔Linux面板更新日志：</label>
+      <label>aaPanel面板更新日志：</label>
       <textarea class="form-control" name="update_msg_en" rows="5" placeholder="支持HTML代码">{:config_get('update_msg_en')}</textarea>
       <font color="green">用于检测更新接口返回</font>
     </div>
 	<div class="form-group">
-      <label>宝塔Linux面板更新日期：</label>
+      <label>aaPanel面板更新日期：</label>
       <input type="date" name="update_date_en" value="{:config_get('update_date_en')}" class="form-control"/>
 	  <font color="green">用于检测更新接口返回</font>
     </div>

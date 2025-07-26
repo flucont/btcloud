@@ -167,6 +167,7 @@ pip_list=$($mypip list 2>&1)
 request_v=$(btpip list 2>/dev/null|grep "requests "|awk '{print $2}'|cut -d '.' -f 2)
 if [ "$request_v" = "" ] || [ "${request_v}" -gt "28" ];then
 	$mypip install requests==2.27.1
+	$mypip install chardet==4.0.0
 fi
 
 NATSORT_C=$(echo $pip_list|grep natsort)

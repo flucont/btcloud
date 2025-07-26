@@ -947,11 +947,11 @@ version=$(curl -Ss --connect-timeout 12 -m 2 $Btapi_Url/api/panel/getLatestOffic
 check_version_num=$( echo "$version"|grep -Eo '^[0-9]+' )
 if [ "$check_version_num" = '' ];then
 	echo "Check version failed!"
-    version='7.0.13'
+    version='7.0.21'
 fi
 
 if [ "$version" = '' ];then
-	version='7.0.13'
+	version='7.0.21'
 fi
 
 # if [ "$1" ];then
@@ -969,6 +969,10 @@ if [ $dsize -lt 10240 ];then
 fi
 unzip -o /tmp/panel.zip -d $setup_path/server/ > /dev/null
 rm -f /tmp/panel.zip
+
+if [ -f "/www/server/panel/data/is_beta.pl" ];then
+    rm -f /www/server/panel/data/is_beta.pl
+fi
 
 Update_Py_Lib
 

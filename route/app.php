@@ -150,6 +150,7 @@ Route::group('api', function () {
     Route::post('/panel/submit_feature_invoked_bulk', 'api/return_success');
     Route::post('/panel/submit_expand_pack_used', 'api/return_success');
     Route::get('/panel/getLatestOfficialVersion', 'api/get_version_en');
+    Route::post('/cert/user/list', 'api/nps_questions');
 
     Route::miss('api/return_error');
 });

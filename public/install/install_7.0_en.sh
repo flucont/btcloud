@@ -421,8 +421,8 @@ Check_apt_status(){
     retries=0
 
     while [ $retries -lt $MAX_RETRIES ]; do
-        output=$(ps aux| grep -E '(apt|apt-get)\s' 2>&1)
-        check_output=$(echo "$output" | grep -E '(apt|apt-get)\s')
+        output=$(ps aux |grep -E '(apt|apt-get)\s' 2>&1)
+        check_output=$(echo "$output" | grep -v _apt | grep -E '(apt|apt-get)\s')
         
         #If check_output is empty, terminate the loop
         if [ -z "$check_output" ]; then
@@ -1862,19 +1862,40 @@ Set_Firewall() {
 Get_Ip_Address() {
     getIpAddress=""
     # 	getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://brandnew.aapanel.com/api/common/getClientIP)
-    getIpAddress=$(curl -sSk --connect-timeout 10 -m 60 https://www.aapanel.com/api/common/getClientIP)
-    # 	if [ -z "${getIpAddress}" ] || [ "${getIpAddress}" = "0.0.0.0" ]; then
-    # 		isHosts=$(cat /etc/hosts|grep 'www.bt.cn')
-    # 		if [ -z "${isHosts}" ];then
-    # 			echo "" >> /etc/hosts
-    # 			echo "103.224.251.67 www.bt.cn" >> /etc/hosts
-    # 			#getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://brandnew.aapanel.com/api/common/getClientIP)
-    # 			getIpAddress=$(curl -sS --connect-timeout 10 -m 60 https://www.bt.cn/Api/getIpAddress)
-    # 			if [ -z "${getIpAddress}" ];then
-    # 				sed -i "/bt.cn/d" /etc/hosts
-    # 			fi
-    # 		fi
-    # 	fi
+    # getIpAddress=$(curl -sSk --connect-timeout 10 -m 60 https://www.aapanel.com/api/common/getClientIP)
+
+
+    ipv4_address=""
+    ipv6_address=""
+    ipv4_address=$(curl -4 -sS --connect-timeout 10 -m 15 https://www.aapanel.com/api/common/getClientIP 2>&1)
+    if [ -z "${ipv4_address}" ];then
+            ipv4_address=$(curl -4 -sS --connect-timeout 10 -m 15 https://ifconfig.me 2>&1)
+            if [ -z "${ipv4_address}" ];then
+                ipv4_address=$(curl -4 -sS --connect-timeout 10 -m 15 https://www.bt.cn/Api/getIpAddress 2>&1)
+            fi
+    fi
+    IPV4_REGEX="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
+    if ! [[ $ipv4_address =~ $IPV4_REGEX ]]; then
+            ipv4_address=""
+    fi
+    
+    ipv6_address=$(curl -6 -sS --connect-timeout 10 -m 15 https://www.aapanel.com/api/common/getClientIP 2>&1)
+    # IPV6_REGEX="^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$"
+    IPV6_REGEX="^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$"
+    if ! [[ $ipv6_address =~ $IPV6_REGEX ]]; then
+            ipv6_address=""
+    else
+        if [[ ! $ipv6_address =~ ^\[ ]]; then
+            ipv6_address="[$ipv6_address]"
+        fi
+    fi
+
+    if [ "${ipv4_address}" ];then
+        getIpAddress=$ipv4_address
+    elif [ "${ipv6_address}" ];then
+        getIpAddress=$ipv6_address
+    fi
+
 
     ipv4Check=$($python_bin -c "import re; print(re.match(r'^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$','${getIpAddress}'))")
     if [ "${ipv4Check}" == "None" ]; then
@@ -1886,7 +1907,7 @@ Get_Ip_Address() {
             getIpAddress=$(echo "[$getIpAddress]")
             echo "True" >${setup_path}/server/panel/data/ipv6.pl
             sleep 1
-            /etc/init.d/bt restart
+            # /etc/init.d/bt restart
         fi
     fi
 

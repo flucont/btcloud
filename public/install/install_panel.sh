@@ -239,7 +239,8 @@ Set_Repo_Url(){
 	if [ "${PM}"="apt-get" ];then
 		ALI_CLOUD_CHECK=$(grep Alibaba /etc/motd)
 		Tencent_Cloud=$(cat /etc/hostname |grep -E VM-[0-9]+-[0-9]+)
-		if [ "${ALI_CLOUD_CHECK}" ] || [ "${Tencent_Cloud}" ];then
+		VELINUX_CHECK=$(grep veLinux /etc/os-release)
+		if [ "${ALI_CLOUD_CHECK}" ] || [ "${Tencent_Cloud}" ] || [ "${VELINUX_CHECK}" ];then
 			return
 		fi
 
@@ -1146,6 +1147,9 @@ Set_Bt_Panel(){
     fi
 	/etc/init.d/bt stop
 	sleep 5
+	if [ ! -f "/www/server/panel/data/port.pl" ];then
+		echo "8888" > /www/server/panel/data/port.pl
+	fi
 	/etc/init.d/bt start 	
 	sleep 5
 	isStart=$(ps aux |grep 'BT-Panel'|grep -v grep|awk '{print $2}')
