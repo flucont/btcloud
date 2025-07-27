@@ -32,7 +32,7 @@ class LoadConfig
         $res = Db::name('config')->cache('configs',0)->column('value','key');
         Config::set($res, 'sys');
 
-        View::assign('cdnpublic', '//lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/');
+        View::assign('cdnpublic', 'https://s4.zstatic.net/ajax/libs/');
         return $next($request)->header([
             'Cache-Control' => 'no-store, no-cache, must-revalidate',
             'Pragma' => 'no-cache',

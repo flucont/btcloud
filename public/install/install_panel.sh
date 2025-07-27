@@ -33,7 +33,7 @@ if [ "${UbuntuCheck}" ] && [ "${UbuntuCheck}" -lt "16" ];then
 fi
 HOSTNAME_CHECK=$(cat /etc/hostname)
 if [ -z "${HOSTNAME_CHECK}" ];then
-	echo "localhost" > /etc/hostname 
+	echo "localhost" > /etc/hostname
 	# echo "当前主机名hostname为空无法安装宝塔面板，请咨询服务器运营商设置好hostname后再重新安装"
 	# exit 1
 fi
@@ -1058,7 +1058,7 @@ Install_Bt(){
 	echo "${panelPort}" > ${setup_path}/server/panel/data/port.pl
 	wget -O /etc/init.d/bt ${download_Url}/install/src/bt7.init -T 15
 	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 15
-	wget -O /www/server/panel/data/softList.conf ${download_Url}/install/conf/softList.conf
+	wget -O /www/server/panel/data/softList.conf ${download_Url}/install/conf/softListtls10.conf
 
 	rm -f /www/server/panel/class/*.so
 	if [ ! -f /www/server/panel/data/not_workorder.pl ]; then
@@ -1147,9 +1147,6 @@ Set_Bt_Panel(){
     fi
 	/etc/init.d/bt stop
 	sleep 5
-	if [ ! -f "/www/server/panel/data/port.pl" ];then
-		echo "8888" > /www/server/panel/data/port.pl
-	fi
 	/etc/init.d/bt start 	
 	sleep 5
 	isStart=$(ps aux |grep 'BT-Panel'|grep -v grep|awk '{print $2}')
