@@ -159,7 +159,7 @@ function download_item(){
         return;
     }
     var plugin = $.preDownload[0];
-    if(plugin.name == 'firewall'){
+    if(plugin.name == 'firewall' || plugin.name == 'php_filter' || plugin.name == 'enterprise_backup' || plugin.name == 'tamper_drive'){
         $.preDownload.shift();
 		download_item();
         return;
