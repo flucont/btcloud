@@ -14,7 +14,7 @@ def module_run(module_name, def_name, def_args):
         if not os.path.exists(filename):
             filename = "{}/plugin/{}/main.py".format(panel_path,module_name)
             if not os.path.exists(filename):
-                filename = "{}/plugin/{}Module/{}Plugin.py".format(panel_path,module_name,module_name)
+                filename = "{}/plugin/{}/{}Plugin.py".format(panel_path,module_name,module_name)
                 if not os.path.exists(filename):
                     return public.returnMsg(False,'指定模块或插件不存在')
 

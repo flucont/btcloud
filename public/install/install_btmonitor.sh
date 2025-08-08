@@ -411,9 +411,9 @@ EOF
 	chmod +x $monitor_path/tools.py
 	wget -O /etc/init.d/btm ${download_Url}/init/btmonitor.init -t 5 -T 10
 	tmp_size=$(du -b "/etc/init.d/btm"|awk '{print $1}')
-    if [ ${tmp_size} == 0 ]; then
+	if [ ${tmp_size} == 0 ]; then
 		\cp -r $monitor_path/init.sh /etc/init.d/btm
-    fi
+	fi
 	if [ ! -f "/etc/init.d/btm" ];then
 		\cp -r $monitor_path/init.sh /etc/init.d/btm
 	fi
@@ -450,6 +450,7 @@ Start_Monitor(){
 		for ((i=1; i<=5; i++));do
 			if [ -z "$password" ]; then
 				sleep 7
+				rm -f /tmp/bt_monitor.lock
 				user_pass=`$monitor_path/tools.py create_admin`
 				password=`echo $user_pass |awk -F " " '{print $5}'`
 			else
@@ -692,7 +693,7 @@ Get_Pack_Manager(){
 }
 
 Install_RPM_Pack(){
-	yumPacks="wget curl unzip gcc gcc-c++ make libcurl-devel openssl-devel xz-devel python-backports-lzma xz crontabs zlib zlib-devel sqlite-devel libffi-devel bzip2-devel lsof net-tools"
+	yumPacks="wget curl unzip gcc gcc-c++ make libcurl-devel openssl-devel xz-devel python-backports-lzma xz crontabs zlib zlib-devel sqlite-devel libffi-devel bzip2-devel lsof net-tools p7zip-full"
 	yum install -y ${yumPacks}
 
 	for yumPack in ${yumPacks}
@@ -706,7 +707,7 @@ Install_RPM_Pack(){
 }
 
 Install_Deb_Pack(){
-    debPacks="wget curl unzip gcc g++ make cron libcurl4-openssl-dev libssl-dev liblzma-dev xz-utils libffi-dev libbz2-dev libsqlite3-dev libreadline-dev libgdbm-dev python3-bsddb3 tk-dev ncurses-dev uuid-dev zlib1g zlib1g-dev lsof net-tools";
+    debPacks="wget curl unzip gcc g++ make cron libcurl4-openssl-dev libssl-dev liblzma-dev xz-utils libffi-dev libbz2-dev libsqlite3-dev libreadline-dev libgdbm-dev python3-bsddb3 tk-dev ncurses-dev uuid-dev zlib1g zlib1g-dev lsof net-tools p7zip-full sqlite3";
 	apt-get update -y
 	apt-get install -y $debPacks --force-yes
 
@@ -724,64 +725,77 @@ Check_Sys_Write(){
     if [ ! -d "/etc/init.d" ];then
         mkdir -p /etc/init.d
 	fi
-	if [ -f /usr/bin/which ];then
-        Get_Pack_Manager
-        if [ "$PM" == "yum" ]; then
-	    	read_dir="/usr/lib/systemd/system/ /etc/init.d/ /var/spool/cron/"
-        else
-            read_dir="/usr/lib/systemd/system/ /etc/init.d/ /var/spool/cron/crontabs/"
-        fi
-        
-        for dir in ${read_dir[@]}
-        do
-            if [[ -d "$dir" ]]; then
-                touch $dir/btm_install_test_111.pl
-                state=$(echo $?)
-                if [[ "$state" != "0" ]];then
-                    echo -e "\033[31m错误：检测到系统关键目录不可写! $read_dir \033[0m"
-                    echo "1、如果安装了[宝塔系统加固]，请先临时关闭"
-                    echo "2、如果安装了云锁，请临时关闭[系统加固]功能"
-                    echo "3、如果安装了安全狗，请临时关闭[系统防护]功能"
-                    echo "4、如果使用了其它安全软件，请先卸载 "
-                    echo -e "5、如果使用了禁止写入命令，请执行命令取消禁止写入：\n   chattr -iaR $read_dir "
-                    echo ""
-                    echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
-                    echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
-                    exit 1
-                else
-                    rm -f $dir/btm_install_test_111.pl
-                fi
+	
+    Get_Pack_Manager
+    if [ "$PM" == "yum" ]; then
+        read_dir="/usr/lib/systemd/system/ /etc/init.d/ /var/spool/cron/"
+    else
+        read_dir="/usr/lib/systemd/system/ /etc/init.d/ /var/spool/cron/crontabs/"
+    fi
+    
+    touch /tmp/btm_install_test_111.pl
+    for dir in ${read_dir[@]}
+    do
+        if [[ -d "$dir" ]]; then
+            #touch $dir/btm_install_test_111.pl
+            if [[ ! -f "/tmp/btm_install_test_111.pl" ]]; then
+                echo "建立测试 /tmp/btm_install_test_111.pl 文件失败"
+                state=0
+            else
+                \cp /tmp/btm_install_test_111.pl $dir/btm_install_test_111.pl
             fi
-        done
-	fi
+            state=$(echo $?)
+            if [[ "$state" != "0" ]];then
+                echo -e "\033[31m错误：检测到系统关键目录不可写! $read_dir \033[0m"
+                echo "1、如果安装了[宝塔系统加固]，请先临时关闭"
+                echo "2、如果安装了云锁，请临时关闭[系统加固、文件防护]功能"
+                echo "3、如果安装了安全狗，请临时关闭[系统防护]功能"
+                echo "4、如果使用了其它安全软件，请先卸载 "
+                echo -e "5、如果使用了禁止写入命令，请执行命令取消禁止写入：\n   chattr -iaR $read_dir "
+
+                if [ $(whoami) != "root" ];then
+                    echo -e "6、检测到非root用户安装，请尝试以下解决方案：\n   1.请切换到root用户安装 \n   2.尝试执行以下安装命令：\n     sudo bash $0 $@"
+                fi
+
+                echo ""
+                echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
+                echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+                exit 1
+            else
+                rm -f $dir/btm_install_test_111.pl
+            fi
+        fi
+    done
 }
 
 Check_Sys_Packs(){
     echo "正在检查系统中是否存在必备的依赖包"
     Packs="wget curl unzip gcc make"
-    for pack in ${Packs[@]}
-    do
-        check_pack=$(which $pack)
-        #echo $check_pack
-        if [[ "$check_pack" == "" ]]; then
-            echo -e "\033[31mERROR: $pack 命令不存在，尝试以下解决方法：\033[0m"
-            if [ "$PM" == "yum" ]; then
-                echo 1、使用命令重新安装依赖包：yum reinstall -y ${Packs}
-            else
-                echo 1、使用命令重新安装依赖包：apt-get reinstall -y ${Packs}
+    if [ -f /usr/bin/which ];then
+        for pack in ${Packs[@]}
+        do
+            check_pack=$(which $pack)
+            #echo $check_pack
+            if [[ "$check_pack" == "" ]]; then
+                echo -e "\033[31mERROR: $pack 命令不存在，尝试以下解决方法：\033[0m"
+                if [ "$PM" == "yum" ]; then
+                    echo 1、使用命令重新安装依赖包：yum reinstall -y ${Packs}
+                else
+                    echo 1、使用命令重新安装依赖包：apt-get reinstall -y ${Packs}
+                fi
+                echo -e "2、检查系统源是否可用？尝试更换可用的源参考教程：\n   https://www.bt.cn/bbs/thread-58005-1-1.html "
+                echo ""
+                echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
+                echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
+                exit 1
             fi
-            echo -e "2、检查系统源是否可用？尝试更换可用的源参考教程：\n   https://www.bt.cn/bbs/thread-58005-1-1.html "
-            echo ""
-            echo -e "\033[31m解决以上问题后，请尝试重新安装！ \033[0m"
-            echo -e "如果无法解决请截图以上报错信息发帖至论坛www.bt.cn/bbs求助"
-            exit 1
-        fi
-    done
+        done
+    fi
 }
 
 Install_Main(){
 	startTime=`date +%s`
-	Check_Sys_Write
+	Check_Sys_Write "$@"
 	System_Check
 	Get_Pack_Manager
 	get_node_url
@@ -870,7 +884,7 @@ done
 if [ "$go" == 'n' ];then
   exit;
 fi
-	Install_Main
+	Install_Main "$@"
 	#curl -o /dev/null -fsSL --connect-time 10 "https://api.bt.cn/bt_monitor/setup_count?cloud_type=1&token=$md5_pl&src_code=$1"
 	#curl -o /dev/null -fsSL --connect-time 10 "https://api.bt.cn/bt_monitor/setup_count?cloud_type=1&token=$md5_pl&src_code=$1&status=1"
 
@@ -890,3 +904,4 @@ echo -e "=================================================================="
 endTime=`date +%s`
 ((outTime=($endTime-$startTime)/60))
 echo -e "Time consumed:\033[32m $outTime \033[0mMinute!"
+rm -f install_btmonitor.sh

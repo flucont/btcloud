@@ -14,7 +14,7 @@
 
   php think decrypt classdir <面板class_v2文件夹路径>
 
-- 全局搜索替换 https://wafapi2.aapanel.com => http://www.example.com（需排除task.py、ipsModel.py、js文件）
+- 全局搜索替换 https://wafapi2.aapanel.com => http://www.example.com（需排除task.py、ipsModel.py、js文件），https://wafapi.aapanel.com => http://www.example.com
 
 - 全局搜索替换 https://node.aapanel.com/install/update_7.x_en.sh => http://www.example.com/install/update_7.x_en.sh
 
@@ -22,13 +22,19 @@
 
 - 搜索并删除提交异常报告的代码 bt_error/index.php
 
-- class/ajax.py 文件 \#是否执行升级程序 下面的 public.get_url() 改成 public.OfficialApiBase()
+- class/ajax.py、class_v2/ajax_v2.py 文件：
 
-  class/ajax.py 文件 __official_url = 'https://www.aapanel.com' 改成 http://www.example.com
+  \#是否执行升级程序 下面的 public.get_url() 改成 public.OfficialApiBase()
 
-  class/jobs.py 文件 \#尝试升级到独立环境 下面的 public.get_url() 改成 public.OfficialApiBase()
+  __official_url = 'https://www.aapanel.com' 改成 http://www.example.com
 
-  class/system.py 文件 RepPanel和UpdatePro方法内的 public.get_url() 改成 public.OfficialApiBase()
+  class/jobs.py、class_v2/jobs_v2.py 文件：
+
+  \#尝试升级到独立环境 下面的 public.get_url() 改成 public.OfficialApiBase()
+
+  class/system.py、class_v2/system_v2.py 文件：
+
+  RepPanel和UpdatePro方法内的 public.get_url() 改成 public.OfficialApiBase()
 
 - class/public/common.py
 
@@ -52,7 +58,7 @@
 
   在 def write_request_log(reques=None): 这一行下面加上 return
 
-- class/panelPlugin.py 文件，set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
+- class/panelPlugin.py、class_v2/panel_plugin_v2.py 文件，set_pyenv方法内，temp_file = public.readFile(filename)这行代码下面加上
 
   ```python
   temp_file = temp_file.replace('http://download.bt.cn/install/public.sh', 'http://www.example.com/install/public.sh')

@@ -32,6 +32,8 @@
 
   在 def report_module_logs(self, force=False): 这一行下面加上 return
 
+  在 def report_daily_active(self, force=False): 这一行下面加上 return
+
 - modules/configModule/main.py
 
   https://download.bt.cn => http://www.example.com
@@ -40,14 +42,4 @@
 
 - init.sh   https://download.bt.cn => http://www.example.com
 
-- BT-MONITOR 在
-
-  ```python
-  def CreateSSL():
-  ```
-
-  这一行下面加上
-
-  ```python
-  return CreateSSL_offline()
-  ```
+- 减少压缩包体积：删除 static/js/ 目录下的map文件
