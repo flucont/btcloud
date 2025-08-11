@@ -152,6 +152,11 @@ Route::group('api', function () {
     Route::get('/panel/getLatestOfficialVersion', 'api/get_version_en');
     Route::post('/cert/user/list', 'api/nps_questions');
 
+    Route::post('/Auth/GetCloudToken', 'api/get_auth_token');
+    Route::post('/cloudtro/version_info', 'api/cloudc_version_info');
+    Route::post('/cloudtro/get_version', 'api/cloudc_get_version');
+    Route::post('/cloudtro/get_product_order_status_v1', 'api/cloudc_order_status');
+
     Route::miss('api/return_error');
 });
 

@@ -328,6 +328,49 @@ class Api extends BaseController
         return json(['status'=>true,'err_no'=>0,'msg'=>'获取成功','data'=>$data]);
     }
 
+    //宝塔云控版本信息
+    public function cloudc_version_info(){
+        return json(['status'=>true,'msg'=>'获取成功','data'=>[
+            'version' => '1.0.5',
+            'download' => '',
+            'uptime' => '2025/06/16',
+            'upmsg' => '暂无更新日志'
+        ]]);
+    }
+
+    //宝塔云控版本信息
+    public function cloudc_get_version(){
+        return json(['status'=>true,'msg'=>'','oid'=>'','data'=>[
+            'officialVersion' => [
+                'version' => '1.0.5',
+                'download' => '',
+                'uptime' => '2025/06/16',
+                'updateMsg' => '暂无更新日志'
+            ],
+        ]]);
+    }
+
+    //宝塔云控授权信息
+    public function cloudc_order_status(){
+        $data = [
+            'status' => true,
+            'msg' => '获取成功',
+            'oid' => '',
+            'data' => [
+                'id' => 1,
+                'address' => real_ip(),
+                'buytime' => time(),
+                'endtime' => time() + 86400 * 3650,
+                'num' => 9999,
+                'max_num' => 9999,
+                'pid' => 100000023,
+                'renew_price' => 0,
+                'state' => 1,
+            ]
+        ];
+        return json($data);
+    }
+
     //获取内测版更新日志
     public function get_beta_logs(){
         return json(['beta_ps'=>'当前暂无内测版', 'list'=>[]]);

@@ -265,7 +265,7 @@ class CleanViteJs extends Command
             $flag = true;
         }
 
-        if(strpos('暂无搜索结果，<span class="text-primary cursor-pointer NpsDialog">提交需求反馈</span>', $file)!==false){
+        if(strpos($file, '暂无搜索结果，<span class="text-primary cursor-pointer NpsDialog">提交需求反馈</span>')!==false){
             $file = str_replace('暂无搜索结果，<span class="text-primary cursor-pointer NpsDialog">提交需求反馈</span>', '暂无搜索结果', $file);
             $flag = true;
         }
