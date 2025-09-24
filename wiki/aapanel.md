@@ -78,6 +78,8 @@
 
 - 去除无用的定时任务：task.py 文件  删除以下几行
 
+  "check_site_monitor": check_site_monitor,
+
   "update_software_list": update_software_list,
 
   "malicious_file_scanning": malicious_file_scanning,
@@ -100,7 +102,7 @@
 
 - [可选]去除各种计算题：将bt.js里面的内容复制到 BTPanel/static/vite/oldjs/public_backup.js 末尾
 
-- [可选]去除创建网站自动创建的垃圾文件：在class/panelSite.py，分别删除
+- [可选]去除创建网站自动创建的垃圾文件：在class/panelSite.py、class_v2/panel_site_v2.py，分别删除
 
   htaccess = self.sitePath + '/.htaccess'
 
@@ -110,7 +112,7 @@
 
   这3行及分别接下来的4行代码
 
-- [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
+- [可选]关闭未绑定域名提示页面：在class/panelSite.py、class_v2/panel_site_v2.py，root /www/server/nginx/html改成return 400
 
 - [可选]上传文件默认选中覆盖，在BTPanel/static/vite/oldjs/upload-drog.js，id="all_operation"加checked属性
 

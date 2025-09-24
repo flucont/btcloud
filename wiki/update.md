@@ -113,6 +113,8 @@
 
   "update_software_list": self.update_software_list,
 
+  "get_view_title_file": self.get_view_title_file,
+
   PluginLoader.daemon_panel()
 
   check_node_status()
@@ -136,6 +138,8 @@
   doc404 = self.sitePath + '/404.html'
 
   这3行及分别接下来的4行代码
+
+  def get_view_title_content(self, get): 下面加上 return public.returnMsg(True, '')
 
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
 

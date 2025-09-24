@@ -316,6 +316,21 @@ Auto_Swap()
 	echo "$swapFile    swap    swap    defaults    0 0" >> /etc/fstab
 	swap=`free |grep Swap|awk '{print $2}'`
 	if [ $swap -gt 1 ];then
+		KERNEL_MAJOR_VERSION=$(uname -r | cut -d '-' -f1 | awk -F. '{print $1}')
+		KERNEL_MINOR_VERSION=$(uname -r | cut -d '-' -f1 | awk -F. '{print $2}')
+		if [ -f "/etc/sysctl.conf" ]; then
+			sed -i "/vm.swappiness/d" /etc/sysctl.conf
+		fi
+		if [ "$KERNEL_MAJOR_VERSION" -lt 3 ]; then
+			sysctl -w vm.swappiness=1
+			echo "vm.swappiness=1" >> /etc/sysctl.conf
+		elif [ "$KERNEL_MAJOR_VERSION" = "3" ] && [ "$KERNEL_MINOR_VERSION" -lt 5 ]; then
+			sysctl -w vm.swappiness=1
+			echo "vm.swappiness=1" >> /etc/sysctl.conf
+		else
+			sysctl -w vm.swappiness=0
+			echo "vm.swappiness=0" >> /etc/sysctl.conf
+		fi
 		echo "Swap total sizse: $swap";
 		return;
 	fi
@@ -569,7 +584,7 @@ Install_RPM_Pack(){
 	
 	#尝试同步时间(从bt.cn)
 	echo 'Synchronizing system time...'
-	getBtTime=$(curl -sS --connect-timeout 3 -m 60 http://www.bt.cn/api/index/get_time)
+	getBtTime=$(curl -sS --connect-timeout 3 -m 60 https://www.bt.cn/api/index/get_time)
 	if [ "${getBtTime}" ];then	
 		date -s "$(date -d @$getBtTime +"%Y-%m-%d %H:%M:%S")"
 	fi
@@ -1060,6 +1075,7 @@ Install_Bt(){
 	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 15
 	wget -O /www/server/panel/data/softList.conf ${download_Url}/install/conf/softListtls10.conf
 
+	rm -rf /www/server/panel/plugin/webssh/
 	rm -f /www/server/panel/class/*.so
 	if [ ! -f /www/server/panel/data/not_workorder.pl ]; then
 		echo "True" > /www/server/panel/data/not_workorder.pl
@@ -1438,6 +1454,12 @@ if [ "${PANEL_SSL}" == "True" ];then
 else
 	HTTP_S="http"
 fi 
+
+echo "安装基础网站流量统计程序..."
+wget -O site_new_total.sh ${download_Url}/site_total/install.sh &> /dev/null 
+bash site_new_total.sh &> /dev/null
+rm -f site_new_total.sh
+echo "安装基础网站流量统计程序完成"
 
 echo > /www/server/panel/data/bind.pl
 echo -e "=================================================================="

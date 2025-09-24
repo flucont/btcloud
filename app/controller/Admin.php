@@ -100,6 +100,7 @@ class Admin extends BaseController
         View::assign('conf', config('sys'));
         $runtime = Db::name('config')->where('key','runtime')->value('value') ?? '<font color="red">未运行</font>';
         View::assign('runtime', $runtime);
+        View::assign('is_user_www', isset($_SERVER['USER']) && $_SERVER['USER'] == 'www');
         return view();
     }
 

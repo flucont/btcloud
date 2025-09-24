@@ -273,7 +273,7 @@ $("select[name='enbt_type']").change(function(){
 <div class="panel-body">
   <form onsubmit="return saveSetting(this)" method="post" class="form" role="form">
     <div class="alert alert-info">使用以下命令可以从宝塔官方获取最新的插件列表并批量下载插件包（增量更新）。<br/>你也可以将此命令添加到crontab以使此云端的插件保持最新，建议1天执行1次。</div>
-	<div class="alert alert-danger">使用命令执行之后，可能会导致 /data 目录下文件权限不对，后台插件列表下载插件覆盖会报错，需要手动循环设置 /data 目录权限。</div>
+	{if $is_user_www}<div class="alert alert-danger">注：计划任务执行用户必须选择www用户</div>{/if}
     <div class="alert alert-warning">上次运行时间：{$runtime|raw}</div>
     <div class="list-group-item">php {:app()->getRootPath()}think updateall</div><br/>
   </form>
