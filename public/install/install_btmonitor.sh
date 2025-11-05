@@ -430,6 +430,9 @@ EOF
 	if [ -f $monitor_path/sqlite_server/PluginLoader.so ]; then
 		rm -f $monitor_path/sqlite_server/PluginLoader.so
 	fi
+	if [ -f $monitor_path/hook_import/PluginLoader.so ]; then
+		rm -f $monitor_path/hook_import/PluginLoader.so
+	fi
 }
 
 Start_Monitor(){

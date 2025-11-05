@@ -290,14 +290,14 @@ Install_Python_Lib(){
 }
 
 Install_Monitor(){
-    version="1.0.2"
+    version="2.3.0"
     file_name="bt-monitor"
     agent_src="bt-monitor.zip"
 
 	cd ~
 	version=`curl -sf ${Btapi_Url}/bt_monitor/latest_version |awk -F '\"version\"' '{print $2}'|awk -F ':' '{print $2}'|awk -F '"' '{print $2}'`
 	if [ -z $version ]; then
-		version="1.0.2"
+		version="2.3.0"
 	fi
 	new_dir="/www/server/new_btmonitor"
 	if [ ! -d "$new_dir" ];then
@@ -341,6 +341,9 @@ Install_Monitor(){
 	fi
 	if [ -f $monitor_path/sqlite_server/PluginLoader.so ]; then
 		rm -f $monitor_path/sqlite_server/PluginLoader.so
+	fi
+	if [ -f $monitor_path/hook_import/PluginLoader.so ]; then
+		rm -f $monitor_path/hook_import/PluginLoader.so
 	fi
 }
 

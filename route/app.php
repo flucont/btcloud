@@ -42,6 +42,7 @@ Route::group('api', function () {
     Route::get('/wpanel/get_version', 'api/get_version_win');
     Route::get('/panel/get_panel_version', 'api/get_panel_version');
     Route::any('/panel/get_panel_version_v2', 'api/get_panel_version_v2');
+    Route::any('/panel/get_panel_version_v3', 'api/get_panel_version_v2');
     Route::get('/SetupCount', 'api/setup_count');
     Route::any('/panel/updateLinux', 'api/check_update');
     Route::any('/wpanel/updateWindows', 'api/check_update_win');

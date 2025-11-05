@@ -4,7 +4,7 @@
 
 安装包下载链接：http://download.bt.cn/install/src/bt-monitor-版本号.zip
 
-- 删除core/include/c_loader/PluginLoader.so，sqlite_server/PluginLoader.so，将btmonitor/PluginLoader.py复制到这个文件夹
+- 删除core/include/c_loader/PluginLoader.so，hook_import/PluginLoader.so，将btmonitor/PluginLoader.py复制到这个文件夹
 
 - 批量解密源码：执行 php think decrypt all <源码根目录>
 

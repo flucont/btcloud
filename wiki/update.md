@@ -14,7 +14,7 @@
 
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
-- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py、js文件）
+- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py、domainMod.py、js文件）
 
 - 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/（需排除js文件）
 
@@ -96,6 +96,8 @@
 
 - script/local_fix.sh 文件，${D_NODE_URL}替换成www.example.com
 
+- script/upgrade_panel_optimized.py 文件，def get_home_node(url): 下面加上return url
+
 - tools.py 文件，u_input == 16下面的public.get_url()替换成public.GetConfigValue('home')
 
 - install/install_soft.sh 在. 执行之前加入以下代码
@@ -113,11 +115,11 @@
 
   "update_software_list": self.update_software_list,
 
-  "get_view_title_file": self.get_view_title_file,
+  "refresh_domain_cache": self.refresh_domain_cache,
 
   PluginLoader.daemon_panel()
 
-  check_node_status()
+  self.check_node_status()
 
   self.upload_send_num()
 

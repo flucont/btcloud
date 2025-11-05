@@ -1,9 +1,9 @@
 #!/bin/bash
 
-Linux_Version="11.1.0"
+Linux_Version="11.2.0"
 Windows_Version="8.2.2"
 Aapanel_Version="7.0.25"
-Btm_Version="2.3.2"
+Btm_Version="2.3.3"
 
 FILES=(
 public/install/src/panel6.zip
