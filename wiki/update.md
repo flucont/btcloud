@@ -111,19 +111,11 @@
 
 - 去除无用的定时任务：task.py 文件  删除以下几行
 
-  "check_panel_msg": self.check_panel_msg,
+  check_panel_msg,
 
-  "update_software_list": self.update_software_list,
+  refresh_domain_cache,
 
-  "refresh_domain_cache": self.refresh_domain_cache,
-
-  PluginLoader.daemon_panel()
-
-  self.check_node_status()
-
-  self.upload_send_num()
-
-- script/site_task.py 删除flush_ssh_log()
+  task_ssh_error_count,
 
 - [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/software.html 的 \<script\>window.vite_public_request_token 前面加入
 

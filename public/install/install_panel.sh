@@ -14,6 +14,83 @@ if [ $(whoami) != "root" ];then
 	exit 1;
 fi
 
+MEM_TOTAL=$(free -m|grep Mem|awk '{print $2}')
+if [ "${MEM_TOTAL}" ] ;then
+	if [ "${MEM_TOTAL}" -lt "450" ];then
+		echo "====================================================="
+		free -m
+		echo "当前服务器内存为:${MEM_TOTAL}MB"
+		echo "检测到当前服务器内存小于450MB，无法安装宝塔面板"
+		echo "建议更换内存大于等于512MB的服务器安装宝塔面板"
+		echo "====================================================="
+		exit 1
+	fi
+fi
+
+Fix_Apt_Lock(){
+    [ ! -f "/usr/bin/apt-get" ] && return 0
+    
+    echo "检查 apt/dpkg 锁状态..."
+    
+    # # 1. 停止自动更新服务
+    # if systemctl is-active --quiet unattended-upgrades 2>/dev/null; then
+    #     echo "停止 unattended-upgrades 服务..."
+    #     systemctl stop unattended-upgrades 2>/dev/null
+    #     systemctl disable unattended-upgrades 2>/dev/null
+    #     sleep 2
+    # fi
+    
+    # 2. 等待其他 apt/dpkg 进程（最多等待60秒）
+    local wait=0
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+        
+        if [ ${wait} -eq 0 ]; then
+            echo "检测到 apt/dpkg 正在使用中，等待完成..."
+            ps aux | grep -E 'apt-get|apt |dpkg|unattended' | grep -v grep | awk '{print "  PID "$2": "$11}' || true
+        fi
+        
+        [ ${wait} -ge 60 ] && break
+        sleep 3
+        wait=$((wait + 3))
+    done
+    
+    # 3. 如果还有锁，强制清理
+    if fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+       fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+       fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
+       fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
+        
+        echo "强制清理 apt/dpkg 锁..."
+        
+        # 强制终止进程
+        pkill -9 unattended-upgr 2>/dev/null
+        pkill -9 apt-get 2>/dev/null
+        pkill -9 apt 2>/dev/null
+        pkill -9 dpkg 2>/dev/null
+        sleep 1
+        
+        # 删除所有锁文件
+        rm -f /var/lib/dpkg/lock-frontend
+        rm -f /var/lib/dpkg/lock
+        rm -f /var/lib/apt/lists/lock
+        rm -f /var/cache/apt/archives/lock
+        
+        # 修复 dpkg 状态
+        echo "修复 dpkg 状态..."
+        dpkg --configure -a 2>/dev/null || true
+        apt-get install -f -y 2>/dev/null || true
+    fi
+    
+    echo "apt/dpkg 锁检查完成"
+    return 0
+}
+
+
+
+
 is64bit=$(getconf LONG_BIT)
 if [ "${is64bit}" != '64' ];then
 	echo "抱歉, 当前面板版本不支持32位系统, 请使用64位系统或安装宝塔5.9!";
@@ -45,10 +122,10 @@ if [ "${UBUNTU_NO_LTS}" ];then
 	exit 1
 fi
 
-DEBIAN_9_C=$(cat /etc/issue|grep Debian|grep -E "8 |9 ")
+DEBIAN_9_C=$(cat /etc/issue|grep Debian|grep -E "7 |8 |9 ")
 if [ "${DEBIAN_9_C}" ];then
-	echo "当前您使用的Debian-8/9，官方已经停止支持、无法进行宝塔面板的安装"
-	echo "请使用Debian-11/12进行安装宝塔面板"
+	echo "当前您使用的Debian-7/8/9，官方已经停止支持、无法进行宝塔面板的安装"
+	echo "建议使用Debian-11/12/13进行安装宝塔面板"
 	exit 1
 fi
 
@@ -197,7 +274,7 @@ Add_lib_Install(){
 	if [ -f "/etc/os-release" ];then
 		. /etc/os-release
 		OS_V=${VERSION_ID%%.*}
-		if [ "${ID}" == "debian" ] && [[ "${OS_V}" =~ ^(11|12)$ ]];then
+		if [ "${ID}" == "debian" ] && [[ "${OS_V}" =~ ^(11|12|13)$ ]];then
 			OS_NAME=${ID}
 		elif [ "${ID}" == "ubuntu" ] && [[ "${OS_V}" =~ ^(22|24)$ ]];then
 			OS_NAME=${ID}
@@ -278,9 +355,10 @@ Set_Repo_Url(){
 		NODE_STATUS=$(echo ${NODE_CHECK}|awk '{print $1}')
 		TIME_TOTAL=$(echo ${NODE_CHECK}|awk '{print $2 * 1000}'|cut -d '.' -f 1)
 
-		if { [ "${NODE_STATUS}" != "200" ] && [ "${NODE_STATUS}" != "301" ]; } || [ "${TIME_TOTAL}" -ge "300" ] || [ "${SOURCE_URL_CHECK}" ]; then
+		if { [ "${NODE_STATUS}" != "200" ] && [ "${NODE_STATUS}" != "301" ]; } || [ "${TIME_TOTAL}" -ge "500" ] || [ "${SOURCE_URL_CHECK}" ]; then
 			\cp -rpa /etc/apt/sources.list /etc/apt/sources.list.btbackup
 			apt_lists=(mirrors.cloud.tencent.com  mirrors.163.com repo.huaweicloud.com mirrors.tuna.tsinghua.edu.cn mirrors.aliyun.com mirrors.ustc.edu.cn )
+			apt_lists=(mirrors.cloud.tencent.com  mirrors.163.com repo.huaweicloud.com mirrors.aliyun.com mirrors.ustc.edu.cn )
 			for list in ${apt_lists[@]};
 			do
 				NODE_CHECK=$(curl --connect-timeout 3 -m 3 2>/dev/null -w "%{http_code} %{time_total}" ${list} -o /dev/null)
@@ -445,6 +523,11 @@ Set_Centos8_Repo(){
 
 	yum install unzip tar -y
 	if [ "$?" != "0" ] ;then
+
+		if [ -d "/etc/yum.repos.d" ];then
+			mkdir -p /etc/yum.repos.d
+		fi
+
 		if [ -z "${download_Url}" ];then
 			download_Url="http://download.bt.cn"
 		fi
@@ -484,19 +567,20 @@ get_node_url(){
 	
 	echo '---------------------------------------------';
 	echo "Selected download node...";
-	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com https://download.bt.cn);
+	nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://cf1-node.aapanel.com https://download.bt.cn http://115.231.130.125:5880);
 	
 	CURL_CHECK=$(which curl)
 	if [ "$?" == "0" ];then
 		CN_CHECK=$(curl -sS --connect-timeout 10 -m 10 https://api.bt.cn/api/isCN)
 		if [ "${CN_CHECK}" == "True" ];then
-			nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn);
+			nodes=(https://dg2.bt.cn https://download.bt.cn https://ctcc1-node.bt.cn https://cmcc1-node.bt.cn https://ctcc2-node.bt.cn https://hk1-node.bt.cn http://115.231.130.125:5880);
 		else
 			PING6_CHECK=$(ping6 -c 2 -W 2 download.bt.cn &> /dev/null && echo "yes" || echo "no")
 			if [ "${PING6_CHECK}" == "yes" ];then
 				nodes=(https://dg2.bt.cn https://download.bt.cn https://cf1-node.aapanel.com);
 			else
-				nodes=(https://cf1-node.aapanel.com https://download.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://dg2.bt.cn);
+				#nodes=(https://cf1-node.aapanel.com https://download.bt.cn https://na1-node.bt.cn https://jp1-node.bt.cn https://dg2.bt.cn);
+				nodes=(https://cf1-node.aapanel.com https://cf1-node.aapanel.com https://download.bt.cn https://dg2.bt.cn https://jp1-node.bt.cn);
 			fi
 		fi
 	fi
@@ -713,6 +797,17 @@ Install_Deb_Pack(){
 		fi	
 	fi
 }
+
+Install_Other_Pack(){
+	if [ -f "/sbin/apk" ];then
+		sed -i 's/dl-cdn.alpinelinux.org/mirrors.tencent.com/g' /etc/apk/repositories
+		apk update
+		apk upgrade
+		apk add openrc openssh curl curl-dev libffi-dev openssl-dev shadow bash zlib-dev g++ make sqlite-dev libpcap-dev jpeg-dev dos2unix libev-dev build-base linux-headers gd-dev bash openssl libxml2-dev libxslt-dev jemalloc-dev luajit luajit-dev
+		LOCK_PIP="True"
+	fi
+}
+
 Get_Versions(){
 	redhat_version_file="/etc/redhat-release"
 	deb_version_file="/etc/issue"
@@ -812,7 +907,6 @@ Get_Versions(){
 }
 Install_Python_Lib(){
 
-
 	if [ -f "/www/server/panel/pyenv/bin/python3.7" ];then
 		python_file_date=$(date -r /www/server/panel/pyenv/bin/python3.7  +"%Y")
 		if [ "${python_file_date}" -lt "2021" ];then
@@ -821,6 +915,19 @@ Install_Python_Lib(){
 	fi
 	
 	curl -Ss --connect-timeout 3 -m 60 $download_Url/install/pip_select.sh|bash
+	if [ "${LOCK_PIP}" ];then
+		if [ ! -d ~/.pip ];then
+		mkdir -p ~/.pip
+		fi
+		cat > ~/.pip/pip.conf <<EOF
+[global]
+index-url = https://mirrors.tencent.com/pypi/simple
+
+[install]
+trusted-host = mirrors.tencent.com
+EOF
+	fi
+	
 	pyenv_path="/www/server/panel"
 	if [ -f $pyenv_path/pyenv/bin/python ];then
 	 	is_ssl=$($python_bin -c "import ssl" 2>&1|grep cannot)
@@ -1052,6 +1159,7 @@ Install_Bt(){
 			yum install unzip -y
 		elif [ "${PM}" = "apt-get" ]; then
 			apt-get update
+			Fix_Apt_Lock
 			apt-get install unzip -y 2>&1|tee /tmp/apt_install_log.log
 			UNZIP_CHECK=$(which unzip)
 			if [ "$?" != "0" ];then
@@ -1215,8 +1323,14 @@ Set_Bt_Panel(){
 	/etc/init.d/bt start 	
 	sleep 5
 	isStart=$(ps aux |grep 'BT-Panel'|grep -v grep|awk '{print $2}')
-	LOCAL_CURL=$(curl 127.0.0.1:${panelPort}/login 2>&1 |grep -i html)
-	if [ -z "${isStart}" ];then
+	
+	if [ -f "/www/server/panel/data/ssl.pl" ];then
+		LOCAL_CURL=$(curl -k https://127.0.0.1:${panelPort}/login 2>&1 |grep -i html)
+	else
+		LOCAL_CURL=$(curl 127.0.0.1:${panelPort}/login 2>&1 |grep -i html)
+	fi
+
+	if [ -z "${isStart}" ] && [ -z "${LOCAL_CURL}" ];then
 		/etc/init.d/bt 22
 		cd /www/server/panel/pyenv/bin
 		touch t.pl
@@ -1397,6 +1511,8 @@ Install_Main(){
 		Install_RPM_Pack
 	elif [ "${PM}" = "apt-get" ]; then
 		Install_Deb_Pack
+	else
+		Install_Other_Pack
 	fi
 
 	Install_Python_Lib

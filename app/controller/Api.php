@@ -19,13 +19,16 @@ class Api extends BaseController
             Db::name('record')->insert(['ip'=>$this->clientip, 'addtime'=>date("Y-m-d H:i:s"), 'usetime'=>date("Y-m-d H:i:s")]);
         }
         $json_arr = Plugins::get_plugin_list();
-        if(!$json_arr) return json((object)[]);
+        if(!$json_arr) $json_arr = (object)[];
         return json($json_arr);
     }
 
     //获取插件列表(win)
     public function get_plugin_list_win(){
         if(!$this->checklist()) return json('你的服务器被禁止使用此云端');
+        $os_version = input('post.os_version');
+        $serverid = input('post.serverid');
+        $uid = input('post.uid');
         $record = Db::name('record')->where('ip',$this->clientip)->find();
         if($record){
             Db::name('record')->where('id',$record['id'])->update(['usetime'=>date("Y-m-d H:i:s")]);
@@ -33,7 +36,10 @@ class Api extends BaseController
             Db::name('record')->insert(['ip'=>$this->clientip, 'addtime'=>date("Y-m-d H:i:s"), 'usetime'=>date("Y-m-d H:i:s")]);
         }
         $json_arr = Plugins::get_plugin_list('Windows');
-        if(!$json_arr) return json((object)[]);
+        if(!$json_arr) $json_arr = (object)[];
+        if($os_version == 'windows_go'){
+            return Plugins::encrypt_plugin_list($json_arr, $serverid, $uid);
+        }
         return json($json_arr);
     }
 
@@ -47,49 +53,49 @@ class Api extends BaseController
             Db::name('record')->insert(['ip'=>$this->clientip, 'addtime'=>date("Y-m-d H:i:s"), 'usetime'=>date("Y-m-d H:i:s")]);
         }
         $json_arr = Plugins::get_plugin_list('en');
-        if(!$json_arr) return json((object)[]);
+        if(!$json_arr) $json_arr = (object)[];
         return json($json_arr);
     }
 
     //下载插件包
     public function download_plugin(){
-        $plugin_name = input('post.name');
-        $version = input('post.version');
-        $os = input('post.os');
+        $plugin_name = input('param.name');
+        $version = input('param.version');
+        $os = input('param.os');
         if(!$plugin_name || !$version){
-            return '参数不能为空';
+            return json(['status'=>false, 'msg'=>'参数不能为空']);
         }
         if(!in_array($os,['Windows','Linux'])) $os = 'Linux';
         if(!preg_match('/^[a-zA-Z0-9_]+$/', $plugin_name) || !preg_match('/^[0-9.]+$/', $version)){
-            return '参数不正确';
+            return json(['status'=>false, 'msg'=>'参数不正确']);
         }
-        if(!$this->checklist()) return '你的服务器被禁止使用此云端';
+        if(!$this->checklist()) return json(['status'=>false, 'msg'=>'你的服务器被禁止使用此云端']);
         $filepath = get_data_dir($os).'plugins/package/'.$plugin_name.'-'.$version.'.zip';
         if(file_exists($filepath)){
             $filename = $plugin_name.'.zip';
             $this->output_file($filepath, $filename);
         }else{
-            return '云端不存在该插件包';
+            return json(['status'=>false, 'msg'=>'云端不存在该插件包']);
         }
     }
 
     //下载插件包aapanel
     public function download_plugin_en(){
-        $plugin_name = input('post.name');
-        $version = input('post.version');
+        $plugin_name = input('param.name');
+        $version = input('param.version');
         if(!$plugin_name || !$version){
-            return '参数不能为空';
+            return json(['status'=>false, 'msg'=>'参数不能为空']);
         }
         if(!preg_match('/^[a-zA-Z0-9_]+$/', $plugin_name) || !preg_match('/^[0-9.]+$/', $version)){
-            return '参数不正确';
+            return json(['status'=>false, 'msg'=>'参数不正确']);
         }
-        if(!$this->checklist()) return '你的服务器被禁止使用此云端';
+        if(!$this->checklist()) return json(['status'=>false, 'msg'=>'你的服务器被禁止使用此云端']);
         $filepath = get_data_dir('en').'plugins/package/'.$plugin_name.'-'.$version.'.zip';
         if(file_exists($filepath)){
             $filename = $plugin_name.'.zip';
             $this->output_file($filepath, $filename);
         }else{
-            return '云端不存在该插件包';
+            return json(['status'=>false, 'msg'=>'云端不存在该插件包']);
         }
     }
 
@@ -99,13 +105,13 @@ class Api extends BaseController
         $version = input('post.version');
         $os = input('post.os');
         if(!$plugin_name || !$version){
-            return '参数不能为空';
+            return json(['status'=>false, 'msg'=>'参数不能为空']);
         }
         if(!in_array($os,['Windows','Linux'])) $os = 'Linux';
         if(!preg_match('/^[a-zA-Z0-9_]+$/', $plugin_name) || !preg_match('/^[0-9.]+$/', $version)){
-            return '参数不正确';
+            return json(['status'=>false, 'msg'=>'参数不正确']);
         }
-        if(!$this->checklist()) return '你的服务器被禁止使用此云端';
+        if(!$this->checklist()) return json(['status'=>false, 'msg'=>'你的服务器被禁止使用此云端']);
         $filepath = get_data_dir($os).'plugins/package/'.$plugin_name.'-'.$version.'.zip';
         $mainfilepath = get_data_dir($os).'plugins/folder/'.$plugin_name.'-'.$version.'/'.$plugin_name.'/'.$plugin_name.'_main.py';
         if(file_exists($mainfilepath)){
@@ -116,10 +122,10 @@ class Api extends BaseController
             if ($zip->open($filepath) === true){
                 echo $zip->getFromName($plugin_name.'/'.$plugin_name.'_main.py');
             }else{
-                return '插件包解压缩失败';
+                return json(['status'=>false, 'msg'=>'插件包解压缩失败']);
             }
         }else{
-            return '云端不存在该插件主文件';
+            return json(['status'=>false, 'msg'=>'云端不存在该插件主文件']);
         }
     }
 
@@ -141,6 +147,36 @@ class Api extends BaseController
         }else{
             return json(['status'=>false, 'msg'=>'云端不存在该插件文件']);
         }
+    }
+
+    public function get_plugin_auth(){
+        $productids = ["8","9","10","11","12","13","14","15","16","17","18","19","20","22","23","24","25","26","28","32","33","42","44","45","47","55","65","69","75","82","83","85","90","91","97","99","101","107","108","110","118","121","127","128","132","135","136","140","143","144","151","154","156","161","163","167","173","179","183","185","190","192","195","197","200","201","202","203","204","205","206","207","208","212","213","214","215","216","217","218","219","220","221","222","223","224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","241","243","244","245","246","247","248","249","250","251","252","253","254","255","256","257","258","259","261","262","263","264","265","266","267","268","269","270","271","272","273","274","275","276","277","278","279","280","281","282","283","284","285","286","287","289","292","293","295","296","297","298","299","300","301","302","303","304","305","306","307","308","309","310","311","312","313","314","315","316","317","318","319","320","321","322","323","324","325","326","327","328","329","330","331","332","334","335","336","337","338","339","340","341","342","343","344","345","346","347","348","349","350","351","352","353","354","355","356","357","358","359","360","361","362","363","364","365","366","368","369","371","372","373","374","375","376","377","378","379","380","381","382","383","384","385","386","387","388","389","390","391","392","393","394","397","398","400","401","406","408","409","411","413","415","419","423","425","427","429","430","1111111","100000001","100000005","100000007","100000008","100000009","100000010","100000012","100000014","100000015","100000016","100000017","100000035","100000036","100000039","100000040","100000041","100000042","100000045","100000053","100000054","100000056","100000057","100000058","100000059","100000062","100000063","100000067","100000069","100000070","100000076","100000077","100000078","100000079","100000080","100000084","100000085","100000088","100000089","100000090","100000091","100000092","100000093","100000094","100000095","100000096","100000097","100000098"];
+        $os_version = input('post.os_version');
+        $address = input('post.address','');
+        $uid = input('post.uid','');
+        $username = input('post.username','');
+        $serverid = input('post.serverid','');
+        $mac = input('post.mac','');
+        $data = ['ip'=>$address, 'uid'=>$uid, 'username'=>$username, 'serverid'=>$serverid, 'lasttime'=>time(), 'pro'=>-1, 'skey'=>'', 'ltd'=>strtotime('+10 year'), 'list'=>[]];
+        foreach($productids as $pid){
+            $data['list'][$pid] = strtotime('+10 year');
+        }
+        return Plugins::encrypt_plugin_list($data, $serverid, $uid);
+    }
+
+    public function get_plugin_auth_win(){
+        $productids = ["49","50","51","52","53","54","56","57","58","59","60","61","67","68","72","76","80","84","88","89","92","93","119","120","133","134","137","138","139","142","145","146","150","168","169","170","172","176","184","396","404","414","420","422","424","426","428","100000001","100000018","100000019","100000024","100000026","100000027","100000028","100000031","100000039","100000043","100000047","100000048","100000049","100000051","100000052","100000060","100000061","100000064","100000067","100000075"];
+        $os_version = input('post.os_version');
+        $address = input('post.address','');
+        $uid = input('post.uid','');
+        $username = input('post.username','');
+        $serverid = input('post.serverid','');
+        $mac = input('post.mac','');
+        $data = ['ip'=>$address, 'uid'=>$uid, 'username'=>$username, 'serverid'=>$serverid, 'lasttime'=>time(), 'pro'=>-1, 'skey'=>'', 'ltd'=>strtotime('+10 year'), 'list'=>[]];
+        foreach($productids as $pid){
+            $data['list'][$pid] = strtotime('+10 year');
+        }
+        return Plugins::encrypt_plugin_list($data, $serverid, $uid);
     }
 
     public function get_update_logs(){

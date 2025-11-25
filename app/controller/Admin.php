@@ -144,18 +144,33 @@ class Admin extends BaseController
         }else{
             $bt_url = input('post.bt_url');
             $bt_key = input('post.bt_key');
+            $os = input('post.os');
             if(!$bt_url || !$bt_key)return json(['code'=>-1, 'msg'=>'参数不能为空']);
             $btapi = new Btapi($bt_url, $bt_key);
-            $result = $btapi->get_config();
-            if($result && isset($result['status']) && ($result['status']==1 || isset($result['sites_path']))){
-                $result = $btapi->get_user_info();
-                if($result && isset($result['username'])){
-                    return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
+            if ($os == 'win') {
+                $result = $btapi->get_config_go();
+                if($result && isset($result['config'])){
+                    $result = $btapi->get_user_info();
+                    if($result && isset($result['username'])){
+                        return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
+                    }else{
+                        return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件/未登录账号']);
+                    }
                 }else{
-                    return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件/未登录账号']);
+                    return json(['code'=>-1, 'msg'=>isset($result['msg'])?$result['msg']:'面板地址无法连接']);
                 }
-            }else{
-                return json(['code'=>-1, 'msg'=>isset($result['msg'])?$result['msg']:'面板地址无法连接']);
+            } else {
+                $result = $btapi->get_config();
+                if($result && isset($result['status']) && ($result['status']==1 || isset($result['sites_path']))){
+                    $result = $btapi->get_user_info();
+                    if($result && isset($result['username'])){
+                        return json(['code'=>0, 'msg'=>'面板连接测试成功！']);
+                    }else{
+                        return json(['code'=>-1, 'msg'=>'面板连接测试成功，但未安装专用插件/未登录账号']);
+                    }
+                }else{
+                    return json(['code'=>-1, 'msg'=>isset($result['msg'])?$result['msg']:'面板地址无法连接']);
+                }
             }
         }
     }
@@ -170,6 +185,7 @@ class Admin extends BaseController
             }
         }
         View::assign('typelist', $typelist);
+        View::assign('skip_plugins', \app\lib\BtPlugins::$skip_plugins);
         return view();
     }
 

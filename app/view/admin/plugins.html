@@ -75,7 +75,7 @@ td{overflow: hidden;text-overflow: ellipsis;white-space: nowrap;max-width:340px;
 <script src="{$cdnpublic}bootstrap-table/1.19.1/extensions/page-jump-to/bootstrap-table-page-jump-to.min.js"></script>
 <script src="/static/js/custom.js"></script>
 <script>
-var skip_plugins = ['firewall', 'php_filter', 'enterprise_backup', 'tamper_drive', 'KylinOperatingSystem', 'KingdeeApusicDistributedCache', 'BorlandCacheServer', 'GBase8s', 'KingdeeApusicLoadBalancer', 'BorlandWebServer'];
+var skip_plugins = {:json_encode($skip_plugins)};
 function download_version(name, version, status){
     if(status == true){
         var confirm = layer.confirm('是否确定重新下载'+version+'版本插件包？', {

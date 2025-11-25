@@ -174,7 +174,7 @@
 	</div><hr/>
 	<div id="wbt_type_0" style="{if config_get('wbt_type')==1}display:none;{/if}">
     <p>以下宝塔面板请使用官方最新脚本安装并绑定账号，用于获取插件列表及插件包</p>
-    <p><a href="/static/file/win/kaixin.zip">下载专用插件(Win)</a>，在面板【软件商店】->【第三方应用】，点击【导入插件】，导入该专用插件。</p>
+    <p>先在面板软件商店，安装“堡塔面板静态文件加速”插件，然后<a href="/static/file/win/static_cdn.zip">下载专用插件(Win)</a>，上传到 /BtSoft/panel/plugin/ 解压。</p>
 	<div class="form-group">
 	  <label>宝塔面板URL：</label><br/>
 	  <input type="text" name="wbt_url" value="{:config_get('wbt_url')}" class="form-control"/>
@@ -384,7 +384,7 @@ $(document).ready(function(){
 			if(bt_key == ''){
 				layer.alert('宝塔面板接口密钥不能为空');return;
 			}
-			var postdata = {bt_type:bt_type, bt_url:bt_url, bt_key:bt_key};
+			var postdata = {os:'linux', bt_type:bt_type, bt_url:bt_url, bt_key:bt_key};
 		}
         var ii = layer.load(2, {shade:[0.1,'#fff']});
         $.ajax({
@@ -429,7 +429,7 @@ $(document).ready(function(){
 			if(wbt_key == ''){
 				layer.alert('宝塔面板接口密钥不能为空');return;
 			}
-			var postdata = {bt_type:wbt_type, bt_url:wbt_url, bt_key:wbt_key};
+			var postdata = {os:'win', bt_type:wbt_type, bt_url:wbt_url, bt_key:wbt_key};
 		}
         var ii = layer.load(2, {shade:[0.1,'#fff']});
         $.ajax({
@@ -474,7 +474,7 @@ $(document).ready(function(){
 			if(enbt_key == ''){
 				layer.alert('宝塔面板接口密钥不能为空');return;
 			}
-			var postdata = {bt_type:enbt_type, bt_url:enbt_url, bt_key:enbt_key};
+			var postdata = {os:'en', bt_type:enbt_type, bt_url:enbt_url, bt_key:enbt_key};
 		}
         var ii = layer.load(2, {shade:[0.1,'#fff']});
         $.ajax({

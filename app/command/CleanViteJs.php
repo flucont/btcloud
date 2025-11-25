@@ -101,6 +101,7 @@ class CleanViteJs extends Command
     }
     
     private function handlefile($filepath){
+        //echo $filepath."\n";
         $file = file_get_contents($filepath);
         if(!$file)return;
     
@@ -119,8 +120,24 @@ class CleanViteJs extends Command
             }
             $flag = true;
         }
+
+        if(strpos($file, '"点击打开调查问卷"')!==false){ //index
+            $code = $this->getExtendCode($file, '"点击打开调查问卷"', 2);
+            if($code){
+                $file = str_replace($code, '{}', $file);
+            }
+            $flag = true;
+        }
+
+        if(strpos($file, '您有{0}个优惠券待领取')!==false){ //win-index
+            $code = $this->getExtendCode($file, 'isGetCoupon:', 2);
+            if($code){
+                $file = str_replace($code, '{}', $file);
+            }
+            $flag = true;
+        }
     
-        if(strpos($file, '论坛求助')!==false){ //main
+        if(strpos($file, '论坛求助')!==false && strpos($file, '"/other/customer-qrcode.png"')!==false){ //main
             $code = $this->getExtendCode($file, '"微信公众号"', 1);
             $code = $this->getExtendFunction($file, $code);
             $start = strpos($file, $code) - 1;
@@ -151,6 +168,12 @@ class CleanViteJs extends Command
             if($code){
                 $file = str_replace($code, '', $file);
             }
+            $flag = true;
+        }
+
+        if(strpos($file, '"sqlserver管理"')!==false && strpos($file, '"iis管理"')!==false){ //win-utils
+            $file = preg_replace('!"calc"===\w+\.\w+\.type!', '!1', $file);
+            $file = preg_replace('!"input"===\w+\.\w+\.type!', '!1', $file);
             $flag = true;
         }
     
@@ -206,17 +229,27 @@ class CleanViteJs extends Command
         if(strpos($file, '"商用SSL"')!==false){ //ssl
             $code = $this->getExtendFunction($file, '"商用SSL"', '{', '}');
             $file = str_replace($code, '', $file);
-            $code = $this->getExtendCode($file, ',"联系客服"', 2, '[', ']');
-            if($code){
-                $file = str_replace($code, '[]', $file);
+            $code = $this->getExtendFunction($file, '"宝塔证书"', '{', '}');
+            $file = str_replace($code, '', $file);
+            for($i=0;$i<3;$i++){
+                $code = $this->getExtendCode($file, ',"联系客服"', 2, '[', ']');
+                if($code){
+                    $file = str_replace($code, '[]', $file);
+                }
             }
-            $code = $this->getExtendCode($file, ',"联系客服"', 2, '[', ']');
-            if($code){
-                $file = str_replace($code, '[]', $file);
-            }
+            $flag = true;
         }
         if(strpos($file, '"SSL-CERTIFICATE-STORE"')!==false){ //ssl
-            $file = str_replace('("ssl")', '("encrypt")', $file);
+            $file = str_replace('("bt")', '("encrypt")', $file);
+            $flag = true;
+        }
+
+        if(strpos($file, '"商业证书"')!==false && strpos($file, 'name:"busSslList"')!==false && strpos($file, 'IIS配置')!==false){ //win-ssl
+            $code = $this->getExtendFunction($file, 'name:"busSslList"', '{', '}');
+            $file = str_replace($code, '', $file);
+            $code = $this->getExtendFunction($file, 'name:"trustAsiaList"', '{', '}');
+            $file = str_replace($code, '', $file);
+            $file = $this->str_replace_once('"busSslList"', '"currentCertInfo"', $file);
             $flag = true;
         }
     
@@ -234,7 +267,7 @@ class CleanViteJs extends Command
             $flag = true;
         }
 
-        if(strpos($file, '"打开插件文件目录"')!==false){ //soft.table
+        if(strpos($file, '"打开插件文件目录"')!==false && strpos($file, '"(续费)"')!==false){ //soft.table
             $code = $this->getExtendFunction($file, '"(续费)"');
             $file = str_replace($code, '""', $file);
             $flag = true;

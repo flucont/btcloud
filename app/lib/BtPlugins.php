@@ -9,9 +9,10 @@ class BtPlugins
 {
     private $btapi;
     private $os;
-    
+
     //需屏蔽的插件名称列表
-    private static $block_plugins = ['dns','bt_boce','ssl_verify'];
+    public static $block_plugins = ['dns', 'bt_boce', 'ssl_verify', 'firewall', 'KylinOperatingSystem', 'KingdeeApusicDistributedCache', 'BorlandCacheServer', 'GBase8s', 'KingdeeApusicLoadBalancer', 'BorlandWebServer'];
+    public static $skip_plugins = ['php_filter', 'enterprise_backup', 'tamper_drive'];
 
     public function __construct($os){
         $this->os = $os;

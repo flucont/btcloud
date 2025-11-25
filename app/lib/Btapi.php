@@ -26,6 +26,17 @@ class Btapi
       	return $data;
 	}
 
+	public function get_config_go(){
+		$url = $this->BT_PANEL.'/panel/get_config';
+		
+		$p_data = $this->GetKeyData();
+		
+		$result = $this->curl($url,$p_data);
+		
+		$data = json_decode($result,true);
+      	return $data;
+	}
+
 	//获取已登录用户信息
 	public function get_user_info(){
 		$url = $this->BT_PANEL.'/plugin?action=a&name=kaixin&s=get_user_info';

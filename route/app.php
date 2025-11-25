@@ -7,11 +7,14 @@ Route::get('/download', 'index/download');
 
 
 Route::any('/panel/get_plugin_list', 'api/get_plugin_list');
+Route::any('/panel/get_plugin_auth', 'api/get_plugin_auth');
 Route::any('/wpanel/get_plugin_list', 'api/get_plugin_list_win');
+Route::any('/wpanel/get_plugin_auth', 'api/get_plugin_auth_win');
 Route::post('/down/download_plugin', 'api/download_plugin');
 Route::post('/down/download_plugin_main', 'api/download_plugin_main');
 Route::post('/panel/get_soft_list_status', 'api/return_success');
 Route::post('/panel/get_unbinding', 'api/return_success');
+Route::post('/wpanel/get_unbinding', 'api/return_success');
 Route::post('/bt_cert', 'api/bt_cert');
 Route::post('/Auth/GetAuthToken', 'api/get_auth_token');
 Route::post('/Auth/GetBindCode', 'api/return_error');

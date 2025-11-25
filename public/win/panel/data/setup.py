@@ -884,22 +884,6 @@ def download_panel(file_list = []):
         if s_ver.find('2008') >= 0: net_v = '20'
         writeFile('{}/data/net'.format(setupPath),net_v)
 
-        not_workorder_path = '{}/data/not_workorder.pl'.format(panelPath)
-        if not os.path.exists(not_workorder_path):
-            writeFile(not_workorder_path,'True')
-        bind_path = '{}/data/bind_path.pl'.format(panelPath)
-        if os.path.exists(bind_path):
-            os.remove(bind_path)
-        userinfo_path = '{}/data/userInfo.json'.format(panelPath)
-        if not os.path.exists(userinfo_path):
-            writeFile(userinfo_path,'{"uid":1,"username":"Administrator","address":"127.0.0.1","serverid":"1","access_key":"test","secret_key":"123456","ukey":"123456","state":1}')
-        
-        local_path = '{}/temp/api.py'.format(setupPath)
-        downloadFileByWget('{}/win/panel/data/api.py'.format(url),local_path)
-        if os.path.exists(local_path):
-            os.remove('C:/Program Files/python/Lib/site-packages/requests/api.py')
-            shutil.move(local_path,'C:/Program Files/python/Lib/site-packages/requests')
-
         local_path = '{}/script/BtTools.exe'.format(panelPath)
         downloadFileByWget('{}/win/panel/BtTools{}.exe'.format(url,net_v),local_path)
         if os.path.getsize(local_path) > 128:

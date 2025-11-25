@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Linux_Version="11.2.0"
+Linux_Version="11.3.0"
 Windows_Version="8.2.2"
 Aapanel_Version="7.0.25"
 Btm_Version="2.3.3"
@@ -12,8 +12,6 @@ public/install/install_panel.sh
 public/install/update_panel.sh
 public/install/update6.sh
 public/win/install/panel_update.py
-public/win/panel/panel_${Windows_Version}.zip
-public/win/panel/data/api.py
 public/win/panel/data/setup.py
 public/install/src/bt-monitor-${Btm_Version}.zip
 public/install/install_btmonitor.sh

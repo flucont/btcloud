@@ -200,4 +200,19 @@ class Plugins
         return $result;
     }
 
+    //加密插件列表
+    public static function encrypt_plugin_list($list, $server_id, $uid){
+        $data = json_encode($list);
+        $block_size = 51200;
+        $key = md5(substr($server_id, 10, 16) . $uid . $server_id);
+        $iv = md5($key . $server_id);
+        $key = substr($key, 8, 16);
+        $iv = substr($iv, 8, 16);
+        $encrypted_content = '';
+        foreach (str_split($data, $block_size) as $block) {
+            $encrypted_content .= openssl_encrypt($block, 'aes-128-cbc', $key, 0, $iv) . "\n";
+        }
+        return $encrypted_content;
+    }
+
 }
