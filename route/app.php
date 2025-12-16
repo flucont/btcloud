@@ -106,7 +106,9 @@ Route::group('api', function () {
     Route::get('/panel/notpro', 'api/return_empty');
     Route::post('/Btdeployment/get_deplist', 'api/get_deplist');
     Route::post('/panel/get_deplist', 'api/get_deplist');
-    Route::get('/ip/info_json', 'api/return_empty_array');
+    Route::post('/ip/info', 'api/get_ip_info');
+    Route::post('/ip/info_json', 'api/get_ip_info');
+    Route::post('/panel/get_ip_info', 'api/get_ip_info');
 
     Route::post('/LinuxBeta', 'api/return_error');
     Route::post('/panel/apple_beta', 'api/return_error');
@@ -155,12 +157,17 @@ Route::group('api', function () {
     Route::post('/panel/submit_expand_pack_used', 'api/return_success');
     Route::get('/panel/getLatestOfficialVersion', 'api/get_version_en');
     Route::post('/cert/user/list', 'api/nps_questions');
+    Route::post('/v2/user/wx_web/bound_wx_accounts', 'api/nps_questions');
 
     Route::post('/Auth/GetCloudToken', 'api/get_auth_token');
     Route::post('/cloudtro/version_info', 'api/cloudc_version_info');
     Route::post('/cloudtro/get_version', 'api/cloudc_get_version');
     Route::post('/cloudtro/get_product_order_status_v1', 'api/cloudc_order_status');
 
+    Route::miss('api/return_error');
+});
+
+Route::group('newapi', function () {
     Route::miss('api/return_error');
 });
 

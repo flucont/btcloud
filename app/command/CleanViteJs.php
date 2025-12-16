@@ -166,6 +166,7 @@ class CleanViteJs extends Command
             $file = preg_replace('!computed\(function\(\)\{return"input"===\w+\.\w+\.type\}\)!', '!1', $file);
             $code = $this->getExtendCode($file, '"自动部署"', 2);
             if($code){
+                $file = str_replace($code.',', '', $file);
                 $file = str_replace($code, '', $file);
             }
             $flag = true;
@@ -270,6 +271,10 @@ class CleanViteJs extends Command
         if(strpos($file, '"打开插件文件目录"')!==false && strpos($file, '"(续费)"')!==false){ //soft.table
             $code = $this->getExtendFunction($file, '"(续费)"');
             $file = str_replace($code, '""', $file);
+            $code = $this->getExtendCode($file, 'activity_id:47', 2);
+            if($code){
+                $file = str_replace($code, '{}', $file);
+            }
             $flag = true;
         }
 

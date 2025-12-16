@@ -18,6 +18,8 @@
 
 - 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/（需排除js文件）
 
+- 全局搜索替换 https://www.bt.cn/newapi/ => http://www.example.com/newapi/
+
 - 全局搜索替换 https://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
 
   http://download.bt.cn/install/update6.sh => http://www.example.com/install/update6.sh
@@ -97,8 +99,6 @@
 - script/local_fix.sh 文件，${D_NODE_URL}替换成www.example.com
 
 - script/upgrade_panel_optimized.py 文件，def get_home_node(url): 下面加上return url
-
-- tools.py 文件，u_input == 16下面的public.get_url()替换成public.GetConfigValue('home')
 
 - install/install_soft.sh 在. 执行之前加入以下代码
 

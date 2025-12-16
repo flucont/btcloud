@@ -57,7 +57,8 @@ class UpdateAll extends Command
         $json_arr = Plugins::get_plugin_list($os);
         //循环下载缺少的插件
         foreach($json_arr['list'] as $plugin){
-            if($type == 0 && ($plugin['type']==8 || $plugin['type']==12 || in_array($plugin['name'], \app\lib\BtPlugins::$skip_plugins)) || $type == 1 && $plugin['type']==12 || $plugin['type']==10 || $plugin['type']==5) continue;
+            if($type == 0 && ($plugin['type']==8 || $plugin['type']==12) || $type == 1 && $plugin['type']==12 || $plugin['type']==10 || $plugin['type']==5) continue;
+            if(in_array($plugin['name'], \app\lib\BtPlugins::$skip_plugins)) continue;
 
             foreach($plugin['versions'] as $version){
                 $ver = $version['m_version'].'.'.$version['version'];

@@ -580,6 +580,17 @@ class Api extends BaseController
         return json(json_decode($response, true));
     }
 
+    public function get_ip_info(){
+        $ip = input('post.ip');
+        $data = [];
+        $url = 'https://www.bt.cn/api/ip/info_json';
+        $post = http_build_query(['ip'=>$ip]);
+        $response = get_curl($url, $post);
+        $arr = json_decode($response, true);
+        if($arr) $data = $arr;
+        return json($data);
+    }
+
     public function return_success(){
         return json(['status'=>true, 'msg'=>1, 'data'=>(object)[]]);
     }
