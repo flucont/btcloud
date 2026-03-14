@@ -125,6 +125,8 @@ Route::group('api', function () {
     Route::post('/v2/synchron', 'api/return_error2');
     Route::post('/v2/product/email/user_surplus', 'api/email_user_surplus');
     Route::post('/v2/product/email', 'api/return_error2');
+    Route::post('/v2/order/product/create_plugin_with_credit', 'api/return_success2');
+    Route::post('/v2/wx_auth/user_bind_status', 'api/return_success2');
 
     Route::any('/bt_waf/getSpiders', 'api/btwaf_getspiders');
     Route::any('/bt_waf/get_malicious', 'api/btwaf_getmalicious');

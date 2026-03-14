@@ -114,9 +114,19 @@ class CleanViteJs extends Command
                 $file = str_replace($code, '{}', $file);
             }
             $file = preg_replace('!recommendShow:\w+,!', 'recommendShow:!1,', $file, 1);
-            $code = $this->getExtendCode($file, '"打开需求反馈"', 1, '[', ']');
+            $code = $this->getExtendCode($file, '"tools-feedback"', 2, '[', ']');
             if($code){
-                $file = str_replace($code, '[]', $file);
+                $code = $this->getExtendFunction($file, $code, '{', '}');
+                if($code){
+                    $file = str_replace($code, '', $file);
+                }
+            }
+            $code = $this->getExtendFunction($file, '"activity-entry-btn"');
+            if($code){
+                $code = $this->getExtendCode($file, $code, 2, '(', ')');
+                if($code){
+                    $file = str_replace($code, '{}', $file);
+                }
             }
             $flag = true;
         }

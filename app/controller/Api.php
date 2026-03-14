@@ -595,6 +595,10 @@ class Api extends BaseController
         return json(['status'=>true, 'msg'=>1, 'data'=>(object)[]]);
     }
 
+    public function return_success2(){
+        return json(['success'=>true, 'res'=>'操作成功', 'nonce'=>time()]);
+    }
+
     public function return_error(){
         return json(['status'=>false, 'msg'=>'不支持当前操作']);
     }

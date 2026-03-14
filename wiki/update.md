@@ -14,7 +14,7 @@
 
 - 全局搜索替换 https://api.bt.cn => http://www.example.com
 
-- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py、domainMod.py、js文件）
+- 全局搜索替换 https://www.bt.cn/api/ => http://www.example.com/api/（需排除clearModel.py、scanningModel.py、ipsModel.py、domainMod.py、js文件、/v3/litessl/eab）
 
 - 全局搜索替换 http://www.bt.cn/api/ => http://www.example.com/api/（需排除js文件）
 
@@ -111,11 +111,21 @@
 
 - 去除无用的定时任务：task.py 文件  删除以下几行
 
-  check_panel_msg,
-
   refresh_domain_cache,
 
   task_ssh_error_count,
+
+  flush_docker_hub_repos,
+
+  script/task_script_extension.py 文件 删除以下几行
+
+  self.check_node_status()
+
+  self.upload_send_num()
+
+  self.auto_deploy_ssl()
+
+  PluginLoader.daemon_panel()
 
 - [可选]去除各种计算题：复制bt.js到 BTPanel/static/ ，在 BTPanel/templates/default/software.html 的 \<script\>window.vite_public_request_token 前面加入
 

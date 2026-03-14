@@ -210,8 +210,38 @@ GetSysInfo(){
 		echo -e "=================================================="
 	fi  
 
+	#2026-3-14新增常用命令检测
+	CORE_TOOLS="wget tar xz unzip"
+	NO_EXIST_TOOL=""
+
+	for tool in $CORE_TOOLS; do
+		if ! command -v "$tool" >/dev/null 2>&1; then
+			NO_EXIST_TOOL="$NO_EXIST_TOOL $tool"
+		fi
+	done
+
+	if [ -n "$NO_EXIST_TOOL" ]; then
+		NO_EXIST_TOOL="${NO_EXIST_TOOL# }"
+		echo "========================================================"
+		echo "  检测到缺少必要的系统工具: $NO_EXIST_TOOL"
+		echo "  宝塔面板安装过程中会尝试修复系统源并安装这些工具，"
+		echo "  但本次安装未能成功，可能是由于系统源或网络问题导致。"
+		echo "  建议您先自行排查或使用 AI 协助解决问题后，再重新安装宝塔面板。"
+		echo "  请注意：执行下面命令时产生的报错信息是排查问题的关键信息，"
+		echo "  请根据报错信息进行处理后再尝试安装。"
+		echo "  您可以使用以下命令手动安装缺少的工具："
+		if [ -f "/usr/bin/yum" ]; then
+			echo "  安装命令: yum install $NO_EXIST_TOOL -y"
+		elif [ -f "/usr/bin/apt-get" ]; then
+			echo "  安装命令: apt-get install $NO_EXIST_TOOL -y"
+		else
+			echo "  系统未识别，请手动安装上述工具"
+		fi
+		echo "========================================================"
+	fi
+
 	SYS_SSL_LIBS=$(pkg-config --list-all | grep -q libssl)
-	if [ -z "$SYS_SSL_LIBS" ];then
+	if [ -z "$SYS_SSL_LIBS" ] && [ -z "$NO_EXIST_TOOL" ];then
 		echo "检测到缺少系统ssl相关依赖，可执行下面命令安装依赖后再重新安装宝塔看是否正常"
 		echo "执行前请确保系统源正常"
 		if [ -f "/usr/bin/yum" ];then
@@ -311,6 +341,150 @@ Get_Pack_Manager(){
 	elif [ -f "/usr/bin/apt-get" ] && [ -f "/usr/bin/dpkg" ]; then
 		PM="apt-get"		
 	fi
+}
+Check_And_Fix_Debian_Ubuntu_Source(){
+	#2026-3-12日更新
+	# 作用：检查Debian/Ubuntu系统源配置，自动替换过旧的版本代号为当前系统版本的正确代号，保持较新版本代号不变，避免引入不兼容的软件包
+	# 场景：用户系统升级后，sources.list中仍然保留了旧版本的代号，导致安装过程中无法找到正确的软件包，安装失败
+    [ ! -f "/usr/bin/apt-get" ] && return 0
+    [ ! -f "/etc/os-release" ] && return 0
+    
+    . /etc/os-release
+    
+    # 只处理Debian和Ubuntu
+    if [ "${ID}" != "debian" ] && [ "${ID}" != "ubuntu" ]; then
+        return 0
+    fi
+    echo "=================================================="
+    echo "检查${ID}系统源配置..."
+    
+    # 定义版本代号映射（按版本顺序）
+    local correct_codename=""
+    local version_order=""
+    local version_index=0
+    
+    if [ "${ID}" = "debian" ]; then
+        case "${VERSION_ID%%.*}" in
+            10) correct_codename="buster"; version_index=10 ;;
+            11) correct_codename="bullseye"; version_index=11 ;;
+            12) correct_codename="bookworm"; version_index=12 ;;
+            13) correct_codename="trixie"; version_index=13 ;;
+        esac
+        # 定义版本顺序映射 (codename:version_number)
+        declare -A debian_versions=(
+            # ["jessie"]=8
+            # ["stretch"]=9
+            ["buster"]=10
+            ["bullseye"]=11
+            ["bookworm"]=12
+            ["trixie"]=13
+        )
+        
+    elif [ "${ID}" = "ubuntu" ]; then
+        case "${VERSION_ID}" in
+            18.04) correct_codename="bionic"; version_index=1804 ;;
+            20.04) correct_codename="focal"; version_index=2004 ;;
+            22.04) correct_codename="jammy"; version_index=2204 ;;
+            24.04) correct_codename="noble"; version_index=2404 ;;
+        esac
+        # 定义版本顺序映射
+        declare -A ubuntu_versions=(
+            # ["trusty"]=1404
+            # ["xenial"]=1604
+            ["bionic"]=1804
+            ["focal"]=2004
+            ["jammy"]=2204
+            ["noble"]=2404
+        )
+    fi
+    
+    if [ -z "${correct_codename}" ]; then
+        echo "未识别的${ID}版本: ${VERSION_ID}"
+        return 0
+    fi
+    
+    echo "当前系统: ${ID} ${VERSION_ID} -> 正确: ${correct_codename}"
+    
+    # 检查sources.list
+    sources_file="/etc/apt/sources.list"
+    if [ ! -f "${sources_file}" ]; then
+        echo "源文件 ${sources_file} 不存在，跳过检查"
+        return 0
+    fi
+    
+    # 收集需要替换的旧代号
+    need_fix=0
+    old_codenames=""
+    
+    if [ "${ID}" = "debian" ]; then
+        for codename in "${!debian_versions[@]}"; do
+            local codename_version=${debian_versions[$codename]}
+            # 只处理比当前版本旧的代号
+            if [ ${codename_version} -lt ${version_index} ]; then
+                if grep -q "[[:space:]]${codename}[[:space:]]" "${sources_file}" 2>/dev/null; then
+                    echo "发现旧版本代号: ${codename} (版本${codename_version} < 当前${version_index})"
+                    old_codenames="${old_codenames} ${codename}"
+                    need_fix=1
+                fi
+            elif [ ${codename_version} -gt ${version_index} ] && [ ${codename_version} -lt 99 ]; then
+                if grep -q "[[:space:]]${codename}[[:space:]]" "${sources_file}" 2>/dev/null; then
+                    echo "检测到较新版本代号: ${codename} (版本${codename_version} > 当前${version_index})，跳过替换"
+                fi
+            fi
+        done
+        
+    elif [ "${ID}" = "ubuntu" ]; then
+        for codename in "${!ubuntu_versions[@]}"; do
+            local codename_version=${ubuntu_versions[$codename]}
+            # 只处理比当前版本旧的代号
+            if [ ${codename_version} -lt ${version_index} ]; then
+                if grep -q "[[:space:]]${codename}[[:space:]]" "${sources_file}" 2>/dev/null; then
+                    echo "发现旧版本代号: ${codename} (版本${codename_version} < 当前${version_index})"
+                    old_codenames="${old_codenames} ${codename}"
+                    need_fix=1
+                fi
+            elif [ ${codename_version} -gt ${version_index} ]; then
+                if grep -q "[[:space:]]${codename}[[:space:]]" "${sources_file}" 2>/dev/null; then
+                    echo "检测到较新版本代号: ${codename} (版本${codename_version} > 当前${version_index})，跳过替换"
+                fi
+            fi
+        done
+    fi
+    
+    if [ ${need_fix} -eq 0 ]; then
+        #echo "系统源配置正确，无需修复"
+        return 0
+    fi
+    
+    # 备份并修复
+    echo "=================================================="
+    echo "检测到系统源配置使用了旧的版本服务器代号！"
+    echo "当前系统: ${ID} ${VERSION_ID} 应使用服务器代号: ${correct_codename}"
+    echo "正在自动修复旧版本服务器代号..."
+    echo "=================================================="
+    
+    # 备份原文件
+    backup_file="${sources_file}.bak.$(date +%Y%m%d_%H%M%S)"
+    \cp -p "${sources_file}" "${backup_file}"
+    echo "已备份到: ${backup_file}"
+    
+    # 只替换旧版本的代号
+    for wrong_codename in ${old_codenames}; do
+        sed -ri "/^[[:space:]]*(deb|deb-src) / s/${wrong_codename}/${correct_codename}/g" "${sources_file}"
+        echo "已替换: ${wrong_codename} -> ${correct_codename}"
+    done
+    
+    echo "源配置已修复，更新软件包列表..."
+    apt-get update -y 2>&1 | head -n 20
+    
+    if [ $? -eq 0 ]; then
+        echo "源更新成功！"
+    else
+        echo "警告: apt-get update 执行失败，可能需要手动检查"
+        echo "如需回滚，备份文件在: ${backup_file}"
+    fi
+    
+    return 0
 }
 Set_Repo_Url(){
 	if [ "${PM}"="apt-get" ];then
@@ -531,9 +705,12 @@ Set_Centos8_Repo(){
 		if [ -z "${download_Url}" ];then
 			download_Url="http://download.bt.cn"
 		fi
-		if [ ! -f "/usr/bin/tar" ] ;then
+		if [ ! -f "/usr/bin/tar" ]  || [ ! -f "/usr/sbin/tar" ];then
 			curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/tar-1.30-5.el8.x86_64.rpm
 			yum install tar-1.30-5.el8.x86_64.rpm -y
+			if [ "$?" != "0" ] ;then
+				rpm -ivh --nodeps --force tar-1.30-5.el8.x86_64.rpm
+			fi
 		fi
 		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
 		curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/el8repo.tar.gz
@@ -549,6 +726,9 @@ Set_Centos8_Repo(){
 get_node_url(){
     if [ "${PM}" = "yum" ]; then
         yum install wget -y
+		if [ ! -f "/usr/sbin/wget" ] && [ ! -f "/usr/bin/wget" ];then
+            yum reinstall wget -y
+        fi
     fi
 	if [ ! -f /bin/curl ];then
 		if [ "${PM}" = "yum" ]; then
@@ -1344,13 +1524,23 @@ Set_Bt_Panel(){
 	fi
 
 	if [ -z "${isStart}" ] && [ -z "${LOCAL_CURL}" ];then
-		/etc/init.d/bt 22
-		cd /www/server/panel/pyenv/bin
-		touch t.pl
-		ls -al python3.7 python
-		lsattr python3.7 python
-		btpython /www/server/panel/BT-Panel
-		Red_Error "ERROR: The BT-Panel service startup failed." "ERROR: 宝塔启动失败"
+		/etc/init.d/bt restart
+		sleep 5
+		isStart=$(ps -ef|grep /www/server/panel/BT-Panel|grep -v grep)
+		if [ -z "${isStart}" ];then
+			/etc/init.d/bt 22
+			cd /www/server/panel/pyenv/bin
+			touch t.pl
+			ls -al python3.7 python
+			lsattr python3.7 python
+			if [ -f "/www/server/panel/pyenv/bin/python3.7" ];then
+				/www/server/panel/pyenv/bin/python3.7 -c "print('test')"
+				/www/server/panel/pyenv/bin/python3.7 -V
+				ls -la /www/server/panel/pyenv/lib/python3.7/encodings*|grep utf|grep 8
+			fi
+			# btpython /www/server/panel/BT-Panel
+			Red_Error "ERROR: The BT-Panel service startup failed." "ERROR: 宝塔启动失败"
+		fi
 	fi
 
 	if [ "$PANEL_USER" ];then
@@ -1580,6 +1770,7 @@ Install_Main(){
 	System_Check
 	Get_Pack_Manager
 	Set_Repo_Url
+	Check_And_Fix_Debian_Ubuntu_Source
 	get_node_url
 
 	MEM_TOTAL=$(free -g|grep Mem|awk '{print $2}')
