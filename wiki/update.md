@@ -147,7 +147,7 @@
 
 - [可选]关闭未绑定域名提示页面：在class/panelSite.py，root /www/server/nginx/html改成return 400
 
-- [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log这一行
+- [可选]关闭自动生成访问日志：在 BTPanel/\_\_init\_\_.py  删除public.write_request_log这一行，删除@app.after_request部分内容
 
 - [可选]新版vite页面去除需求反馈、各种广告、计算题等，执行 php think cleanvitejs <面板BTPanel/static/js路径>
 
