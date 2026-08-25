@@ -42,66 +42,345 @@ fi
 
 Fix_Apt_Lock(){
     [ ! -f "/usr/bin/apt-get" ] && return 0
-    
+
     echo "检查 apt/dpkg 锁状态..."
-    
-    # # 1. 停止自动更新服务
-    # if systemctl is-active --quiet unattended-upgrades 2>/dev/null; then
-    #     echo "停止 unattended-upgrades 服务..."
-    #     systemctl stop unattended-upgrades 2>/dev/null
-    #     systemctl disable unattended-upgrades 2>/dev/null
-    #     sleep 2
-    # fi
-    
-    # 2. 等待其他 apt/dpkg 进程（最多等待60秒）
-    local wait=0
-    while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
-          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
-          fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
-          fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
-        
-        if [ ${wait} -eq 0 ]; then
-            echo "检测到 apt/dpkg 正在使用中，等待完成..."
-            ps aux | grep -E 'apt-get|apt |dpkg|unattended' | grep -v grep | awk '{print "  PID "$2": "$11}' || true
+
+    # 1. 停止自动更新服务与定时器（锁冲突第一大诱因）
+    if systemctl list-unit-files 2>/dev/null | grep -q "unattended-upgrades.service"; then
+        if systemctl is-active --quiet unattended-upgrades 2>/dev/null; then
+            echo "停止 unattended-upgrades 自动更新服务..."
+            systemctl stop unattended-upgrades 2>/dev/null
+            systemctl disable unattended-upgrades 2>/dev/null
         fi
-        
-        [ ${wait} -ge 60 ] && break
+    fi
+    systemctl stop apt-daily.timer apt-daily-upgrade.timer 2>/dev/null || true
+    systemctl stop apt-daily.service apt-daily-upgrade.service 2>/dev/null || true
+    sleep 2
+
+    # 2. 锁检测方式选择：优先 python fcntl（与 apt/dpkg 同源），无 python3 则回退 fuser
+    local lock_files=(
+        "/var/lib/dpkg/lock-frontend"
+        "/var/lib/dpkg/lock"
+        "/var/lib/apt/lists/lock"
+        "/var/cache/apt/archives/lock"
+    )
+
+    # 优先使用 fuser（C 二进制，速度快），仅在 fuser 不可用时回退 python fcntl
+    if command -v fuser >/dev/null 2>&1; then
+        _check_lock() { fuser "$1" >/dev/null 2>&1; }
+    elif command -v python3 >/dev/null 2>&1; then
+        _detect_lock_py() {
+            python3 - "$1" << 'PYEOF'
+import fcntl, sys
+lockfile = sys.argv[1]
+try:
+    f = open(lockfile, 'w')
+    fcntl.lockf(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    sys.exit(1)  # 拿到锁 = 无冲突
+except BlockingIOError:
+    sys.exit(0)  # 锁被持有
+except Exception:
+    sys.exit(1)  # 文件不存在等，视为无锁
+PYEOF
+        }
+        _check_lock() { _detect_lock_py "$1"; }
+    else
+        _check_lock() { return 1; }  # 无检测工具，视为无锁
+    fi
+
+    # 3. 通过 /proc/*/fd 查找持锁进程（不依赖 fuser，不依赖进程名）
+    _find_lock_pids() {
+        local lockfile=$1
+        for pid in /proc/[0-9]*; do
+            [ -d "$pid/fd" ] || continue
+            local p=$(basename "$pid")
+            [ "$p" = "$$" ] && continue
+            for fd in "$pid"/fd/*; do
+                local target
+                target=$(readlink "$fd" 2>/dev/null) || continue
+                if [ "$target" = "$lockfile" ]; then
+                    echo "$p"
+                    break
+                fi
+            done
+        done | sort -u
+    }
+
+    # 4. 安全 kill：白名单校验，只杀包管理相关进程，避免误杀
+    _safe_kill() {
+        local pid=$1
+        local comm
+        comm=$(cat /proc/$pid/comm 2>/dev/null || echo "")
+        case "$comm" in
+            apt|apt-get|dpkg|apt\.daily*|unattended*|python*|bash|sh|dash|perl|ruby|node)
+                echo "  终止持锁进程 PID $pid ($comm)"
+                kill -9 "$pid" 2>/dev/null || true
+                ;;
+            *)
+                # 不在白名单但确实持锁，仍终止但记录日志
+                echo "  终止持锁进程 PID $pid ($comm) [非标准包管理进程]"
+                kill -9 "$pid" 2>/dev/null || true
+                ;;
+        esac
+    }
+
+    # 5. 等待锁自然释放（最多 180 秒）
+    local wait=0
+    while true; do
+        local held=0
+        local first_detect=0
+        for lf in "${lock_files[@]}"; do
+            if _check_lock "$lf"; then
+                held=1
+                if [ $wait -eq 0 ]; then
+                    local pids
+                    pids=$(_find_lock_pids "$lf" | tr '\n' ' ')
+                    [ -n "$pids" ] && echo "  $lf 被进程持有: PID $pids"
+                fi
+            fi
+        done
+        [ $held -eq 0 ] && break
+        if [ $wait -eq 0 ]; then
+            echo "检测到 apt/dpkg 正在使用中，等待完成..."
+        fi
+        [ $wait -ge 90 ] && break
         sleep 3
         wait=$((wait + 3))
     done
-    
-    # 3. 如果还有锁，强制清理
-    if fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
-       fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
-       fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || \
-       fuser /var/cache/apt/archives/lock >/dev/null 2>&1; then
-        
+
+    # 6. 仍有锁则强制清理
+    local still_held=0
+    for lf in "${lock_files[@]}"; do
+        if _check_lock "$lf"; then
+            still_held=1
+            break
+        fi
+    done
+
+    if [ $still_held -eq 1 ]; then
         echo "强制清理 apt/dpkg 锁..."
-        
-        # 强制终止进程
-        pkill -9 unattended-upgr 2>/dev/null
-        pkill -9 apt-get 2>/dev/null
-        pkill -9 apt 2>/dev/null
-        pkill -9 dpkg 2>/dev/null
-        sleep 1
-        
+
+        # 杀实际持锁进程
+        for lf in "${lock_files[@]}"; do
+            for pid in $(_find_lock_pids "$lf"); do
+                _safe_kill "$pid"
+            done
+        done
+        # 兜底按进程名再杀一遍
+        pkill -9 unattended-upgr apt-get apt dpkg apt.system.daily 2>/dev/null || true
+        sleep 2
+
         # 删除所有锁文件
-        rm -f /var/lib/dpkg/lock-frontend
-        rm -f /var/lib/dpkg/lock
-        rm -f /var/lib/apt/lists/lock
-        rm -f /var/cache/apt/archives/lock
-        
-        # 修复 dpkg 状态
+        for lf in "${lock_files[@]}"; do
+            rm -f "$lf"
+        done
+        rm -f /var/lib/dpkg/lock-frontend.lock /var/lib/dpkg/updates.lock
+
+        # 深度修复 dpkg 状态
         echo "修复 dpkg 状态..."
         dpkg --configure -a 2>/dev/null || true
         apt-get install -f -y 2>/dev/null || true
+        dpkg --audit 2>/dev/null || true
     fi
-    
+
+    # 无论是否有锁冲突，都检查并修复依赖问题
+    if [ $still_held -eq 1 ]; then
+        Fix_Apt_Dependencies
+    fi
+
     echo "apt/dpkg 锁检查完成"
     return 0
 }
 
+Fix_Apt_Dependencies(){
+    [ ! -f "/usr/bin/apt-get" ] && return 0
 
+    # 快速检测：apt 是否处于 broken 状态
+    if apt-get check 2>/dev/null | grep -q "Unmet dependencies\|0 not installed"; then
+        :  # 无问题，直接返回
+    else
+        local broken=0
+        if apt-get check 2>&1 | grep -q "Unmet dependencies\|have unmet dependencies"; then
+            broken=1
+        fi
+        if dpkg -l 2>/dev/null | grep -E "^i[UFH]" | grep -q .; then
+            broken=1
+        fi
+        [ $broken -eq 0 ] && return 0
+    fi
+
+    echo "检测到 apt 依赖异常，开始修复..."
+
+    # 第 1 步：标准修复
+    dpkg --configure -a 2>&1 | grep -v "^$" | tail -5
+    apt-get install -f -y 2>&1 | tail -10
+
+    # 验证是否修复成功
+    if apt-get check 2>/dev/null | grep -q "Unmet dependencies"; then
+        :
+    else
+        # 再确认一次 dpkg 状态
+        if ! dpkg -l 2>/dev/null | grep -E "^i[UFH]" | grep -q .; then
+            echo "apt 依赖修复完成"
+            return 0
+        fi
+    fi
+
+    echo "标准修复无效，尝试移除导致死锁的非关键系统包..."
+
+    # 第 2 步：识别并强制移除导致死锁的非关键包
+    # 这些包都是 Ubuntu 系统升级/订阅管理工具，不影响服务器基础运行和宝塔功能
+    local DEADLOCK_PACKAGES=(
+        "update-manager-core"
+        "ubuntu-advantage-tools"
+        "ubuntu-pro-client"
+        "ubuntu-release-upgrader-core"
+        "python3-update-manager"
+        "python3-distupgrade"
+        "ubuntu-release-upgrader-gtk"
+        "update-manager"
+    )
+
+    local removed=0
+    for pkg in "${DEADLOCK_PACKAGES[@]}"; do
+        if dpkg -l "$pkg" 2>/dev/null | grep -q "^ii\|^iU\|^iF\|^iH"; then
+            echo "  移除问题包: $pkg"
+            dpkg --remove --force-remove-reinstreq "$pkg" 2>/dev/null || true
+            dpkg --purge --force-all "$pkg" 2>/dev/null || true
+            removed=$((removed + 1))
+        fi
+    done
+
+    if [ $removed -gt 0 ]; then
+        echo "已移除 $removed 个导致依赖死锁的包，重新修复依赖..."
+        dpkg --configure -a 2>/dev/null || true
+        apt-get install -f -y 2>/dev/null || true
+    fi
+
+    # 最终验证
+    if apt-get check 2>/dev/null | grep -q "Unmet dependencies"; then
+        echo "警告: apt 依赖仍有问题，但已尽力修复，继续尝试安装..."
+    else
+        echo "apt 依赖修复完成"
+    fi
+    return 0
+}
+
+Fix_Yum_Lock(){
+    # yum/rpm 锁检测与修复，处理以下场景：
+    # 1. 上一次 yum 异常中断，残留 .sqlite-journal / __db* 锁文件
+    # 2. 存在未完成的 yum 事务（unfinished transactions remaining）
+    # 3. yum 历史数据库损坏导致 database is locked
+    # 4. 后台 yum/rpm 进程仍在运行
+    [ ! -f "/usr/bin/yum" ] && return 0
+    echo "检查 yum/rpm 锁状态..."
+
+    # 1. 通过 /proc 查找正在运行的 yum/rpm 进程（不依赖 pgrep/lsof）
+    local wait=0
+    local running=0
+    while true; do
+        running=0
+        for pid in /proc/[0-9]*; do
+            local p=$(basename "$pid")
+            [ "$p" = "$$" ] && continue
+            local comm
+            comm=$(cat "$pid/comm" 2>/dev/null || echo "")
+            case "$comm" in
+                yum|rpm|python2.7|python2|python)
+                    local cmdline
+                    cmdline=$(tr '\0' ' ' < "$pid/cmdline" 2>/dev/null || echo "")
+                    case "$cmdline" in
+                        *yum*|*rpm*)
+                            running=1
+                            if [ $wait -eq 0 ]; then
+                                echo "  包管理进程 PID $p ($comm) 正在运行，等待完成..."
+                            fi
+                            ;;
+                    esac
+                    ;;
+            esac
+        done
+        [ $running -eq 0 ] && break
+        [ $wait -ge 60 ] && break
+        sleep 3
+        wait=$((wait + 3))
+    done
+
+    # 2. 超时后强制终止持锁进程
+    if [ $running -eq 1 ]; then
+        echo "  包管理进程长时间未结束，强制终止..."
+        for pid in /proc/[0-9]*; do
+            local p=$(basename "$pid")
+            [ "$p" = "$$" ] && continue
+            local comm
+            comm=$(cat "$pid/comm" 2>/dev/null || echo "")
+            case "$comm" in
+                yum|rpm|python2.7|python2|python)
+                    local cmdline
+                    cmdline=$(tr '\0' ' ' < "$pid/cmdline" 2>/dev/null || echo "")
+                    case "$cmdline" in
+                        *yum*|*rpm*)
+                            kill -9 "$p" 2>/dev/null || true
+                            ;;
+                    esac
+                    ;;
+            esac
+        done
+        sleep 2
+    fi
+
+    # 3. 清理 yum 历史数据库锁文件
+    local cleaned=0
+    for lf in /var/lib/yum/history/*.sqlite-journal /var/lib/yum/history/*.db-journal; do
+        if [ -f "$lf" ]; then
+            [ $cleaned -eq 0 ] && echo "  清理 yum 历史数据库锁文件..."
+            rm -f "$lf"
+            cleaned=1
+        fi
+    done
+
+    # 4. 清理 rpm 数据库锁文件
+    if ls /var/lib/rpm/__db* >/dev/null 2>&1; then
+        echo "  清理 rpm 数据库锁文件..."
+        rm -f /var/lib/rpm/__db*
+    fi
+
+    # 5. 检查 yum 历史数据库是否可访问，损坏则备份重建
+    if ! yum history list >/dev/null 2>&1; then
+        echo "  yum 历史数据库异常，备份并重建..."
+        local ts=$(date +%s)
+        if [ -d "/var/lib/yum/history" ]; then
+            mv /var/lib/yum/history /var/lib/yum/history.bak.$ts 2>/dev/null
+        fi
+        mkdir -p /var/lib/yum/history
+    fi
+
+    # 6. 重建 rpm 数据库（仅在检测到异常时执行，避免正常系统无谓耗时）
+    if ! rpm -qa >/dev/null 2>&1 || [ -f /var/lib/rpm/.rpm.lock ]; then
+        echo "  rpm 数据库异常，重建中..."
+        rpm --rebuilddb 2>/dev/null
+    fi
+
+    # 7. 安装 yum-utils 并完成未完成事务
+    if ! rpm -q yum-utils >/dev/null 2>&1; then
+        yum install -y yum-utils >/dev/null 2>&1
+    fi
+    if command -v yum-complete-transaction >/dev/null 2>&1; then
+        echo "  检查并清理未完成的 yum 事务..."
+        yum-complete-transaction --cleanup-only -y >/dev/null 2>&1
+    fi
+
+    # 8. 清理缓存
+    yum clean all >/dev/null 2>&1
+
+    # 9. 验证 yum 是否恢复
+    if yum list installed >/dev/null 2>&1; then
+        echo "yum/rpm 锁检查完成"
+    else
+        echo "警告: yum 可能仍有异常，将继续尝试安装..."
+    fi
+    return 0
+}
 
 
 is64bit=$(getconf LONG_BIT)
@@ -329,10 +608,29 @@ GetSysInfo(){
 
 	if [ -n "$NO_EXIST_TOOL" ]; then
 		if [ "${PM}" = "yum" ]; then
+			Fix_Yum_Lock
 			yum install -y $NO_EXIST_TOOL
+			# 安装失败时仅修复依赖后重试，不再重复完整锁检测（Fix_Yum_Lock 已在上方执行）
+			if [ $? -ne 0 ]; then
+				echo "核心工具安装失败，尝试修复 yum 状态后重试..."
+				yum clean all >/dev/null 2>&1
+				yum install -y $NO_EXIST_TOOL
+			fi
+			# 复检：如果工具已全部装上，清空缺失列表避免误报
+			local _all_ok=1
+			for _t in $NO_EXIST_TOOL; do
+				command -v "$_t" >/dev/null 2>&1 || _all_ok=0
+			done
+			[ $_all_ok -eq 1 ] && NO_EXIST_TOOL=""
 		elif [ "${PM}" = "apt-get" ]; then
 			apt-get update -y
 			apt-get install -y $NO_EXIST_TOOL
+			# 安装失败时尝试修复依赖后重试
+			if ! command -v unzip >/dev/null 2>&1; then
+				echo "核心工具安装失败，尝试修复 apt 依赖后重试..."
+				Fix_Apt_Dependencies
+				apt-get install -y $NO_EXIST_TOOL
+			fi
 		fi
 	fi
 
@@ -356,18 +654,19 @@ GetSysInfo(){
 		echo "========================================================"
 	fi
 
-	SYS_SSL_LIBS=$(pkg-config --list-all | grep -q libssl)
-	if [ -z "$SYS_SSL_LIBS" ] && [ -z "$NO_EXIST_TOOL" ];then
-		echo "检测到缺少系统ssl相关依赖，可执行下面命令安装依赖后再重新安装宝塔看是否正常"
-		echo "执行前请确保系统源正常"
-		if [ -f "/usr/bin/yum" ];then
-			echo "安装依赖命令: yum install openssl-devel -y"
-		elif [ -f "/usr/bin/apt-get" ];then
-			echo "安装依赖命令: apt-get install libssl-dev -y"
-		fi
-		rm -rf /www/server/panel/pyenv 
-		echo -e "=================================================="
-	fi
+	# SYS_SSL_LIBS=$(pkg-config --list-all | grep -q libssl)
+	# if [ -z "$SYS_SSL_LIBS" ] && [ -z "$NO_EXIST_TOOL" ];then
+	# 	echo "检测到缺少系统ssl相关依赖，可执行下面命令安装依赖后再重新安装宝塔看是否正常"
+	# 	echo "执行前请确保系统源正常"
+	# 	if [ -f "/usr/bin/yum" ];then
+	# 		echo "安装依赖命令: yum install openssl-devel -y"
+	# 	elif [ -f "/usr/bin/apt-get" ];then
+	# 		echo "安装依赖命令: apt-get install libssl-dev -y"
+	# 	fi
+	# 	rm -rf /www/server/panel/pyenv 
+	# 	echo -e "=================================================="
+	# fi
+
 }
 Red_Error(){
 	echo '=================================================';
@@ -788,7 +1087,7 @@ Set_Centos7_Repo(){
 		fi
 	fi
 
-	yum install unzip -y
+	yum install unzip libedit-devel -y
 	if [ "$?" != "0" ] ;then
 		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
 	fi
@@ -843,6 +1142,69 @@ Set_Centos8_Repo(){
 	yum install unzip tar -y
 	if [ "$?" != "0" ] ;then
 		sed -i "s/vault.epel.cloud/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
+	fi
+}
+Set_Centos9_Repo(){
+	HUAWEI_CHECK=$(cat /etc/motd |grep "Huawei Cloud")
+	if [ "${HUAWEI_CHECK}" ] && [ "${is64bit}" == "64" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=https://mirrors.aliyun.com|g' /etc/yum.repos.d/CentOS-*.repo
+		# 修复 CentOS Stream 9 路径：centos/$releasever/ -> centos-stream/9-stream/
+		sed -i 's|centos/$releasever/|centos-stream/9-stream/|g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|centos/9/|centos-stream/9-stream/|g' /etc/yum.repos.d/*.repo
+		rm -f /etc/yum.repos.d/epel.repo
+		rm -f /etc/yum.repos.d/epel-*
+	fi
+	ALIYUN_CHECK=$(cat /etc/motd|grep "Alibaba Cloud ")
+	if [  "${ALIYUN_CHECK}" ] && [ "${is64bit}" == "64" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		# 阿里云 CentOS Stream 9 源使用内网域名加速
+		sed -i 's/mirrors.aliyun.com/mirrors.cloud.aliyuncs.com/g' /etc/yum.repos.d/*.repo
+		# 修复 CentOS Stream 9 路径
+		sed -i 's|centos/$releasever/|centos-stream/9-stream/|g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|centos/9/|centos-stream/9-stream/|g' /etc/yum.repos.d/*.repo
+	fi
+	# 检测默认 mirror.centos.org 或错误的 centos/9/ 路径（非 9-stream）
+	MIRROR_CHECK=$(grep -r "[^#]mirror.centos.org" /etc/yum.repos.d/CentOS-*.repo 2>/dev/null)
+	WRONG_PATH_CHECK=$(grep -r "centos/9/" /etc/yum.repos.d/*.repo 2>/dev/null | grep -v "9-stream")
+	if [ "${MIRROR_CHECK}" ] || [ "${WRONG_PATH_CHECK}" ];then
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo
+		sed -i 's|#baseurl=http://mirror.centos.org|baseurl=https://mirrors.aliyun.com|g' /etc/yum.repos.d/centos*.repo
+		# 修复 CentOS Stream 9 路径
+		sed -i 's|centos/$releasever/|centos-stream/9-stream/|g' /etc/yum.repos.d/centos*.repo
+		sed -i 's|centos/9/|centos-stream/9-stream/|g' /etc/yum.repos.d/centos*.repo
+	fi
+
+	yum install unzip tar -y
+	if [ "$?" != "0" ] ;then
+
+		if [ -d "/etc/yum.repos.d" ];then
+			mkdir -p /etc/yum.repos.d
+		fi
+
+		if [ -z "${download_Url}" ];then
+			download_Url="http://download.bt.cn"
+		fi
+		if [ ! -f "/usr/bin/tar" ]  || [ ! -f "/usr/sbin/tar" ];then
+			curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/tar-1.34-6.el9.x86_64.rpm
+			yum install tar-1.34-6.el9.x86_64.rpm -y
+			if [ "$?" != "0" ] ;then
+				rpm -ivh --nodeps --force tar-1.34-6.el9.x86_64.rpm
+			fi
+		fi
+		\cp -rpa /etc/yum.repos.d/ /etc/yumBak
+		curl -Ss --connect-timeout 5 -m 60 -O ${download_Url}/src/el9repo.tar.gz
+		rm -f /etc/yum.repos.d/*.repo
+		tar -xvzf el9repo.tar.gz -C /etc/yum.repos.d/
+
+		# 替换 repo 后重试安装（仅在第一次失败时才需要）
+		yum install unzip tar -y
+		if [ "$?" != "0" ] ;then
+			sed -i "s/mirrors.aliyun.com/mirrors.cloud.tencent.com/g" /etc/yum.repos.d/*.repo
+			yum install unzip tar -y
+		fi
 	fi
 }
 get_node_url(){
@@ -954,7 +1316,33 @@ Remove_Package(){
 		fi
 	fi
 }
+
+Install_OpenSSL3(){
+    if [ -f "/usr/local/openssl3/bin/openssl" ];then
+        return 0
+    fi
+    echo "正在安装 OpenSSL 3.x 依赖..."
+    yum install -y perl-core zlib-devel
+    
+    cd /tmp
+    wget -O openssl-3.0.10.tar.gz $download_Url/src/openssl-3.0.10.tar.gz -T 30
+    tar zxf openssl-3.0.10.tar.gz
+    cd openssl-3.0.10
+    ./config --prefix=/usr/local/openssl3 --openssldir=/usr/local/openssl3 shared zlib
+    make -j$cpu_cpunt
+    make install
+    
+    # 配置动态库链接
+    echo "/usr/local/openssl3/lib64" > /etc/ld.so.conf.d/openssl3.conf
+    ldconfig
+    
+    cd ~
+    rm -rf /tmp/openssl-3.0.10 /tmp/openssl-3.0.10.tar.gz
+}
+
 Install_RPM_Pack(){
+	# 在所有 yum 操作之前检测并修复 yum/rpm 锁
+	Fix_Yum_Lock
 	yumPath=/etc/yum.conf
 
 	CentosStream8Check=$(cat /etc/redhat-release |grep Stream|grep 8)
@@ -967,6 +1355,10 @@ Install_RPM_Pack(){
 		fi
 	fi
 
+	Centos9Check=$(cat /etc/redhat-release | grep ' 9' | grep -iE 'centos|Red Hat')
+	if [ "${Centos9Check}" ];then
+		Set_Centos9_Repo
+	fi		
 	Centos8Check=$(cat /etc/redhat-release | grep ' 8.' | grep -iE 'centos|Red Hat')
 	if [ "${Centos8Check}" ];then
 		Set_Centos8_Repo
@@ -1119,109 +1511,12 @@ Install_Other_Pack(){
 	fi
 }
 
-Get_Versions(){
-	redhat_version_file="/etc/redhat-release"
-	deb_version_file="/etc/issue"
-
-	if [[ $(grep Anolis /etc/os-release) ]] && [[ $(grep VERSION /etc/os-release|grep 8.8) ]];then
-		if [ -f "/usr/bin/yum" ];then
-			os_type="anolis"
-			os_version="8"
-			return
-		fi
-	fi
-
-
-	if [ -f "/etc/os-release" ];then
-		. /etc/os-release
-		OS_V=${VERSION_ID%%.*}
-		if [ "${ID}" == "opencloudos" ] && [[ "${OS_V}" =~ ^(9)$ ]];then
-			os_type="opencloudos"
-			os_version="9"
-			pyenv_tt="true"
-		elif { [ "${ID}" == "almalinux" ] || [ "${ID}" == "centos" ] || [ "${ID}" == "rocky" ]; } && [[ "${OS_V}" =~ ^(9|10)$ ]]; then
-			os_type="el"
-			os_version="9"
-			pyenv_tt="true"
-		elif [ "${ID}" == "alinux" ] && [[ "${OS_V}" =~ ^(4)$ ]];then
-			os_type="alinux"
-			os_version="4"
-			pyenv_tt="true"
-		fi
-		if [ "${pyenv_tt}" ];then
-			return
-		fi
-	fi
-    
-	if [ -f $redhat_version_file ];then
-		os_type='el'
-		is_aliyunos=$(cat $redhat_version_file|grep Aliyun)
-		if [ "$is_aliyunos" != "" ];then
-			return
-		fi
-
-		if [[ $(grep "Alibaba Cloud" /etc/redhat-release) ]] && [[ $(grep al8 /etc/os-release) ]];then
-			os_type="ali-linux-"
-			os_version="al8"
-			return
-		fi
-
-		if [[ $(grep "TencentOS Server" /etc/redhat-release|grep 3.1) ]];then
-			os_type="TencentOS-"
-			os_version="3.1"
-			return
-		fi
-
-		os_version=$(cat $redhat_version_file|grep CentOS|grep -Eo '([0-9]+\.)+[0-9]+'|grep -Eo '^[0-9]')
-		if [ "${os_version}" = "5" ];then
-			os_version=""
-		fi
-		if [ -z "${os_version}" ];then
-			os_version=$(cat /etc/redhat-release |grep Stream|grep -oE 8)
-		fi
-	else
-		os_type='ubuntu'
-		os_version=$(cat $deb_version_file|grep Ubuntu|grep -Eo '([0-9]+\.)+[0-9]+'|grep -Eo '^[0-9]+')
-		if [ "${os_version}" = "" ];then
-			os_type='debian'
-			os_version=$(cat $deb_version_file|grep Debian|grep -Eo '([0-9]+\.)+[0-9]+'|grep -Eo '[0-9]+')
-			if [ "${os_version}" = "" ];then
-				os_version=$(cat $deb_version_file|grep Debian|grep -Eo '[0-9]+')
-			fi
-			if [ "${os_version}" = "8" ];then
-				os_version=""
-			fi
-			if [ "${is64bit}" = '32' ];then
-				os_version=""
-			fi
-		else
-			if [ "$os_version" = "14" ];then
-				os_version=""
-			fi
-			if [ "$os_version" = "12" ];then
-				os_version=""
-			fi
-			if [ "$os_version" = "19" ];then
-				os_version=""
-			fi
-			if [ "$os_version" = "21" ];then
-				os_version=""
-			fi
-			if [ "$os_version" = "20" ];then
-				os_version2004=$(cat /etc/issue|grep 20.04)
-				if [ -z "${os_version2004}" ];then
-					os_version=""
-				fi
-			fi
-		fi
-	fi
-}
 Install_Python_Lib(){
 
-	if [ -f "/www/server/panel/pyenv/bin/python3.7" ];then
-		python_file_date=$(date -r /www/server/panel/pyenv/bin/python3.7  +"%Y")
+	if [ -f "/www/server/panel/pyenv/bin/python3.13" ];then
+		python_file_date=$(date -r /www/server/panel/pyenv/bin/python3.13  +"%Y")
 		if [ "${python_file_date}" -lt "2021" ];then
-			rm -rf /www/server/panel/pyenv
+			rm -rf /www/server/panel/python
 		fi
 	fi
 	
@@ -1242,15 +1537,13 @@ EOF
 	pyenv_path="/www/server/panel"
 	if [ -f $pyenv_path/pyenv/bin/python ];then
 	 	is_ssl=$($python_bin -c "import ssl" 2>&1|grep cannot)
-		$pyenv_path/pyenv/bin/python3.7 -V
+		$pyenv_path/pyenv/bin/python3.13 -V
 		if [ $? -eq 0 ] && [ -z "${is_ssl}" ];then
 			chmod -R 700 $pyenv_path/pyenv/bin
 			is_package=$($python_bin -m psutil 2>&1|grep package)
 			if [ "$is_package" = "" ];then
-				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip.txt -T 15
-				$pyenv_path/pyenv/bin/pip install -U pip
-				$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
-				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
+				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip313.txt -T 15
+				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt --only-binary=greenlet,psycopg2-binary,gevent,pymssql
 			fi
 			source $pyenv_path/pyenv/bin/activate
 			chmod -R 700 $pyenv_path/pyenv/bin
@@ -1260,94 +1553,108 @@ EOF
 		fi
 	fi
 
-	is_loongarch64=$(uname -a|grep loongarch64)
-	if [ "$is_loongarch64" != "" ] && [ -f "/usr/bin/yum" ];then
-		yumPacks="python3-devel python3-pip python3-psutil python3-gevent python3-pyOpenSSL python3-paramiko python3-flask python3-rsa python3-requests python3-six python3-websocket-client"
-		yum install -y ${yumPacks}
-		for yumPack in ${yumPacks}
-		do
-			rpmPack=$(rpm -q ${yumPack})
-			packCheck=$(echo ${rpmPack}|grep not)
-			if [ "${packCheck}" ]; then
-				yum install ${yumPack} -y
-			fi
-		done
-
-		pip3 install -U pip
-		pip3 install Pillow psutil pyinotify pycryptodome upyun oss2 pymysql qrcode qiniu redis pymongo Cython configparser cos-python-sdk-v5 supervisor gevent-websocket pyopenssl
-		pip3 install flask==1.1.4
-		pip3 install Pillow -U
-
-		pyenv_bin=/www/server/panel/pyenv/bin
-		mkdir -p $pyenv_bin
-		ln -sf /usr/local/bin/pip3 $pyenv_bin/pip
-		ln -sf /usr/local/bin/pip3 $pyenv_bin/pip3
-		ln -sf /usr/local/bin/pip3 $pyenv_bin/pip3.7
-
-		if [ -f "/usr/bin/python3.7" ];then
-			ln -sf /usr/bin/python3.7 $pyenv_bin/python
-			ln -sf /usr/bin/python3.7 $pyenv_bin/python3
-			ln -sf /usr/bin/python3.7 $pyenv_bin/python3.7
-		elif [ -f "/usr/bin/python3.6"  ]; then
-			ln -sf /usr/bin/python3.6 $pyenv_bin/python
-			ln -sf /usr/bin/python3.6 $pyenv_bin/python3
-			ln -sf /usr/bin/python3.6 $pyenv_bin/python3.7
-		fi
-
-		echo > $pyenv_bin/activate
-
-		return
-	fi
-
-	py_version="3.7.16"
+	py_version="3.13.14"
 	mkdir -p $pyenv_path
 	echo "True" > /www/disk.pl
 	if [ ! -w /www/disk.pl ];then
 		Red_Error "ERROR: Install python env fielded." "ERROR: /www目录无法写入，请检查目录/用户/磁盘权限！"
 	fi
-	os_type='el'
-	os_version='7'
-	is_export_openssl=0
-	Get_Versions
 
-	echo "OS: $os_type - $os_version"
+	is_export_openssl=0
+	
 	is_aarch64=$(uname -a|grep aarch64)
 	if [ "$is_aarch64" != "" ];then
 		is64bit="aarch64"
 	fi
-	
+	is_x86_64=$(uname -a|grep x86_64)
+	if [ "$is_x86_64" != "" ];then
+		is64bit="x86_64"
+	fi
+
 	if [ -f "/www/server/panel/pymake.pl" ];then
 		os_version=""
 		rm -f /www/server/panel/pymake.pl
 	fi	
 	echo "==============================================="
-	echo "正在下载面板运行环境，请稍等..............."
+	echo "正在下载面板完整版运行环境，请稍等..............."
 	echo "==============================================="
-	if [ "${os_version}" != "" ];then
+	if [ "${is64bit}" != "" ];then
 		pyenv_file="/www/pyenv.tar.gz"
 		#Download_File ${download_Url} ${backup_Url} "/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz" $pyenv_file
-		wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 20
+		wget -O $pyenv_file $download_Url/install/pyenv/cpython-${py_version}-${is64bit}-unknown-linux-gnu-bundle.tar.gz -T 20
 		if [ "$?" != "0" ];then
 			get_node_url $download_Url
-			wget -O $pyenv_file $download_Url/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz -T 20
+			wget -O $pyenv_file $download_Url/install/pyenv/cpython-${py_version}-${is64bit}-unknown-linux-gnu-bundle.tar.gz -T 20
 		fi
 		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
-		if [ $tmp_size -lt 703460 ];then
+		if [ $tmp_size -lt 1500000 ];then
 			rm -f $pyenv_file
 			echo "ERROR: Download python env fielded."
 		else
 			echo "Install python env..."
 			tar zxvf $pyenv_file -C $pyenv_path/ > /dev/null
+			mv $pyenv_path/python $pyenv_path/pyenv
 			chmod -R 700 $pyenv_path/pyenv/bin
 			if [ ! -f $pyenv_path/pyenv/bin/python ];then
 				rm -f $pyenv_file
 				Red_Error "ERROR: Install python env fielded." "ERROR: 下载宝塔运行环境失败，请尝试重新安装！" 
 			fi
-			$pyenv_path/pyenv/bin/python3.7 -V
+			$pyenv_path/pyenv/bin/python3.13 -V
 			if [ $? -eq 0 ];then
 				rm -f $pyenv_file
-				ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
-				ln -sf $pyenv_path/pyenv/bin/python3.7 /usr/bin/btpython
+				chown -R root:root $pyenv_path/pyenv/
+				chmod u+x $pyenv_path/pyenv/bin/python*
+				chmod u+x $pyenv_path/pyenv/bin/pip*
+				ln -sf $pyenv_path/pyenv/bin/pip3.13 /usr/bin/btpip
+				ln -sf $pyenv_path/pyenv/bin/python3.13 /usr/bin/btpython
+				source $pyenv_path/pyenv/bin/activate
+				return
+			else
+				rm -f $pyenv_file
+				rm -rf $pyenv_path/pyenv
+			fi
+		fi
+	fi
+
+	cd /www
+
+	echo "==============================================="
+	echo "正在下载面板标准版运行环境，请稍等..............."
+	echo "==============================================="
+	if [ "${is64bit}" != "" ];then
+		pyenv_file="/www/pyenv.tar.gz"
+		#Download_File ${download_Url} ${backup_Url} "/install/pyenv/pyenv-${os_type}${os_version}-x${is64bit}.tar.gz" $pyenv_file
+		wget -O $pyenv_file $download_Url/install/pyenv/cpython-${py_version}-${is64bit}-unknown-linux-gnu.tar.gz -T 20
+		if [ "$?" != "0" ];then
+			get_node_url $download_Url
+			wget -O $pyenv_file $download_Url/install/pyenv/cpython-${py_version}-${is64bit}-unknown-linux-gnu.tar.gz -T 20
+		fi
+		tmp_size=$(du -b $pyenv_file|awk '{print $1}')
+		if [ $tmp_size -lt 1500000 ];then
+			rm -f $pyenv_file
+			echo "ERROR: Download python env fielded."
+		else
+			echo "Install python env..."
+			tar zxvf $pyenv_file -C $pyenv_path/ > /dev/null
+			mv $pyenv_path/python $pyenv_path/pyenv
+			chmod -R 700 $pyenv_path/pyenv/bin
+			if [ ! -f $pyenv_path/pyenv/bin/python ];then
+				rm -f $pyenv_file
+				Red_Error "ERROR: Install python env fielded." "ERROR: 下载宝塔运行环境失败，请尝试重新安装！" 
+			fi
+			$pyenv_path/pyenv/bin/python3.13 -V
+			if [ $? -eq 0 ];then
+				rm -f $pyenv_file
+				chown -R root:root $pyenv_path/pyenv/
+				chmod u+x $pyenv_path/pyenv/bin/python*
+				chmod u+x $pyenv_path/pyenv/bin/pip*
+				wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip313.txt -T 20
+				ln -sf $pyenv_path/pyenv/bin/pip3.13 /usr/bin/btpip
+				ln -sf $pyenv_path/pyenv/bin/python3.13 /usr/bin/btpython
+				chmod -R 700 $pyenv_path/pyenv/bin
+				$pyenv_path/pyenv/bin/pip install -U pip
+				$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt --only-binary=greenlet,psycopg2-binary,gevent,pymssql
+				echo "正在后台安装pip依赖请稍等.........."
 				source $pyenv_path/pyenv/bin/activate
 				return
 			else
@@ -1362,57 +1669,43 @@ EOF
 	python_src_path="/www/Python-${py_version}"
 	wget -O $python_src $download_Url/src/Python-${py_version}.tar.xz -T 15
 	tmp_size=$(du -b $python_src|awk '{print $1}')
-	if [ $tmp_size -lt 10703460 ];then
+	if [ $tmp_size -lt 20000000 ];then
 		rm -f $python_src
 		Red_Error "ERROR: Download python source code fielded." "ERROR: 下载宝塔运行环境失败，请尝试重新安装！"
 	fi
 	tar xvf $python_src
 	rm -f $python_src
 	cd $python_src_path
-	./configure --prefix=$pyenv_path/pyenv
+	./configure --prefix=$pyenv_path/pyenv 
 	make -j$cpu_cpunt
 	make install
-	if [ ! -f $pyenv_path/pyenv/bin/python3.7 ];then
+    # 强制校验SSL模块可用性（3.13.14核心依赖，缺失会导致pip、HTTPS全失效）
+    #is_ssl=$($pyenv_path/pyenv/bin/python3.13.14 -c "import ssl; print(ssl.OPENSSL_VERSION)" 2>&1|grep "OpenSSL")
+    #if [ -z "${is_ssl}" ];then
+    #    rm -rf $python_src_path
+    #    [ -d "$pyenv_path/pyenv.bak" ] && mv $pyenv_path/pyenv.bak $pyenv_path/pyenv
+    #    Red_Error "ERROR: SSL module is not available." "ERROR: Python SSL模块编译失败，请检查OpenSSL版本！"
+    #fi
+	if [ ! -f $pyenv_path/pyenv/bin/python3.13 ];then
 		rm -rf $python_src_path
 		Red_Error "ERROR: Make python env fielded." "ERROR: 编译宝塔运行环境失败！"
 	fi
 	cd ~
 	rm -rf $python_src_path
 	wget -O $pyenv_path/pyenv/bin/activate $download_Url/install/pyenv/activate.panel -T 20
-	wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip-3.7.16.txt -T 20
-	ln -sf $pyenv_path/pyenv/bin/pip3.7 $pyenv_path/pyenv/bin/pip
-	ln -sf $pyenv_path/pyenv/bin/python3.7 $pyenv_path/pyenv/bin/python
-	ln -sf $pyenv_path/pyenv/bin/pip3.7 /usr/bin/btpip
-	ln -sf $pyenv_path/pyenv/bin/python3.7 /usr/bin/btpython
+	wget -O $pyenv_path/pyenv/pip.txt $download_Url/install/pyenv/pip313.txt -T 20
+	ln -sf $pyenv_path/pyenv/bin/pip3.13 $pyenv_path/pyenv/bin/pip
+	ln -sf $pyenv_path/pyenv/bin/python3.13 $pyenv_path/pyenv/bin/python
+	ln -sf $pyenv_path/pyenv/bin/pip3.13 /usr/bin/btpip
+	ln -sf $pyenv_path/pyenv/bin/python3.13 /usr/bin/btpython
 	chmod -R 700 $pyenv_path/pyenv/bin
 	$pyenv_path/pyenv/bin/pip install -U pip
-	$pyenv_path/pyenv/bin/pip install -U setuptools==65.5.0
-	$pyenv_path/pyenv/bin/pip install -U wheel==0.34.2 
-	$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt
+	$pyenv_path/pyenv/bin/pip install -r $pyenv_path/pyenv/pip.txt --only-binary=greenlet,psycopg2-binary,gevent,pymssql
 
-	wget -O pip-packs.txt $download_Url/install/pyenv/pip-packs.txt
 	echo "正在后台安装pip依赖请稍等.........."
-	PIP_PACKS=$(cat pip-packs.txt)
-	for P_PACK in ${PIP_PACKS};
-	do
-		btpip show ${P_PACK} > /dev/null 2>&1
-		if [ "$?" == "1" ];then
-			btpip install ${P_PACK}
-		fi 
-	done
-
-	rm -f pip-packs.txt
 
 	source $pyenv_path/pyenv/bin/activate
 
-	btpip install psutil
-	btpip install gevent
-
-	is_gevent=$($python_bin -m gevent 2>&1|grep -oE package)
-	is_psutil=$($python_bin -m psutil 2>&1|grep -oE package)
-	if [ "${is_gevent}" != "${is_psutil}" ];then
-		Red_Error "ERROR: psutil/gevent install failed!"
-	fi
 }
 Install_Bt(){
 	if [ -f ${setup_path}/server/panel/data/port.pl ];then
@@ -1470,17 +1763,27 @@ Install_Bt(){
 		if [ "${PM}" = "yum" ]; then
 			yum install unzip -y
 		elif [ "${PM}" = "apt-get" ]; then
-			apt-get update
+			# 先修锁再操作，避免一开始就撞锁
 			Fix_Apt_Lock
+			apt-get update
 			apt-get install unzip -y 2>&1|tee /tmp/apt_install_log.log
 			UNZIP_CHECK=$(which unzip)
 			if [ "$?" != "0" ];then
+				# 失败后再次深度修锁 + 重试
+				echo "unzip 安装失败，尝试修复锁状态后重试..."
+				Fix_Apt_Lock
+				apt-get update
+				apt-get install unzip -y
+			fi
+			UNZIP_CHECK=$(which unzip)
+			if [ "$?" != "0" ];then
+				# 检测错误类型：锁问题 or 依赖问题
 				RECONFIGURE_CHECK=$(grep "dpkg --configure -a" /tmp/apt_install_log.log)
-				if [ "${RECONFIGURE_CHECK}" ];then
-					dpkg --configure -a
-				fi
 				APT_LOCK_CHECH=$(grep "/var/lib/dpkg/lock" /tmp/apt_install_log.log)
+				UNMET_CHECK=$(grep "Unmet dependencies\|have unmet dependencies" /tmp/apt_install_log.log)
+
 				if [ "${APT_LOCK_CHECH}" ];then
+					echo "检测到 apt 锁冲突，强制清理..."
 					pkill dpkg
 					pkill apt-get
 					pkill apt
@@ -1490,7 +1793,13 @@ Install_Bt(){
 					[ -e /var/cache/apt/archives/lock ] && rm -f /var/cache/apt/archives/lock
 					dpkg --configure -a
 				fi
-				sleep 5
+
+				if [ "${UNMET_CHECK}" ] || [ "${RECONFIGURE_CHECK}" ];then
+					echo "检测到依赖冲突，执行深度依赖修复..."
+					Fix_Apt_Dependencies
+				fi
+
+				sleep 3
 				apt-get install unzip -y
 			fi
 		fi
@@ -1515,7 +1824,20 @@ Install_Bt(){
 
 	if [ ! -f ${setup_path}/server/panel/tools.py ] || [ ! -f ${setup_path}/server/panel/BT-Panel ];then
 		ls -lh panel.zip
-		Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载宝塔失败，请尝试重新安装！"
+		if [ -f panel.zip ] && ! command -v unzip >/dev/null 2>&1; then
+			Red_Error "ERROR: unzip command not found, cannot extract panel.zip!" "ERROR: 缺少 unzip 命令，无法解压面板文件！"
+			echo "========================================================"
+			echo "  系统包管理器处于异常状态，导致 unzip 等基础工具无法安装。"
+			echo "  常见原因：系统源损坏、依赖冲突、之前的 apt 操作被中断。"
+			echo "  请先执行以下命令修复系统包管理器："
+			echo "  dpkg --configure -a"
+			echo "  apt --fix-broken install -y"
+			echo "  apt-get install unzip -y"
+			echo "  修复后重新执行安装脚本。"
+			echo "========================================================"
+		else
+			Red_Error "ERROR: Failed to download, please try install again!" "ERROR: 下载宝塔失败，请尝试重新安装！"
+		fi
 	fi
     
     SYS_LOG_CHECK=$(grep ^weekly /etc/logrotate.conf)
@@ -1524,10 +1846,7 @@ Install_Bt(){
     fi
 
 	rm -f panel.zip
-	rm -f ${setup_path}/server/panel/class/*.pyc
-	rm -f ${setup_path}/server/panel/*.pyc
 
-	chmod +x /etc/init.d/bt
 	chmod -R 600 ${setup_path}/server/panel
 	chmod -R +x ${setup_path}/server/panel/script
 	chmod -R 700 $pyenv_path/pyenv/bin
@@ -1536,6 +1855,7 @@ Install_Bt(){
 	ln -sf /www/server/panel/script/btcli.py /usr/bin/btcli
 	echo "${panelPort}" > ${setup_path}/server/panel/data/port.pl
 	wget -O /etc/init.d/bt ${download_Url}/install/src/bt7.init -T 15
+	chmod +x /etc/init.d/bt
 	wget -O /www/server/panel/init.sh ${download_Url}/install/src/bt7.init -T 15
 	if [ -f "/www/server/panel/config/default_soft_list.conf" ];then
 		\cp -rpa /www/server/panel/config/default_soft_list.conf /www/server/panel/data/softList.conf
@@ -1591,8 +1911,6 @@ Set_Bt_Panel(){
 		echo "/${auth_path}" > ${admin_auth}
 	fi
 
-	btpip install asn1crypto==1.5.1 cbor2==5.4.6 
-	btpip install openai==1.39.0 numpy==1.21.6
 	if [ ! -f "/www/server/panel/pyenv/n.pl" ];then
 		btpip install docxtpl==0.16.7
 		/www/server/panel/pyenv/bin/pip3 install pymongo
@@ -1602,7 +1920,6 @@ Set_Bt_Panel(){
 		/www/server/panel/pyenv/bin/pip3 install -I gevent
 		btpip install simple-websocket==0.10.0
 		btpip install natsort
-		btpip uninstall enum34 -y
 		btpip install geoip2==4.7.0
 		btpip install brotli
 		btpip install PyMySQL
@@ -1664,12 +1981,12 @@ Set_Bt_Panel(){
 			#/etc/init.d/bt 22
 			cd /www/server/panel/pyenv/bin
 			touch t.pl
-			ls -al python3.7 python
-			lsattr python3.7 python
-			if [ -f "/www/server/panel/pyenv/bin/python3.7" ];then
-				/www/server/panel/pyenv/bin/python3.7 -c "print('test')"
-				/www/server/panel/pyenv/bin/python3.7 -V
-				ls -la /www/server/panel/pyenv/lib/python3.7/encodings*|grep utf|grep 8
+			ls -al python3.13 python
+			lsattr python3.13 python
+			if [ -f "/www/server/panel/pyenv/bin/python3.13" ];then
+				/www/server/panel/pyenv/bin/python3.13 -c "print('test')"
+				/www/server/panel/pyenv/bin/python3.13 -V
+				ls -la /www/server/panel/pyenv/lib/python3.13/encodings*|grep utf|grep 8
 			fi
 			# btpython /www/server/panel/BT-Panel
 			Red_Error "ERROR: The BT-Panel service startup failed." "ERROR: 宝塔启动失败"
@@ -1850,7 +2167,7 @@ Start_Ip_Cert_Async(){
              if [ "$acme_http_code" == "200" ];then
                 echo "正在后台开启受信任宝塔面板ip证书..."
                 (
-                    timeout 60 $pyenv_path/pyenv/bin/python3.7 /www/server/panel/script/auto_apply_ip_ssl.py -ips ${ipv4_address} -path /www/server/panel/ssl > /tmp/auto_apply_ip_ssl.log 2>&1
+                    timeout 60 $pyenv_path/pyenv/bin/python3.13 /www/server/panel/script/auto_apply_ip_ssl.py -ips ${ipv4_address} -path /www/server/panel/ssl > /tmp/auto_apply_ip_ssl.log 2>&1
                     echo $? > /tmp/ip_ssl_exit_code.pl
                 ) &
                 IP_SSL_PID=$!

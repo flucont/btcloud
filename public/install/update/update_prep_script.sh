@@ -21,7 +21,7 @@ PANEL_UPDATING_VERSION_FILE="${PANEL_PATH}/updating_version.pl"
 
 # 定义版本控制顺序（按时间顺序排列，新版本放后面）
 # 会自动扫描所有 prepare_X_X 和 after_X_X 格式的函数
-ALL_VERSIONS=("11.3" "11.5" "11.6" "11.7" "11.8")
+ALL_VERSIONS=("11.3" "11.5" "11.6" "11.7" "11.8" "13.0")
 
 # 输出成功信息, 必须输出 "BT-Panel Update Ready" 才证明预处理成功
 function success() {
@@ -30,6 +30,12 @@ function success() {
         echo "$message"
     fi
     echo "BT-Panel Update Ready"
+}
+
+# 用于判断本地的python版本 是否为3.13，如果是返回0，否则返回非0
+function is_py313() {
+    ${PANEL_PATH}/pyenv/bin/python3 --version 2>&1 | grep -q "^Python 3\.13"
+    return $?
 }
 
 # 获取当前版本号
@@ -156,6 +162,21 @@ function after_11_3() {
     fi
 }
 
+# 13.0 版本 after, 替换bt命令，移除 runserver 这个进程检查
+function after_13_0() {
+    echo "[after 13.0] 替换bt命令"
+    local init_path="${PANEL_PATH}/init.sh"
+    if [ -f "$init_path" ]; then
+        \cp -a "$init_path" /etc/init.d/bt
+        chmod +x /etc/init.d/bt
+        echo "[after 13.0] 替换成功"
+        return 0
+    else
+        echo "Error: $init_path 文件不存在"
+        return 1
+    fi
+}
+
 # 11.5 版本 after
 function after_11_5() {
     echo "[after 11.5] 配置btcli"
@@ -198,6 +219,7 @@ function prepare_11_8() {
   echo "[prepare 11.8] 清理完成"
   return 0
 }
+
 
 #===============================================================================
 # 自动执行引擎（自动扫描函数）

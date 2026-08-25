@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Linux_Version="11.8.1"
+Linux_Version="13.0.0"
 Windows_Version="8.2.2"
 Aapanel_Version="7.0.25"
 Btm_Version="2.3.3"

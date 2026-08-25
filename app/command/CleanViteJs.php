@@ -202,6 +202,11 @@ class CleanViteJs extends Command
             $file = str_replace($code, '', $file);
             $file = preg_replace('!\w+\.sum===\w+\.addend1\+\w+\.addend2!', '!0', $file);
             $file = preg_replace('!value=\!0,(\w+)\.value=5;!', 'value=!1,$1.value=0;', $file);
+            $code = $this->getExtendCode($file, '免费证书不建议用于正式业务');
+            if ($code) {
+                $code = $this->getExtendFunction($file, $code);
+                $file = str_replace($code, '', $file);
+            }
             $flag = true;
         }
     
